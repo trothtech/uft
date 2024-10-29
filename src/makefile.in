@@ -13,8 +13,9 @@ PREFIX		=	%PREFIX%
 
 .PHONY: 	clean distclean config help
 
-all:		uftd sf maketext cpq cpqu \
-			tell msgpipe msgcat msgd
+all:		uftd sf
+#			maketext cpq cpqu \
+#			tell msgpipe msgcat msgd
 
 uftd:		makefile uftd.o \
 			uftdnext.o uftddata.o uftduser.o \
