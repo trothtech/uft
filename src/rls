@@ -1,0 +1,59 @@
+#!/bin/sh
+# © Copyright 1995, Richard M. Troth, all rights reserved.   <plaintext>
+#
+#
+#	  Name: rls (shell script)
+#		'ls' files in "receive pool"
+#	Author: Rick Troth, Houston, Texas, USA
+#	  Date: 1995-Jan-14, Apr-29
+#
+#
+
+#
+# some environments have a non-POSIX side:
+case `uname -s` in
+	VM/ESA)
+		cms " pipe rls | > /tmp/$$.rls "
+		cat /tmp/$$.rls ; RC="$?"
+		rm /tmp/$$.rls
+		exit $RC
+		;;
+	OS/390)
+		echo "$0: operation not supported" 1>&2
+		exit 28
+		;;
+	esac
+
+#
+# set some variables:
+if [ -z "$LOGNAME" ] ; then LOGNAME=$USER ; fi
+if [ -z "$LOGNAME" ] ; then LOGNAME=$USERNAME ; fi
+D=/usr/spool/uft/$LOGNAME
+if [ -n "$UFT_SPOOLDIR" ]; then D="$UFT_SPOOLDIR"; fi
+
+#
+# make sure we have a UFT spool directory:
+if [ ! -d "$D" ]; then
+	mkdir "$D" 2> /dev/null
+	chmod 700 "$D" 2> /dev/null
+	fi
+if [ ! -d "$D" ]; then
+	echo "UFT configuration problem: no spool directory"
+	exit 1
+	fi
+
+#
+# a simple command:
+#cd "$D"
+#for F in `ls -t *.cf | sed 's/.cf//'` ; do
+#	if [ ! -f $F.cf ]; then continue; fi
+#	ls -l $F.df | sed 's/.df//'
+#	done
+
+#
+# a simpler command:
+cat "$D"/*.lf
+
+exit
+
+

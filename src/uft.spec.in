@@ -1,0 +1,82 @@
+#
+#         Name: uft.spec.in (RPM package specs file)
+#               RPM package specs file for UFT
+#               http://ftp.rpm.org/max-rpm/s1-rpm-build-creating-spec-file.html
+#         Date: 2024-03-17 (Sun) and prior
+#
+#   Build with:
+#               # make substitutions on this file, then:
+#               rpmbuild -bb --nodeps uft.spec
+#
+
+#%package %APPLID%
+# The name line defines what the package will actually be called.
+Name: %APPLID%
+Version: %APPVRM%
+Release: %RPMSEQ%
+Summary: Universal File Transfer
+Group: Utilities/System
+Source: https://github.com/trothr/uft/
+#Copyright: Casita.Net
+License: GPL
+#BuildRoot: /tmp/uft
+#Prefix: %PREFIX%
+#Provides: %APPLID%
+## The distribution line identifies the product this package is part of.
+#Distribution: Casita.Net
+#Conflicts: patch < 2.5
+
+#URL: http://www.casita.net/pub/uft/
+#Vendor: La Casita en la Esquina
+#Packager: Sir Santa
+
+%description
+UFT is Universal File Transfer, aka is Unsolicited File Transfer.
+One may also call it  "Internet SENDFILE"  or  "Internet TRANSMIT".
+It does over TCP/IP what other tools do over IBM NJE protocol.
+
+%prep
+true
+#%setup -q
+
+%build
+#CFLAGS="$RPM_OPT_FLAGS" ./configure --prefix=/usr
+#make
+mkdir -p $HOME/rpmbuild/BUILDROOT/%APPLID%-%APPVRM%-%RPMSEQ%.%UNAMEM%
+rsync -a -u -x -H -O -S %BUILDD%/. $HOME/rpmbuild/BUILDROOT/%APPLID%-%APPVRM%-%RPMSEQ%.%UNAMEM%/.
+
+%install
+#rm -rf $RPM_BUILD_ROOT
+#mkdir -p $RPM_BUILD_ROOT/usr/lib
+mkdir -p $HOME/rpmbuild/BUILDROOT/%APPLID%-%APPVRM%-%RPMSEQ%.%UNAMEM%
+rsync -a -u -x -H -O -S %BUILDD%/. $HOME/rpmbuild/BUILDROOT/%APPLID%-%APPVRM%-%RPMSEQ%.%UNAMEM%/.
+
+##mkdir -p $RPM_BUILD_ROOT/usr/src/redhat/SOURCES
+##mkdir -p $RPM_BUILD_ROOT/usr/src/redhat/RPMS/${RPM_ARCH}
+
+#make installprefix="$RPM_BUILD_ROOT/uft" install
+
+%clean
+#rm -rf $RPM_BUILD_ROOT/uft
+true
+
+%post
+#/bin/rpm --initdb
+mkdir -p -m 1777 /var/spool/uft
+ln -s /var/spool /usr/. 2> /dev/null
+
+#%prefix /
+#%prefix %PREFIX%
+# The %files section is a list of the files that comprise the package.
+# If it isn't in the file list, it won't be put into the package.
+%files
+#%defattr(-,root,root)
+#%doc README
+#%doc docs/*
+/usr/bin/sf
+/usr/sbin/uftd
+#%dir /usr/spool/uft
+#/usr/src/redhat/RPMS/*
+/etc/xinetd.d/uft
+
+
