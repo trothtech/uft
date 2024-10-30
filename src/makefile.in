@@ -1,15 +1,25 @@
 # © Copyright 1995, Richard M. Troth, all rights reserved.   <plaintext>
 #
-#	  Name: .../posixuft/src/makefile.in
-#		make file source for UFTD and UFTC (Internet SENDFILE)
-#		to be modified by 'configure' and written as "makefile"
-#	  Date: 1995-Jan-10, Oct-05, 1997-Feb-02, 2024-03-17
+#         Name: .../posixuft/src/makefile.in
+#               make file source for UFTD and UFTC (Internet SENDFILE)
+#               to be modified by 'configure' and written as "makefile"
+#         Date: 1995-Jan-10, Oct-05, 1997-Feb-02, 2024-03-17
 #
 
-LDFLAGS 	=	%LDFLAGS%
-LIBS		=	%LIBS%
-CFLAGS		=	%CFLAGS%
-PREFIX		=	%PREFIX%
+APPLID          =       uft
+VERSION         =       1.10.3
+DELIVERABLES    =       uftd sf rls rcv
+SOURCEURL       =       https://raw.githubusercontent.com/trothtech/uft/refs/heads/main
+#                       https://raw.githubusercontent.com/trothtech/uft/master
+
+##### configuration #####
+
+LDFLAGS         =       %LDFLAGS%
+LIBS            =       %LIBS%
+CFLAGS          =       %CFLAGS% -DPREFIX=\"$(PREFIX)\"
+PREFIX          =       %PREFIX%
+SHFLAGS         =       %SHFLAGS%
+# we may later use CC, CXX, CPP, CPPFLAGS, and/or CXXFLAGS
 
 .PHONY: 	clean distclean config help
 
@@ -107,18 +117,18 @@ distclean:
 		rm -f core a.out *.o *.a *.lst CEEDUMP.* \
 			uftd sf maketext cpq cpqu uftcmime \
 			tell msgpipe msgcat msgd imsg \
-			*:* *';'* makefile Makefile
-
-#config:		makefile
-#		@sh -c ' : '
+			*:* *';'* makefile Makefile makefile.old \
+			uft.spec configure.sh configure.h *.rpm *.log .rpmseq
 
 #makefile:	makefile.in configure
-#		./configure
+#		@echo "$(MAKE): makefile is out of synch"
+#		@echo "$(MAKE): you need to re-run ./configure"
+#		@false
 
 help:
-	@echo "$(MAKE):"
-	@echo "$(MAKE): this is the build logic for UFT, POSIX 'sendfile'"
-	@echo "$(MAKE):"
+		@echo "$(MAKE):"
+		@echo "$(MAKE): this is the build logic for UFT, POSIX 'sendfile'"
+		@echo "$(MAKE):"
 
 #
 #
@@ -218,34 +228,42 @@ msgdlmsg.o:	makefile uft.h msgdlmsg.c
 homedir.o:	makefile homedir.c
 		$(CC) -c homedir.c
 
-#userid.o:	makefile userid.c
-#		$(CC) -c userid.c
-
-#tcpio.o:	makefile tcpio.c
-#		$(CC) -c tcpio.c
-
-#getline.o:	makefile getline.c
-#		$(CC) -c getline.c
-
-#putline.o:	makefile putline.c
-#		$(CC) -c putline.c
-
-#install:	sf cpq cpqu tell msgcat maketext msgpipe uftd msgd
+#install:	sf uftd cpq cpqu tell msgcat maketext msgpipe msgd
 #		mv sf cpq cpqu tell msgcat $(PREFIX)/bin/.
 #		mv maketext msgpipe $(PREFIX)/lib/.
 #		mv uftd msgd $(PREFIX)/sbin/.
-install:	sf uftd 
+install:	sf uftd
 		mkdir -p $(PREFIX)/bin $(PREFIX)/sbin $(PREFIX)/etc/xinetd.d
-		cp -p sf $(PREFIX)/bin/.
+		cp -p sf rls rcv $(PREFIX)/bin/.
 		cp -p uftd $(PREFIX)/sbin/.
 #		cp -p uftd $(PREFIX)/libexec/.
 		cp -p uft.inet $(PREFIX)/etc/xinetd.d/uft
 
-rpm:
-		rpm -bb uft.spec
-#		rpm -ba ?
-		new -d /usr/src/*/RPMS/*/uft-*.rpm .
+########################################################################
+# RPM support
 
+# http://ftp.rpm.org/max-rpm/s1-rpm-build-creating-spec-file.html
+uft.rpm:        uft.spec
+#		rpmbuild -bb --nodeps uft.spec
+		./rpmbuild.sh $(APPLID) $(VERSION)
+#		rpm -bb uft.spec
+##		rpm -ba ?
+#		new -d /usr/src/*/RPMS/*/uft-*.rpm .
+
+#
+uft.spec:       uft.spec.in
+		@echo "$(MAKE): checking required variables"
+#		test ! -z "$(UNAMEM)" # UNAMEM
+#		test ! -z "$(RELEASE)" # RELEASE
+#		test ! -z "$(STAGING)" # STAGING
+		cat uft.spec.in \
+		  | sed 's#%SPEC_PREFIX%#$(PREFIX)#g' \
+		  | sed 's#%SPEC_APPLID%#$(APPLID)#g' \
+		  | sed 's#%SPEC_VERSION%#$(VERSION)#g' \
+		  | sed 's#%SPEC_RELEASE%#$(RELEASE)#g' \
+		  | sed 's#%SPEC_UNAMEM%#$(UNAMEM)#g' \
+		  | sed 's#%SPEC_STAGING%#$(STAGING)#g' \
+		  > uft.spec
 
 #Get yourself an easy source package, e.g. telnet-*-.src.rpm and do an
 # rpm -i telnet-*.src.rpm
