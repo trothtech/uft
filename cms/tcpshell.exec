@@ -1,0 +1,30 @@
+/* © Copyright 1995, 1997, Richard M. Troth, all rights reserved.  <plaintext>
+ *
+ * THIS IS A NEW VERSION OF TCPSHELL WITH IMPROVED INVOKATION SYNTAX
+ *              TCPSHELL doesn't have a version number
+ *              because it is included with other software
+ *              which do have version numbers.
+ *
+ *        Name: TCPSHELL EXEC
+ *              General purpose TCP/IP socket-to-pipeline interface
+ *      Author: Rick Troth, Houston, Texas, USA
+ *        Date: 1993-Feb-29..1995-Jun-29, 1997-Sep-08
+ *
+ *     Co-reqs: TCPSHELL REXX
+ *              CMS Pipelines
+ *              REXX/Sockets (RXSOCKET V2)
+ *              VM TCP/IP V2
+ *
+ *    GlobalVs: ARG0 (group TCPSHELL) names the group
+ *              SERVER_NAME - FQDN of this server's host system
+ *              SERVER_PORT - TCP port at which this server listens
+ *              REMOTE_HOST - FQDN of client's system (once connected)
+ *              REMOTE_ADDR - dotted decimal IP address of client
+ *              REMOTE_PORT - TCP port of client's connection
+ */
+
+Parse Arg args
+'PIPE REXX TCPSHELL' args
+Exit rc
+
+

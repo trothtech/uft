@@ -1,0 +1,76 @@
+/* © Copyright 1995, Richard M. Troth, all rights reserved.  <plaintext>
+ *
+ *        Name: UFTD EXEC
+ *              Sender-Initiated File Transfer server
+ *              aka  Unsolicited File Transfer server
+ *      Author: Rick Troth, Houston, Texas, USA
+ *        Date: 1993-Apr-20, 1995-Jan-25
+ *
+ *        Note: recommend you run this in v-machine UFTD with class B.
+ *
+ *       Calls: UFTD REXX via TCPSHELL EXEC
+ */
+
+/*  some settings  */
+port = 608
+vrm = "1.10.4"                  /* to coincide with the POSIX version */
+verbose = 0
+uft = 2
+
+/*  program identifies itself  */
+Parse Source . . arg0 .
+argo = arg0 || ':'
+Parse Arg args
+
+/*  use the faster SVC 204 interface  */
+Address COMMAND
+
+/*  miscellaneous server setup  */
+'CP SET NOPDATA ON'     /* ignore non-zero return code here */
+'SET LANGUAGE (ADD UFT USER'
+If rc ^= 0 Then Exit rc
+
+/*  check VRM of message repository  */
+'PIPE COMMAND XMITMSG 000 (APPLID UFT NOHEADER | VAR _VRM'
+If _vrm ^= vrm Then ,
+    Address COMMAND 'XMITMSG 1200 _VRM VRM (APPLID UFT CALLER SRV'
+
+/*  begin announcements ...  */
+'XMITMSG 004 VRM (APPLID UFT CALLER SRV'
+'XMITMSG 011 VRM (APPLID UFT CALLER SRV'
+
+/*  get host and RSCS IDs and stuff into GlobalVs  */
+'PIPE COMMAND IDENTIFY | VAR IDENTITY'
+Parse Var identity userid . hostid . rscsid .
+'GLOBALV SELECT' arg0 'PUT USERID HOSTID RSCSID VRM VERBOSE UFT'
+
+/*  find out if this server is listed as a network file agent  */
+'PIPE COMMAND IDENTIFY ( ALL | STEM ID.'
+uftisnet = 0
+Do i = 1 To id.0
+    Parse Var id.i . . . . rid .
+    If rid = uid Then uftisnet = 1
+    End  /*  Do For  */
+
+/*  if we're not listed,  then can we masquerade as RSCS?  */
+If uftisnet Then Do
+    'PIPE CP COMMANDS | SPLIT | STRIP' ,
+        '| SPEC / / N 1-* N / / N | JOIN * | VAR COMMANDS'
+    If Index(commands," DIAGD4 ") > 0 Then Do
+        Say argo userid "acting as" rscsid
+        Parse Value DiagD4(userid,rscsid) With rc rs
+        If rc ^= 0 Then Say argo "alternate userid (DIAG D4) failed" rs
+        End  /*  If  ..  Do  */
+    Else Say argo "no DIAG D4 support"
+    End  /*  If  ..  Do  */
+
+/*  now ... the real work  */
+If verbose Then verbose = "VERBOSE"
+           Else verbose = "TERSE"
+'EXEC TCPSHELL ( BINARY' verbose 'MULTI )' port arg0 args
+If rc = 24 Then ,
+'EXEC TCPSHELL ( BINARY' verbose ')' port arg0 args
+
+Exit rc
+
+

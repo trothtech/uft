@@ -1,0 +1,32 @@
+.cm Copyright 1995, Richard M. Troth, all rights reserved.   <plaintext>
+.cm
+.cm       Name: MAKETEXT HELPPIPE
+.cm       Date: 1994-Oct-29 and prior
+.cm     Author: Rick Troth, Houston, Texas, USA
+.cm
+ MAKETEXT REXX
+
+ The MAKETEXT pipeline stage is used by the VM/CMS HTTP server and other
+ applications to translate "on the wire" ASCII text to/from local EBCDIC.
+ Here the term "text" means "plain text",  that is,  human readable text.
+ MAKETEXT is a REXX-source gem which may be compiled.
+
+ The syntax for the MAKETEXT stage is:
+ +-----------------------+---------------------------------------------+
+ |                       |                                             |
+ |   [REXX]   MAKETEXT   |   LOCAL                                     |
+ |                       |   NETWORK                                   |
+ |                       |                                             |
+ +-----------------------+---------------------------------------------+
+
+ where:
+
+ LOCAL          means to translate lines of ASCII (delimited by CR/LF)
+                into records of EBCDIC (delimited out-of-band)
+
+ NETWORK        means to translate EBCDIC records to CR/LF ASCII lines
+
+ notes:
+
+ MAKETEXT uses  ISO-8859-1 / CodePage 1047  translation by default.
+

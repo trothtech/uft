@@ -1,0 +1,36 @@
+.cs 1 on
+ UFT protocol CPQ command
+
+ The CPQ command of UFT is similar in function to the CPQ command
+ known in RSCS.   Use the CPQ command to find out information about
+ the server's host system,  including users currently logged on.
+
+ VM users should consule the CP QUERY command to get some idea
+ of what kind of information the UFT CPQ command provides.
+
+.cs 1 off
+.cs 2 on
+ The format of the CPQ command is:
+ +---------+-----------------------------------------------------------+
+ |         |                                                           |
+ |   CPQ   |   parameter  [sub-parameter   [...]]                      |
+ |         |                                                           |
+ +---------+-----------------------------------------------------------+
+
+.cs 2 off
+.cs 5 on
+
+Usage Notes:
+
+        Not all UFT implementations support CPQ.
+
+.cs 5 off
+.cs 7 on
+CPQ related topics:
+
+
+CPQUERY  NAMES          NAMES     -- List all users on the remote system.
+CPQUERY  USER           USER user -- List an individual remote user.
+CPQUERY  CPLEVEL        CPLEVEL   -- Shoe the remote hypervisor level.
+
+.cs 7 off

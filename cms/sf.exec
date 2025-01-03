@@ -1,0 +1,153 @@
+/* © Copyright 1994, 1995, 1996, 1997, 2024, Richard M. Troth, all rights reserved. <plaintext>
+ *
+ *        Name: SIFT/UFTC/SENDFILE EXEC
+ *              Sender-Initiated File Transfer (Internet SENDFILE)
+ *      Author: Rick Troth, Rice University, Information Systems
+ *              Rick Troth, Houston, Texas (METRO)
+ *        Date: 1992-Nov-06, 1993-Feb-22
+ *       Calls: UFTCFILE, UFTCUSER, UFTCHOST, UFTULIST
+ *
+ *        Note: This EXEC should "just drop in" to replace the
+ *              IBM-supplied SENDFILE EXEC. If you prefer, you can
+ *              keep the original SENDFILE and call this one SIFT EXEC.
+ */
+
+vrm = "1.10.4"                  /* to coincide with the POSIX version */
+
+Address "COMMAND"
+
+Parse Arg fn ft fm '(' opts ')' .
+Parse Source . . arg0 .
+
+/* nothing specified? */
+If fn = "" & arg0 = "SIFT" Then Do
+    'EXEC RDRLIST (' opts
+    Exit rc
+    End /* If .. Do */
+
+/* complete fileid specified? */
+If Index(fn,".") > 0 Then Do ; fm = ft fm ; Parse Var fn fn "." ft ; End
+If ft = "" Then Do
+    'XMITMSG 54 (ERRMSG CALLER UFT'
+    Exit 24
+    End /* If .. Do */
+
+/* parse variable command line arguments */
+Parse Upper Var fm to .
+Select /* to */
+    When to = "TO" | to = "-TO" Then Do
+        Parse Var fm . userlist
+        fm = ""
+        End /* When .. Do */
+    When Length(to) = 1 & ^Datatype(to,'N') Then Do
+        Parse Var fm fm userlist
+        Upper fm
+        End /* When .. Do */
+    When Length(to) = 2 & ^Datatype(Left(to,1),'N') ,
+                        & Datatype(Right(to,1),'N') Then Do
+        Parse Var fm fm userlist
+        Upper fm
+        End /* When .. Do */
+    Otherwise Do
+        userlist = fm
+        fm = ""
+        End /* Otherwise Do */
+    End /* Select */
+
+/* create a stem of users to whom send */
+Parse Upper Var userlist to .
+If to = "TO" | to = "-TO" Then Parse Var userlist . userlist
+If userlist = "" Then Do
+    'XMITMSG 675 (ERRMSG CALLER UFT'
+    Exit 24
+    End /* If .. Do */
+'PIPE VAR USERLIST | UFTULIST | STEM USER.'
+If rc ^= 0 Then Exit rc
+
+/* create a stem of files to send */
+If fm = "" & Index(fn ft, '*') = 0 & Index(fn ft, '%') = 0 Then ,
+     'PIPE CMS LISTFILE' fn ft '* | VAR RS | TAKE | STEM FILE.'
+Else 'PIPE CMS LISTFILE' fn ft fm '| VAR RS | STEM FILE.'
+If rc ^= 0 Then Do ; lrc = rc ; 'PIPE VAR RS | CONSOLE' ; Exit lrc ; End
+
+/* determine default user and host (me) */
+Parse Value Diag(08,'QUERY USERID') With userid . hostid . '15'x .
+
+/* extract defaults from GLOBALV */
+type = '*';     log = 1;        quiet = 0
+'PIPE COMMAND GLOBALV SELECT $' || userid ,
+        'LIST SENDFILE | DROP | VAR DEFAULTS'
+Parse Var defaults . '=' defaults
+Do While defaults ^= ""
+    Parse Var defaults op defaults
+    Select /* op */
+        When Abbrev("NEW",op,1)     Then type = 'N'
+        When Abbrev("OLD",op,1)     Then type = '*'
+        When Abbrev("LOG",op,1)     Then log = 1
+        When Abbrev("NOLOG",op,3)   Then log = 0
+        When  Abbrev("TYPE",op,1)       Then  quiet = 0
+        When  Abbrev("NOTYPE",op,3)     Then  quiet = 1
+        /* DISK DUMP; not implemented */
+        /* TERM/NOTERM; not processed here */
+        Otherwise nop
+        End /* Select op */
+    End /* Do While */
+
+/* parse any options */
+opto = "";      verbose = 0
+Do While opts ^= ""
+    Parse Upper Var opts op opts
+    Select /* op */
+        When  Abbrev("TYPE",op,1)       Then Do
+            Parse Upper Var opts type opts
+            If type = "" Then quiet = 0
+            End /* When .. Do */
+        When  Abbrev("ASCII",op,1)      Then  type = 'A'
+        When  Abbrev("TEXT",op,3)       Then  type = 'A'
+        When  Abbrev("TXT",op,2)        Then  type = 'A'
+        When  Abbrev("BINARY",op,1)     Then  type = 'I'
+        When  Abbrev("NETDATA",op,2)    Then  type = 'N'
+        When  Abbrev("NEW",op,3)        Then  type = 'N'
+        When  Abbrev("VERBOSE",op,1)    Then  verbose = 1
+        When  Abbrev("LOG",op,1)        Then  log = 1
+        When  Abbrev("NOLOG",op,3)      Then  log = 0
+        When  Abbrev("NOTYPE",op,3)     Then  quiet = 1
+        When  Abbrev("NOTERM",op,3)     Then  quiet = 1
+        When  Abbrev("TERM",op,2)       Then  quiet = 0
+        Otherwise  Do
+            'XMITMSG 3 OP (ERRMSG CALLER UFT'
+            Exit 24
+            End /* Otherwise Do */
+        End /* Select op */
+    End /* Do While */
+opto = "TYPE" type opto
+
+/* send the file(s) to the intended user(s) */
+mrc = 0
+Do  i = 1 to user.0
+    Parse Var user.i user '@' host
+    If user = "" Then user = userid
+    If host = "" Then host = hostid
+    Do  j = 1 to file.0
+        Parse Var file.j fn ft fm .
+        'PIPE UFTCFILE' fn ft fm 'TO' user 'AT' host '(' opto ,
+            '| UFTCUSER' user '| UFTCHOST' host '| STEM JOBLOG.'
+        sfrc = rc
+        If ^Datatype(joblog.0,'W') Then joblog.0 = 0
+        If verbose | sfrc ^= 0 Then 'PIPE STEM JOBLOG. | CONSOLE'
+        If sfrc = 0 Then Do
+            file = fn ft fm
+            time = Date('U') Time()
+            If ^quiet | verbose Then
+                'XMITMSG 8712 FILE USER HOST TIME (ERRMSG CALLER UFT'
+            If log Then
+                'PIPE COMMAND XMITMSG 8712 FILE USER HOST TIME' ,
+                    '(NOHEADER | >>' userid 'NETLOG A'
+            End /* If .. Do */
+        mrc = Max(mrc,sfrc)
+        End /* Do For j */
+    End /* Do For i */
+
+Exit mrc
+
+

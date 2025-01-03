@@ -1,0 +1,97 @@
+.cm Copyright 1995 Richard M. Troth, all rights reserved.    <plaintext>
+.cm
+.cm       Name: TCPSHELL HELPCMS
+.cm     Author: Rick Troth, Houston, Texas, USA
+.cm       Date: 1994-Oct-30
+.cm
+.cs 1 on
+ TCPSHELL EXEC
+
+ Use the TCPSHELL EXEC as a generic socket handler for CMS Pipelines based
+ TCP server applications.   TCPSHELL monitors the specified TCP port and
+ directs inbound connections to the CMS Pipelines command indicated.
+ Data from the socket is fed to the primary input of the pipelines stage,
+ and primary output of the stage is fed back to the socket.
+.cs 1 off
+.cs 2 on
+
+ The syntax of the TCPSHELL command is:
+ +--------------+------------------------------------------------------+
+ |              |                                                      |
+ |   TCPSHELL   |   [(opts)]   port   arg0   [args]                    |
+ |              |                                                      |
+ +--------------+------------------------------------------------------+
+
+.cs 2 off
+.cs 3 on
+
+ where:
+
+ port           is the TCP port to which to listen
+
+ arg0           is the name of the Pipelines stage to run
+
+ args           represents any further arguments
+                to pass to the stage,  may include options
+
+ opts           is either BINARY | TEXT and/or IDENT | NOIDENT
+
+.cs 3 off
+.cs 4 on
+
+ Options:
+
+ TEXT           means perform translation between ASCII and EBCDIC
+                interpolating CR/LF at record boundaries
+
+ BINARY         means connect the pipeline in to the TCP stream
+                without translating ASCII to/from EBCDIC
+                and ignoring carriage returns and linefeeds
+
+ IDENT          means perform RFC 1413 TAP/IDENT socket ownership lookup
+                this is the default
+
+ NOIDENT        means do not perform RFC 1413 TAP/IDENT lookup
+
+ VERBOSE        causes TCPSHELL to announce more information about its
+                various states.   This is the default.
+
+ TERSE          causes TCPSHELL to keep quiet about non-critical things.
+                This way,  mostly only errors are reported.
+
+ Commands:
+
+ STOP           terminate TCPSHELL,  stopping the service it is hantling
+
+ All other console commands are passed to CMS.
+
+.cs 4 off
+.cs 5 on
+
+ Usage Notes:
+
+ Your server's pipeline stage must be very careful about "blocking".
+ It is possible to get into a state where your server is waiting for
+ input from the client while the client is waiting for something from
+ your server.   TCPSHELL does not impose timeouts on such a deadlock.
+
+.cs 5 off
+.cs 6 on
+
+ Responses:
+
+ DMSTCP070E     Invalid parameter _bad_number_
+ DMSTCP386E     Missing operand(s)
+ DMSTCP8201     _server_ has been started
+ DMSTCP8205     Non-numeric value specified
+ DMSTCP2323I    Restarting _server_ at _time_.
+ DMSTCP2324I    Shutting down _server_ at _time_.
+
+.cs 6 off
+.cs 7 on
+TCPSHELL EXEC related topics:
+
+
+PIPE     PIPESOCKET     PIPESOCKET - connects the TCP stream to the pipeline
+
+.cs 7 off

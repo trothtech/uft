@@ -1,0 +1,36 @@
+.cs 1 on
+ UFT protocol MSG command
+
+ The MSG command of UFT is similar in function to the MSG command
+ known in RSCS.   Use the MSG command to send messages to users
+ on the remote system via the UFT server there.
+
+.cs 1 off
+.cs 2 on
+ The format of the MSG command is:
+ +---------+-----------------------------------------------------------+
+ |         |                                                           |
+ |   MSG   |   user   message   ...                                    |
+ |         |                                                           |
+ +---------+-----------------------------------------------------------+
+
+.cs 2 off
+.cs 5 on
+
+Usage Notes:
+
+        Not all UFT implementations support MSG.
+
+        The local system (client system) must be running an IDENT
+        server for the remote UFT server to determine from whom
+        the message(s) came.   Without an IDENT server on your system,
+        the target UFT server may reject your messages.
+
+.cs 5 off
+.cs 7 on
+MSG related topics:
+
+
+CP       MESSAGE        VM's CP MSG command
+
+.cs 7 off

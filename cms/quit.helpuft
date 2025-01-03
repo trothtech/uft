@@ -1,0 +1,28 @@
+.cs 1 on
+ UFT protocol QUIT command
+
+ UFT clients should send a QUIT command to terminate a transaction.
+ Any file-in-transit should be properly marked as complete by the
+ presence of a preceding EOF command.   QUIT signals the server
+ to close the TCP stream.
+
+.cs 1 off
+.cs 2 on
+ The format of the QUIT command is:
+ +----------+----------------------------------------------------------+
+ |          |                                                          |
+ |   QUIT   |                                                          |
+ |          |                                                          |
+ +----------+----------------------------------------------------------+
+
+ The QUIT command has no parameters, arguments, or options.
+
+.cs 2 off
+.cs 3 on
+Usage notes:
+
+ Any file-in-transit should be properly marked as complete by the
+ presence of a preceding EOF command.   Results where a QUIT preceeds
+ an EOF are not defined.
+
+.cs 3 off

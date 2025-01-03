@@ -1,0 +1,23 @@
+
+ UFT Canonicalization Types
+
+ Here is a rough list of the more common UFT canonicalization types:
+
+ A ---- ASCII, generally network plain text (see NVT).
+        On VM, this is really EBCDIC, and it remains EBCDIC
+        within the context of a SIFT job,  though it is transformed
+        to/from ASCII with CR/LF line interpolation when sent over TCP/IP.
+
+ I ---- IMAGE, binary or "octet stream".
+        An unprocessed byte stream.   Record boundaries are discarded.
+
+ N ---- NETDATA, suitable for VM and MVS spool destinations.
+        It is the responsibility of the source stage (the one attached
+        at UFTCMAIN's primary input) to generate the NETDATA content.
+
+ V ---- variable length records.
+        The record boundaries of the input stream (after the DATA statement)
+        are interpolated with a two-byte length field in Network Byte
+        Order (which conveniently matches Pipelines' BLOCK CMS format).
+
+

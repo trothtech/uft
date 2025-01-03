@@ -1,0 +1,35 @@
+.cs 1 on
+ UFT protocol FILE command
+
+.cs 1 off
+.cs 2 on
+ The format of the FILE command is:
+ +----------+----------------------------------------------------------+
+ |          |                                                          |
+ |   FILE   |   size   from   auth                                     |
+ |          |                                                          |
+ +----------+----------------------------------------------------------+
+
+ where
+
+        size    is the estimated size of the file about to be sent
+                The size specified need not be exact.   (see below)
+
+        from    is the sign-on name of the sending user
+
+        auth    is an authentication token, best IDENT or a dash
+
+.cs 2 off
+.cs 5 on
+
+Usage Notes:
+
+        The size value is used to answer the question  "is there room
+        for the file about to be sent?".   The server should reject
+        the file with a NAK if there is not sufficient space for it.
+        Clients,  however,  are not required to supply accurate
+        information,  especially if it is not available.
+
+        The only supported authentication token at this time is IDENT.
+
+.cs 5 off

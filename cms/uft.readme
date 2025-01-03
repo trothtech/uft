@@ -1,0 +1,36 @@
+Copyright © 1996, 2016, 2025, Richard M. Troth, all rights reserved. <plaintext>                                                                                                                                                                               
+
+This is a README file for VM/CMS UFT 1.6.0. UFT is Internet SENDFILE.
+In places where NJE connectivity isn't practical (or isn't possible
+or isn't approved by management) if we still have IP connectivity,
+we can send files with the package contained here. You don't need to
+install the server (UFTD) to use the client (SF), and vice versa.
+
+If you're familiar with the BITNET/NJE/RSCS (CMS SENDFILE or TSO TRANSMIT)
+or the VAX "SEND/FILE" command, then you don't need an introduction.
+Otherwise, consider the idea of sending a file to a colleague on a
+system to which you have no reasonable FTP access. Also consider that
+for some reason email is not the channel you want. (There are a number
+of Good Reasons why email should not be used for bulk or for anything
+that is not correspondence.) You could surface mail a flash drive
+but sending the file electronically would be more desireable and faster.
+
+Contrast SIFT/UFT to email as you would contrast
+parcels to letters in surface mail.
+
+Updates can usually be found at
+
+            https://github.com/trothtech/uft/
+        or
+            http://www.casita.net/pub/uft/vmcmsuft.vmarc
+            http://www.casita.net/pub/uft/posixuft.tar
+
+Both VM/CMS and Unix are available.
+
+I hope you like it. I hope you LOVE it.
+
+--
+Rick Troth <rick@trothtech.us>
+http://trothtech.us/
+
+

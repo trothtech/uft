@@ -1,0 +1,271 @@
+* Copyright © 1995, 2016, 2025, Richard M. Troth, all rights reserved. <plaintext>
+*
+*         Name: SENDFILE FILELIST
+*         Date: 2016-Apr-25 (Mon)
+*               This is the package definition for "SENDFILE v2".
+*       Author: Rick Troth, rogue programmer, somewhere on the internet
+*
+*               UFT/SIFT is "InterNet SENDFILE".
+*               See the file UFT README (uft.readme) for more information.
+*
+*               If you have any problems or questions,
+*               send mail to Rick Troth <rick@trothtecu.us>.
+*
+      SENDFILE FILELIST *  -- this file
+      UFT      README   *  -- do what it says, read it
+      SENDFILE LICENSE  *  -- simplified legal stuff
+*
+* sendfile client:
+      SF       EXEC     *  -- replacement for IBM 'sendfile' commmand
+      SF       HELPCMS  *  -- brief help
+* use the command 'sf' to not conflict with IBM 'sendfile'
+      UFTCFILE REXX     *  -- client, IBM also
+      UFTCUSER REXX     *  -- client, IBM also
+      UFTCHOST REXX     *  -- client, IBM also
+      UFTXINMR REXX     *  -- client, IBM also
+*     UFTCINMR REXX     *  -- replaced by UFTXINMR REXX
+      UFTCTCP  REXX     *  -- client, IBM also
+      UFTCRSCS REXX     *  -- client when sending via RSCS
+      UFTCMAIL REXX     *  -- client, when sending via email, IBM also
+      PIPESOCKET REXX   *  -- deprecated
+      MAKETEXT REXX     *  --
+      MAKETEXT HELPPIPE *  --
+      UFTULIST REXX     *  -- client (formerly USERLIST REXX)
+*     UFTCPIPE REXX     *  ?? missing
+*
+      UFTUME   MESSAGES *  -- message repository source
+      UFTUME   TEXT     *  -- message repository for client and server
+*
+      ENBASE64 REXX     *  -- client, replace this with Melinda's
+* http://vm.marist.edu/~pipeline/64encode.rexx
+* http://vm.marist.edu/~pipeline/64decode.rexx
+      64ENCODE REXX     *  --
+      64DECODE REXX     *  --
+      SENDMAIL REXX     *  -- client, include this
+*
+* help files:
+      UFT      HELPTASK *  -- IBM also
+      FILE     HELPUFT  *  -- server "FILE" command
+      USER     HELPUFT  *  -- server "USER" command
+      TYPE     HELPUFT  *  -- server "TYPE" command
+      NAME     HELPUFT  *  -- server "NAME" command
+      DATA     HELPUFT  *  -- server "DATA" command
+      EOF      HELPUFT  *  -- server "EOF" command, end of file
+      QUIT     HELPUFT  *  -- server "QUIT" command
+      CPQ      HELPUFT  *  -- server "CPQ" command, mimics RSCS
+      MSG      HELPUFT  *  -- server "MSG" command, mimics RSCS
+      UFTTYPES HELPUFT  *  -- recognized canonicalizations
+*
+      UFTD     HELPCMS  *  -- brief help for the UFT server itself
+      TCPSHELL HELPCMS  *  -- brief help for the TCP/IP server tool
+*
+*     UFTD     HELPABBR *  -- IBM
+*     UFTD     HELPMENU *  -- IBM
+*     UFT      HELPRSCS *  -- IBM
+*     UFTCMDS  HELPUFTD *  -- IBM
+*     UFTD     HELPRSCS *  -- IBM
+*     UFTD     HELPTCPI *  -- IBM
+*     TRACE    HELPUFTD *  -- IBM
+*     STOP     HELPUFTD *  -- IBM
+*     QUERY    HELPUFTD *  -- IBM
+*     QUIT     HELPUFTD *  -- IBM
+*     NSLOOKUP HELPUFTD *  -- IBM
+*     IDENTIFY HELPUFTD *  -- IBM
+*     UFTD     HELPABBR *  -- IBM
+*     UFTD     HELPMENU *  -- IBM
+*     UFTD     HELPTASK *  -- IBM
+*
+*     SPOOLUFT EXEC     *  ?? missing
+*     SPOOLUFT REXX     *  ?? missing
+*     UFT2     DOC      *  ?? missing
+*     UFTDTEXT REXX     *  ?? missing
+*     UFTD     TODO     *  ?? missing
+*     UFTD     VMSPOOL  *  ?? missing
+*     UFT      FL       *  ?? missing, merge with this file
+      UFT      HTML     *  --
+      UFT      INSTALL  *  --
+*     UFT-L    LIST     *  ?? missing
+      UFT      PROTOCOL *  --
+*     UFTSUMM  DOC      *  ?? missing
+*
+* sendfile server:
+      UFTD     EXEC     *  -- server program
+      UFTD     REXX     *  -- server pipeline stage (the real server)
+*     UFTDMAIL REXX     *  ?? missing
+*     UFTD     HELPFILE *  -- deprecated, see UFTDHELP TXT
+      TCPSHELL EXEC     *  -- generic TCP/IP server utility
+      RXDIAGD4 ASSEMBLE *  -- DiagD4() function source code
+      RXDIAGD4 MODULE   *  -- DiagD4() function for the server
+      UFTD     DIRECT   *  -- sample CP Directory entry for the server
+*
+* additions:
+      SENDFILE CMSMAKE  *  -- simple 'make' rules for [re]packaging these files
+* make -f sendfile manifest
+* make -f sendfile archives
+*
+*     -rw-r-----  1 rmt trothfam  2510 Jul  2  1993 uftxread rexx
+*     -rw-r-----  1 rmt trothfam  1566 Feb 23  1993 uftdpipe rexx
+*     -rw-r-----  1 rmt trothfam  1090 Nov 20  1992 uft$pipe rexx
+*
+* recovery:
+*     UFT      FILELIST *  -- merged with this file
+      UFT     COPYRIGHT *  --
+*     USERLIST REXX     *  -- deprecated, see UFTULIST REXX
+      UFTCMAIN REXX     *  --
+      UFTCMAIN HELPPIPE *  --
+      HOSTNAME EXEC     *  --
+      UFTXDSPL REXX     *  --
+      UFTXDSPL HELPPIPE *  --
+      FORWARD  EXEC     *  --
+      FORWARD  HELPCMS  *  --
+      UFTDHELP TXT      *  -- for the "HELP" server command
+*     TCPSHELL REXX     *  -- deprecated
+      SYSTEM   SNETID   *  -- sample SYSTEM NETID file
+*
+***** 19980319 *********************************************************
+*     UFT      FILELIST *  -- 19980319
+*     UFT      COPYRIGH *  -- 19980319
+*     UFT      README   *  -- 19980319
+*     UFT      INSTALL  *  -- 19980319
+*     SENDFILE EXEC     *  -- 19980319
+*     SENDFILE HELPCMS  *  -- 19980319
+*     UFTCMAIN REXX     *  -- 19980319
+*     UFTCMAIN HELPPIPE *  -- 19980319
+*     USERLIST REXX     *  -- 19980319
+*     UFTCFILE REXX     *  -- 19980319
+*     UFTXINMR REXX     *  -- 19980319
+*     UFTCTCP  REXX     *  -- 19980319
+*     UFTCMAIL REXX     *  -- 19980319
+*     ENBASE64 REXX     *  -- 19980319
+*     SENDMAIL REXX     *  -- 19980319
+*     HOSTNAME EXEC     *  -- 19980319
+*     UFTCRSCS REXX     *  -- 19980319
+*     UFTXDSPL REXX     *  -- 19980319
+*     UFTXDSPL HELPPIPE *  -- 19980319
+*     FORWARD  EXEC     *  -- 19980319
+*     FORWARD  HELPCMS  *  -- 19980319
+*     UFTD     EXEC     *  -- 19980319
+*     UFTD     REXX     *  -- 19980319
+*     UFTDHELP TXT      *  -- 19980319
+*     UFTD     HELPCMS  *  -- 19980319
+*     TCPSHELL EXEC     *  -- 19980319
+*     TCPSHELL HELPCMS  *  -- 19980319
+*     TCPSHELL REXX     *  -- 19980319
+*     UFTUME   MESSAGES *  -- 19980319
+*     UFTUME   TEXT     *  -- 19980319
+*     RXDIAGD4 ASSEMBLE *  -- 19980319
+*     RXDIAGD4 MODULE   *  -- 19980319
+*     UFTD     DIRECT   *  -- 19980319
+*     UFT      HELPTASK *  -- 19980319
+*     FILE     HELPUFT  *  -- 19980319
+*     USER     HELPUFT  *  -- 19980319
+*     TYPE     HELPUFT  *  -- 19980319
+*     NAME     HELPUFT  *  -- 19980319
+*     DATA     HELPUFT  *  -- 19980319
+*     EOF      HELPUFT  *  -- 19980319
+*     QUIT     HELPUFT  *  -- 19980319
+*     UFTTYPES HELPUFT  *  -- 19980319
+*     CPQ      HELPUFT  *  -- 19980319
+*     MSG      HELPUFT  *  -- 19980319
+*     MAKETEXT REXX     *  -- 19980319
+*     MAKETEXT HELPPIPE *  -- 19980319
+*     SYSTEM   SNETID   *  -- 19980319
+*     UFT      HTML     *  -- 19980319
+*     UFT      PROTOCOL *  -- 19980319
+*
+***** 19971009 *********************************************************
+*     UFT      FILELIST *  -- 19971009
+*     UFT      COPYRIGH *  -- 19971009
+*     UFT      README   *  -- 19971009
+*     UFT      INSTALL  *  -- 19971009
+*     SENDFILE EXEC     *  -- 19971009
+*     SENDFILE HELPCMS  *  -- 19971009
+*     UFTCMAIN REXX     *  -- 19971009
+*     UFTCMAIN HELPPIPE *  -- 19971009
+*     USERLIST REXX     *  -- 19971009
+*     UFTCFILE REXX     *  -- 19971009
+*     UFTXINMR REXX     *  -- 19971009
+*     UFTCTCP  REXX     *  -- 19971009
+*     UFTCMAIL REXX     *  -- 19971009
+*     ENBASE64 REXX     *  -- 19971009
+*     SENDMAIL REXX     *  -- 19971009
+*     UFTCRSCS REXX     *  -- 19971009
+*     UFTXDSPL REXX     *  -- 19971009
+*     UFTXDSPL HELPPIPE *  -- 19971009
+*     FORWARD  EXEC     *  -- 19971009
+*     FORWARD  HELPCMS  *  -- 19971009
+*     UFTD     EXEC     *  -- 19971009
+*     UFTD     REXX     *  -- 19971009
+*     UFTDHELP TXT      *  -- 19971009
+*     UFTD     HELPCMS  *  -- 19971009
+*     TCPSHELL EXEC     *  -- 19971009
+*     TCPSHELL HELPCMS  *  -- 19971009
+*     TCPSHELL REXX     *  -- 19971009
+*     PIPESOCK REXX     *  -- 19971009
+*     PIPESOCK HELPPIPE *  -- 19971009
+*     UFTUME   MESSAGES *  -- 19971009
+*     UFTUME   TEXT     *  -- 19971009
+*     RXDIAGD4 ASSEMBLE *  -- 19971009
+*     RXDIAGD4 MODULE   *  -- 19971009
+*     UFTD     DIRECT   *  -- 19971009
+*     UFT      HELPTASK *  -- 19971009
+*     FILE     HELPUFT  *  -- 19971009
+*     USER     HELPUFT  *  -- 19971009
+*     TYPE     HELPUFT  *  -- 19971009
+*     NAME     HELPUFT  *  -- 19971009
+*     DATA     HELPUFT  *  -- 19971009
+*     EOF      HELPUFT  *  -- 19971009
+*     QUIT     HELPUFT  *  -- 19971009
+*     UFTTYPES HELPUFT  *  -- 19971009
+*     CPQ      HELPUFT  *  -- 19971009
+*     MSG      HELPUFT  *  -- 19971009
+*     MAKETEXT REXX     *  -- 19971009
+*     MAKETEXT HELPPIPE *  -- 19971009
+*     SYSTEM   SNETID   *  -- 19971009
+*     UFT      HTML     *  -- 19971009
+*     UFT      PROTOCOL *  -- 19971009
+*
+***** 19970716 *********************************************************
+*     UFT      FILELIST *  -- 19970716
+*     UFT      COPYRIGH *  -- 19970716
+*     UFT      README   *  -- 19970716
+*     UFT      INSTALL  *  -- 19970716
+*     SENDFILE EXEC     *  -- 19970716
+*     SENDFILE HELPCMS  *  -- 19970716
+*     UFTCMAIN REXX     *  -- 19970716
+*     UFTCMAIN HELPPIPE *  -- 19970716
+*     USERLIST REXX     *  -- 19970716
+*     UFTCFILE REXX     *  -- 19970716
+*     UFTXINMR REXX     *  -- 19970716
+*     UFTCTCP  REXX     *  -- 19970716
+*     UFTCMAIL REXX     *  -- 19970716
+*     ENBASE64 REXX     *  -- 19970716
+*     SENDMAIL REXX     *  -- 19970716
+*     UFTCRSCS REXX     *  -- 19970716
+*     UFTXDSPL REXX     *  -- 19970716
+*     UFTD     EXEC     *  -- 19970716
+*     UFTD     REXX     *  -- 19970716
+*     UFTDHELP TXT      *  -- 19970716
+*     UFTD     HELPCMS  *  -- 19970716
+*     TCPSHELL EXEC     *  -- 19970716
+*     TCPSHELL HELPCMS  *  -- 19970716
+*     PIPESOCK REXX     *  -- 19970716
+*     PIPESOCK HELPPIPE *  -- 19970716
+*     UFTUME   MESSAGES *  -- 19970716
+*     UFTUME   TEXT     *  -- 19970716
+*     RXDIAGD4 ASSEMBLE *  -- 19970716
+*     RXDIAGD4 MODULE   *  -- 19970716
+*     UFTD     DIRECT   *  -- 19970716
+*     UFT      HELPTASK *  -- 19970716
+*     FILE     HELPUFT  *  -- 19970716
+*     NAME     HELPUFT  *  -- 19970716
+*     CPQ      HELPUFT  *  -- 19970716
+*     QUIT     HELPUFT  *  -- 19970716
+*     UFTTYPES HELPUFT  *  -- 19970716
+*     MAKETEXT REXX     *  -- 19970716
+*     MAKETEXT HELPPIPE *  -- 19970716
+*     SYSTEM   SNETID   *  -- 19970716
+*     UFT      HTML     *  -- 19970716
+*     UFT      PROTOCOL *  -- 19970716
+*
+*

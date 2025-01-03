@@ -1,0 +1,66 @@
+.cm Copyright 1993, 1995 Richard M. Troth, all rights reserved. <plaintext>
+.cm             (casita sourced)
+.cm
+.cm       Name: SF HELPCMS
+.cm     Author: Rick Troth, Houston, Texas, USA
+.cm       Date: 1994-Oct-30
+.cm
+
+¢|SF EXEC¢%
+
+ Use SF to send files to other users on this or any NJE or Internet
+ connected computer.   Theoretically, SF will get the file you send
+ to the intended user even without TCP/IP or RSCS connectivity
+ as long as you can send mail to that user.
+
+ +--------------+------------------------------------------------------+
+ |              |                                                      |
+ |   SF         |   fn  ft  [fm]  [TO]  user [[AT] host]  [(options]   |
+ |              |                                                      |
+ |              |   Options:                                           |
+ |              |                                                      |
+ |              |        Netdata                                       |
+ |              |        Binary                                        |
+ |              |        Ascii                                         |
+ |              |        Log | NOLog                                   |
+ |              |                                                      |
+ +--------------+------------------------------------------------------+
+
+ where:
+
+ fn ft fm
+         is the fileid of the file(s) you wish to send
+
+ user
+         is the user to whom you wish to send this file
+
+ host
+         is either an NJE-connected host or an IP-connected host.
+         SF tells the difference by whether or not the hostname
+         is dotted. Internet (IP) hostnames are dotted.
+
+ Options:
+
+ NETDATA
+         causes SF to use NETDATA format to retain the file's
+         record structure.   This is the default.
+
+ ASCII
+         causes SF to canonicalize the file as plain text,
+         which on the Internet is represented as lines of ASCII
+         terminated with carriage-return and linefeed
+
+ BINARY
+         causes SF to canonicalize the file as a byte stream
+
+ Usage Notes:
+
+         This version of SENDFILE does not support the
+         FILELIST or ACK options.
+
+         With this version of SENDFILE, the TYPE option has a
+         different meaning than for the standard IBM SENDFILE.
+         You normally should not need to specify explicit TYPEs
+         because the ASCII, BINARY, and NETDATA options cover
+         the most commonly encountered cases.
+

@@ -1,0 +1,22 @@
+.cs 1 on
+ UFT protocol USER command
+
+ A UFT client sends the USER command to name intended recipient of the
+ file being sent.   The recipient is typically an end user,  but may be
+ a robot or simply a queue.
+
+.cs 1 off
+.cs 2 on
+ The format of the FILE command is:
+ +----------+----------------------------------------------------------+
+ |          |                                                          |
+ |   USER   |   user                                                   |
+ |          |                                                          |
+ +----------+----------------------------------------------------------+
+
+ where
+
+        user        is the name of the user or queue to receive the file
+                    Quoting of special characters is not discussed.
+
+.cs 2 off

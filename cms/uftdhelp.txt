@@ -1,0 +1,23 @@
+
+Universal File Transfer (UFT)
+
+Primary commands:
+    FILE  size  from  auth
+    USER  recipient
+    TYPE  type (typically A or I)
+    NAME  name
+    DATE  date  time  tz
+
+Commands meaningful for print jobs:
+    FORM  form
+    DEST  destination (queue)
+    DIST  distribution (mailstop)
+    COPY  copies
+    CLASS  class
+
+Other commands:
+    DATA  burst-size
+    EOF
+    QUIT
+    HELP
+

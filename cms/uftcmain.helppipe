@@ -1,0 +1,55 @@
+.cm Copyright 1997, Richard M. Troth, all rights reserved.   <plaintext>
+.cm
+.cm       Name: UFTCMAIN HELPPIPE
+.cm       Date: 1997-Jun-28
+.cm     Author: Rick Troth, Houston, Texas, USA
+.cm
+.cs 1 on
+ UFTCMAIN REXX
+
+ Use the UFTCMAIN pipeline stage to process "SIFT jobs".
+ UFTCMAIN invokes other stages to deliver files via RSCS or TCP/IP.
+.cs 1 off
+.cs 2 on
+
+ The syntax for the UFTCMAIN stage is:
+ +-----------------------+---------------------------------------------+
+ |                       |                                             |
+ |   [REXX]   UFTCMAIN   |   [user[@host]]                             |
+ |                       |                                             |
+ +-----------------------+---------------------------------------------+
+
+.cs 2 off
+.cs 5 on
+
+ notes:
+
+ UFTCMAIN is used by other applications to transmit files.
+ It is not usually invoked from the command line.
+
+ UFTCMAIN's operation differs from an  "on the wire"  UFT transaction
+ in that the file content is not canonicalized.   Content canonicalization
+ is handled by UFTCMAIN and the stages it invokes.   This is a  "SIFT job".
+ (Sender-Initiated File Transfer,  brother to UFT)
+
+ streams:
+
+ PRIMARY INPUT
+ The primary input stream is a SIFT job,  consisting of file attributes
+ followed by file content.   The content will be canonicalized for
+ transmission by UFTCMAIN according to the TYPE specified in the job.
+
+ PRIMARY OUTPUT
+ The primary output may contain error messages or other output
+ suitable for logging from the stages which UFTCMAIN invokes.
+ Leaving primary output unconnected is not harmful.
+
+.cs 5 off
+.cs 7 on
+UFTCMAIN REXX related topics:
+
+
+UFT      UFTTYPES       UFT TYPE values recognized by UFTCMAIN REXX
+
+.cs 7 off
+

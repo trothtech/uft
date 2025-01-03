@@ -1,0 +1,116 @@
+#
+#
+#         Name: SENDFILE CMSMAKE (package rules file for CMS Make)
+#         Date: 2024-04-18 (Thu) and prior (62 since 62)
+#               These rules let you re-package Internet SENDFILE
+#               (UFT for VM/CMS) or even re-download it from the
+#               primary web site (BASEURL). This file is used by
+#               CMS Make but parts require VMARC and CMS TAR.
+#
+
+MANIFEST    =   sendfile.filelist       \
+                sendfile.license        \
+                uft.readme              \
+                uft.copyright           \
+                uft.html                \
+                uft.install             \
+                uft.protocol            \
+                uft.readme              \
+                \
+                sf.exec                 \
+                uftcmain.rexx           \
+                uftctcp.rexx            \
+                uftcrscs.rexx           \
+                uftcmail.rexx           \
+                uftcfile.rexx           \
+                uftcuser.rexx           \
+                uftchost.rexx           \
+                64encode.rexx           \
+                64decode.rexx           \
+                sendmail.rexx           \
+                \
+                uftd.exec               \
+                uftd.rexx               \
+                uftulist.rexx           \
+                uftxdspl.rexx           \
+                uftxinmr.rexx           \
+                maketext.rexx           \
+                maketext.helppipe       \
+                tcpshell.exec           \
+                forward.exec            \
+                hostname.exec           \
+                \
+                sf.helpcms              \
+                uftd.helpcms            \
+                uft.helptask            \
+                file.helpuft            \
+                user.helpuft            \
+                name.helpuft            \
+                type.helpuft            \
+                data.helpuft            \
+                eof.helpuft             \
+                quit.helpuft            \
+                cpq.helpuft             \
+                msg.helpuft             \
+                ufttypes.helpuft        \
+                uftcmain.helppipe       \
+                tcpshell.helpcms        \
+                uftxdspl.helppipe       \
+                forward.helpcms         \
+                \
+                uftume.messages         \
+                uftdhelp.txt            \
+                rxdiagd4.assemble       \
+                system.snetid           \
+                uftd.direct             \
+                \
+                sendfile.cmsmake
+
+BASEURL         =       http://www.casita.net/pub/uft
+
+64encode.rexx:
+        wget http://vm.marist.edu/~pipeline/$@
+
+64decode.rexx:
+        wget http://vm.marist.edu/~pipeline/$@
+
+sendfile.readme:
+        wget http://www.casita.net/pub/uft/$@
+
+uft.readme:
+        wget http://www.casita.net/pub/uft/$@
+
+sendfile.license:
+        wget http://www.casita.net/pub/uft/$@
+
+sendfile.cmsmake:
+        wget http://ltroth1.casita.net/pub/uft/$@
+
+### package files ###
+
+archives:       sendfile.vmarc sendfile.tar
+
+sendfile.vmarc:  $(MANIFEST)
+        @rm -f sendfile.vmarc
+        @cms ' pipe < sendfile filelist \
+                | strip | nlocate 1.1 /*/ \
+                | spec /vmarc pack/ nw w 1 nw w 2 nw /a/ nw \
+                    /sendfile vmarc a ( append/ nw \
+                | cms | console '
+
+sendfile.vmarcuue:  sendfile.vmarc
+        uuencode -m $< < $< > $@
+
+sendfile.tar:  $(MANIFEST)
+        @rm -f sendfile.tar
+#       @cat < sendfile.filelist \
+#               | grep -v '^*' \
+#               | awk '{print $$1 "." $$2}' \
+#               | tr A-Z a-z \
+#               | xargs tar cf sendfile.tar
+        tar cvf sendfile.tar (include sendfile
+
+sendfile.taruue:  sendfile.tar
+        uuencode -m $< < $< > $@
+
+

@@ -1,0 +1,48 @@
+.cs 1 on
+ UFT protocol TYPE command
+
+ The UFT TYPE command is very significant:  it tells the
+ remote system how to canonicalize the file being sent.
+
+.cs 1 off
+.cs 2 on
+ The format of the TYPE command is:
+ +----------+----------------------------------------------------------+
+ |          |                                                          |
+ |   TYPE   |   type   [cc]                                            |
+ |          |                                                          |
+ +----------+----------------------------------------------------------+
+
+.cs 2 off
+.cs 3 on
+ where
+
+        type    is the canonicalization type
+
+        cc      is an optional format indicator
+
+.cs 3 off
+.cs 5 on
+
+Usage Notes:
+
+        Not all UFT implementations support the cc parameter.
+        It is useful in special cases:  VM client implementations
+        can specify  TYPE V M  for  "variable length records"  with
+        "machine carriage control"  to effect a VM-to-VM transfer
+        when combined with a similarly augmented CLASS command.
+
+        The cc parameter can be a record length indicator
+        for  TYPE F  files where the transaction has no LRECL command.
+
+        The most common types are A (ASCII text) and I (IMAGE,
+        ie: binary).   Types N and V are also used on VM systems.
+
+.cs 5 off
+.cs 7 on
+CPQ related topics:
+
+
+UFT      UFTTYPES       list UFT canonicalization types
+
+.cs 7 off

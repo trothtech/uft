@@ -1,0 +1,21 @@
+.cs 1 on
+ UFT protocol NAME command
+
+ A UFT client uses the NAME command to name the file being sent.
+ Unlike for FTP,  in practice,  UFT does not require files to be named.
+
+.cs 1 off
+.cs 2 on
+ The format of the FILE command is:
+ +----------+----------------------------------------------------------+
+ |          |                                                          |
+ |   NAME   |   filename                                               |
+ |          |                                                          |
+ +----------+----------------------------------------------------------+
+
+ where
+
+        filename    is the name of the file about to be sent
+                    Quoting of special characters is not discussed.
+
+.cs 2 off

@@ -1,0 +1,50 @@
+.cm Copyright 1997, Richard M. Troth, all rights reserved.   <plaintext>
+.cm
+.cm       Name: UFTXDSPL HELPPIPE
+.cm       Date: 1997-Aug-06
+.cm     Author: Rick Troth, Houston, Texas, USA
+.cm
+.cs 1 on
+ UFTXDSPL REXX
+
+ Use the UFTXDSPL pipeline stage to de-spool a file as a "SIFT job".
+ The output from UFTXDSPL can be fed to stages like UFTCMAIN.
+.cs 1 off
+.cs 2 on
+
+ The syntax for the UFTXDSPL stage is:
+ +-----------------------+---------------------------------------------+
+ |                       |                                             |
+ |   [REXX]   UFTXDSPL   |   spoolid                                   |
+ |                       |                                             |
+ +-----------------------+---------------------------------------------+
+
+.cs 2 off
+.cs 5 on
+
+ notes:
+
+ UFTXDSPL is typically used by other applications to receive files.
+ It is not usually invoked from the command line.
+
+ File content is not canonicalized.   Content canonicalization is
+ handled by UFTCMAIN or other consumer stages that would follow UFTXDSPL.
+
+ UFTXDSPL must be the first stage of a pipeline.
+
+ streams:
+
+ PRIMARY OUTPUT
+ The primary output may contain error messages or other output
+ suitable for logging from the stages which UFTCMAIN invokes.
+ Leaving primary output unconnected is not harmful.
+
+.cs 5 off
+.cs 7 on
+UFTXDSPL REXX related topics:
+
+
+UFT      UFTTYPES       UFT TYPE values recognized by UFTCMAIN REXX
+
+.cs 7 off
+
