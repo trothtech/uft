@@ -14,10 +14,10 @@
 #define         UFT_ANONYMOUS
 
 /*  the version number and copyright  */
-#define         UFT_PROTOCOL    "UFT/1"
-#define         UFT_VERSION     "POSIXUFT/1.10.3"
+#define         UFT_PROTOCOL    "UFT/2"
+#define         UFT_VERSION     "POSIXUFT/1.10.5"
 #define         UFT_COPYRIGHT   "© Copyright 1995, 2024 Richard M. Troth"
-#define         UFT_VRM         "1.10.3"
+#define         UFT_VRM         "1.10.5"
 
 /*  server constants  */
 /*  the SPOOLDIR has a sub-directory for each recipient  */

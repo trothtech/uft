@@ -7,7 +7,7 @@
 #
 
 APPLID          =       uft
-VERSION         =       1.10.3
+VERSION         =       1.10.5
 DELIVERABLES    =       uftd sf rls rcv
 SOURCEURL       =       https://raw.githubusercontent.com/trothtech/uft/refs/heads/main
 #                       https://raw.githubusercontent.com/trothtech/uft/master
