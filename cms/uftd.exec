@@ -12,7 +12,7 @@
  */
 
 /*  some settings  */
-port = 608
+port = 1608
 vrm = "1.10.5"                  /* to coincide with the POSIX version */
 verbose = 0
 uft = 2

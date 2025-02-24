@@ -1,11 +1,13 @@
-/* © Copyright 1995, Richard M. Troth, all rights reserved.  <plaintext>
+/* © Copyright 1995, 2025 Richard M. Troth, all rights reserved.  <plaintext>
  *
  *        Name: UFTXDSPL REXX (CMS Pipelines "gem")
  *              de-spool a file into a SIFT job (UFT usable format)
  *      Author: Rick Troth, Houston, Texas, USA
  *        Date: 1995-Jan-25
+ *              2025-02-11
  *
  *        Note: UFTXDSPL is not a user-level pipeline stage.
+ *              The usual output is to the UFTCMAIN stage.
  */
 
 /* identify this stage to itself */
@@ -34,7 +36,7 @@ Parse Var rdr 1 from 9 . 15 class 16 . 17 devtype 20 . ,
 from = Translate(Strip(from),lc,uc)
 
 /* also get the "table" data */
-Parse Value Diagrc(08,'QUERY READER' sid 'TBL') With ,
+Parse Value DiagRC(08,'QUERY READER' sid 'TBL') With ,
     1 rc 10 . 17 rs '15'x tbl '15'x .
 If rc ^= 0 Then Do
     Say rs
@@ -48,7 +50,7 @@ Parse Var tbl 1 . ,
 If Datatype(size,'W') Then size = (size * 4) || "K"
 
 /* and finally, get and parse the long form query */
-Parse Value Diagrc(08,'QUERY READER' sid 'ALL') With ,
+Parse Value DiagRC(08,'QUERY READER' sid 'ALL') With ,
     1 rc 10 . 17 rs '15'x info '15'x .
 If rc ^= 0 Then Do
     Say rs
@@ -71,7 +73,7 @@ fn = Translate(fn,lc,uc)
 Address CMS 'GETFMADR'
 If rc ^= 0 Then Exit rc
 Parse Pull . . va .
-Parse Value Diagrc(08,'DEFINE READER' va) With 1 rc 10 . 17 rs '15'x .
+Parse Value DiagRC(08,'DEFINE READER' va) With 1 rc 10 . 17 rs '15'x .
 If rc ^= 0 Then Do
     Say rs
     Exit rc
@@ -79,7 +81,7 @@ End /* If .. Do */
 Call Diag 08, 'SPOOL' va 'HOLD CLASS *'
 
 /* order this file to top-of-queue */
-Parse Value Diagrc(08,'ORDER READER' sid) With 1 rc 10 . 17 rs '15'x .
+Parse Value DiagRC(08,'ORDER READER' sid) With 1 rc 10 . 17 rs '15'x .
 If rc ^= 0 Then Do
     Say rs
     Call Diag 08, 'DETACH' va
@@ -104,6 +106,7 @@ Parse Var record 1 _cc 2 data
 'OUTPUT' "FILE" size from "-"
 'OUTPUT' argl "SPOOLID" sid "OWNER" Userid()
 tag = Strip(tag)
+Parse Var tag tagnode taguser tagprio tagopts
 If tag ^= "" Then 'OUTPUT' "*TAG" tag
 
 cc = ""
@@ -138,7 +141,8 @@ Call Diag 08, 'DETACH' va
 Exit
 
 /* ------------------------------------------------------------ READYUFT
- *  Say "Looks like a UFT-ready file."
+ * Say "Looks like a UFT-ready file."
+ * Consume leading no-op CCWs for metadata then strip CCWs.
  */
 READYUFT:
 dt = ""         /* sender's DEVTYPE */
@@ -184,7 +188,8 @@ If devtype = "PUN" Then 'ADDPIPE *.INPUT: | PAD 80 | *.INPUT:'
 Return
 
 /* ------------------------------------------------------------ NDATAUFT
- *  Say "Looks like a NETDATA file."
+ * Say "Looks like a NETDATA file."
+ * Strip the CCWs.
  */
 NDATAUFT:
 type = "N"
@@ -196,16 +201,17 @@ If devtype = "PUN" Then 'ADDPIPE *.INPUT: | PAD 80 | *.INPUT:'
 Return
 
 /* ------------------------------------------------------------ SPOOLUFT
- *  Say "Looks like an ordinary spool file."
+ * Say "Looks like an ordinary spool file."
+ * Machine carriage control and do not strip the CCWs.
  */
 SPOOLUFT:
-/* variable length records with machine carriage control */
+/* variable length records with machine carriage control ("VM", cute) */
 type = "V M"
-
 Return
 
 /* ------------------------------------------------------------ XMAILUFT
- *  From the filetype,  this should be  "mail".
+ * Based on the filetype, treat this as email.
+ * Strip the CCWs.
  */
 XMAILUFT:
 type = "M"
@@ -215,7 +221,6 @@ If rc ^= 0 Then Do;  Call Diag 08, 'DETACH' va;  Exit rc;  End
 'PEEKTO RECORD'
 
 Return
-
 
 /*
 ok  FILE
@@ -242,12 +247,36 @@ yy  NAME
 yy  CLASS
 yy  FORM
 yy  HOLD
-yy  COPY COPIES
+yy  COPY|COPIES
     FCB
     UCS
 yy  DEST
 yy  DIST
     SEQ
+ */
+
+/*
+
+ TAG
+
+>>-TAg--+-+-DEv--device---+--+--------------+-+----------------><
+        | '-FIle--spoolid-'  '-| Location |-' |
+        '-QUery--+-DEv--device---+------------'
+                 '-FIle--spoolid-'
+
+|--locid--+-----------------------------------+-----------------|
+          |      .-50-------.                 |
+          +-JOB--+----------+-----------------+
+          |      '-priority-'                 |
+          |         .-50--------------------. |
+          +-SYSTEM--+-----------------------+-+
+          |         '-priority--| Options |-' |
+          |         .-50--------------------. |
+          '-userid--+-----------------------+-'
+                    '-priority--| Options |-'
+
+'CP TAG DEV PUN' tagnode taguser tagprio tagopts
+
  */
 
 

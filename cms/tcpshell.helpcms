@@ -8,7 +8,7 @@
  TCPSHELL EXEC
 
  Use the TCPSHELL EXEC as a generic socket handler for CMS Pipelines based
- TCP server applications.   TCPSHELL monitors the specified TCP port and
+ TCP server applications. TCPSHELL monitors the specified TCP port and
  directs inbound connections to the CMS Pipelines command indicated.
  Data from the socket is fed to the primary input of the pipelines stage,
  and primary output of the stage is fed back to the socket.
@@ -34,7 +34,7 @@
  args           represents any further arguments
                 to pass to the stage,  may include options
 
- opts           is either BINARY | TEXT and/or IDENT | NOIDENT
+ opts           typically either BINARY | TEXT
 
 .cs 3 off
 .cs 4 on
@@ -48,20 +48,15 @@
                 without translating ASCII to/from EBCDIC
                 and ignoring carriage returns and linefeeds
 
- IDENT          means perform RFC 1413 TAP/IDENT socket ownership lookup
-                this is the default
-
- NOIDENT        means do not perform RFC 1413 TAP/IDENT lookup
-
  VERBOSE        causes TCPSHELL to announce more information about its
-                various states.   This is the default.
+                various states.
 
  TERSE          causes TCPSHELL to keep quiet about non-critical things.
-                This way,  mostly only errors are reported.
+                This way, mostly only errors are reported.
 
  Commands:
 
- STOP           terminate TCPSHELL,  stopping the service it is hantling
+ STOP           terminate TCPSHELL, stopping the service it is handling
 
  All other console commands are passed to CMS.
 
@@ -73,7 +68,7 @@
  Your server's pipeline stage must be very careful about "blocking".
  It is possible to get into a state where your server is waiting for
  input from the client while the client is waiting for something from
- your server.   TCPSHELL does not impose timeouts on such a deadlock.
+ your server. TCPSHELL does not impose timeouts on such a deadlock.
 
 .cs 5 off
 .cs 6 on
@@ -92,6 +87,7 @@
 TCPSHELL EXEC related topics:
 
 
-PIPE     PIPESOCKET     PIPESOCKET - connects the TCP stream to the pipeline
+PIPE     TCPLISTEN      TCPLISTEN - listens for incoming TCP connections
+PIPE     TCPDATA        TCPDATA - services a TCP connection once it has been accepted
 
 .cs 7 off

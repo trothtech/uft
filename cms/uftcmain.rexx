@@ -9,13 +9,14 @@
  *      Author: Rick Troth, Rice University, Information Systems
  *              Rick Troth, Houston, Texas (METRO)
  *        Date: 1993-Feb-20, Oct-20
+ *              2025-02-11
  *
  *       Types: ABC-EF--I----N------UV---- supported
  *              ---D---H----M---------WX-- defined
  *              ------G--JKL--OPQRST----YZ reserved
  */
 
-/*  identify this stage to itself  */
+/* identify this stage to itself */
 Parse Source . . arg0 .
 argo = arg0 || ':'
 argl = '*' || argo
@@ -23,131 +24,131 @@ argl = '*' || argo
 Parse Arg user . '(' . ')' .
 Parse Var user _u1 '@' _h1
 
-/*  define a stream for passing SIFT job to transport stage  */
+/* define a stream for passing SIFT job to transport stage */
 'ADDSTREAM OUTPUT SIFT'
 If rc ^= 0 Then Exit rc
 
 'PEEKTO'        /* verify existence of input stream */
 If rc ^= 0 Then Do
     Address COMMAND 'XMITMSG 2914 (ERRMSG'
-    /*  "no input stream"  or  "too few input streams"  */
+    /* "no input stream" or "too few input streams" */
     Exit rc
-    End  /*  If  ..  Do  */
+    End /* If .. Do */
 
-/*  an index for the meta. stem  */
+/* an index for the meta. stem */
 i = 0
 file = ""
 user = ""
 
-/*  consume the metafile  */
+/* consume the metafile */
 Do Forever
 
-    /*  get a record without consuming it  */
+    /* get a record without consuming it */
     'PEEKTO RECORD'
     If rc ^= 0 Then Leave
 
-    /*  strip excesse blanks and parse it  */
+    /* strip excesse blanks and parse it */
     record = Strip(record)
     Parse Upper Var record verb .
 
-    Select  /*  verb  */
+    Select /* verb */
 
         When Abbrev("FILE",verb,1) Then file = record
         When Abbrev("USER",verb,1) Then Parse Var record . user .
         When Abbrev("DATA",verb,1) Then Leave
 
         Otherwise Do
-            /*  collect this meta record  */
+            /* collect this meta record */
             i = i + 1
             meta.i = record
-            End  /*  Otherwise Do  */
+            End /* Otherwise Do */
 
-        End  /*  Select verb  */
+        End /* Select verb */
 
-    /*  now consume the record  */
+    /* now consume the record */
     'READTO'
 
-    End  /*  Do Forever  */
+    End /* Do Forever */
 
 If rc ^= 0 Then Exit rc
 'READTO'
 If rc ^= 0 Then Exit rc
 
-/*  make it a proper stem variable  */
+/* make it a proper stem variable */
 meta.0 = i
 
-/*  parse the USER value into USER and HOST  */
+/* parse the USER value into USER and HOST */
 Parse Var user _u2 '@' _h2
 user = _u1;  If user = "" Then user = _u2
 host = _h1;  If host = "" Then host = _h2
 
-/*  confirm user on command line or in job  */
+/* confirm user on command line or in job */
 If user = "" Then Do
     Address COMMAND 'XMITMSG 387 "USER" (ERRMSG'
     Exit 24
-    End  /*  If .. Do  */
+    End /* If .. Do */
 user = user || '@' || host
 
-/*  switch to SIFT output stream  */
+/* switch to SIFT output stream */
 'SELECT OUTPUT SIFT'
 If rc ^= 0 Then Exit rc
 
-/*  select delivery stage  */
-Select  /*  host  */
+/* select delivery stage */
+Select /* host */
 
     When host = "" Then Do
         'ADDPIPE (END !) *.OUTPUT.SIFT: | UFTCLCL' user ,
             '| Q: FANINANY | *.OUTPUT.0: ! *.OUTPUT.0: | Q:'
         If rc ^= 0 Then Exit rc
         'OUTPUT' file
-        End  /*  When .. Do  */
-    When Index(host,'.') = 0 Then Do
+        End /* When .. Do */
+    When Index(host,'.') = 0 & Userid() ^= "RSCS" Then Do
         'ADDPIPE (END !) *.OUTPUT.SIFT: | UFTCRSCS' user ,
             '| Q: FANINANY | *.OUTPUT.0: ! *.OUTPUT.0: | Q:'
         If rc ^= 0 Then Exit rc
         'OUTPUT' file
-        End  /*  When .. Do  */
+        End /* When .. Do */
     Otherwise Do
         Trace "OFF"
-        /*  First,  try using TCP directly.  If that   *
-         *  does't work,  then try sending it as mail  */
+        /* First, try using TCP directly. If that   *
+         * does't work, then try sending it as mail */
         'ADDPIPE (END !) *.OUTPUT.SIFT: | UFTCTCP' user ,
             '| Q: FANINANY | *.OUTPUT.0: ! *.OUTPUT.0: | Q:'
         If rc ^= 0 Then Exit rc
         'OUTPUT' file
         If rc = 12 Then Do
             'SEVER OUTPUT'
-/*  need to reset the aggregate return code here!!  */
+/* need to reset the aggregate return code here!! */
             'ADDPIPE (END !) *.OUTPUT.SIFT: | UFTCMAIL' user ,
                 '| Q: FANINANY | *.OUTPUT.0: ! *.OUTPUT.0: | Q:'
             If rc ^= 0 Then Exit rc
             'OUTPUT' file
-            End  /*  If .. Do  */
-        End  /*  Otherwise Do  */
+            End  /* If .. Do */
+        End  /* Otherwise Do */
 
-    End  /*  Select host  */
+    End /* Select host */
 
-/*  check return code writing "FILE" command  */
+/* check return code writing "FILE" command */
 If rc ^= 0 Then Exit rc
 
-/*  identify this stage to the job stream  */
+/* identify this stage to the job stream */
 'OUTPUT' argl "sending to" user
 If rc ^= 0 Then Exit rc
 
-/*  [re]place the USER command into the job  */
+/* [re]place the USER command into the job */
 Parse Var user user '@' .
 'OUTPUT' "USER" user
 If rc ^= 0 Then Exit rc
 
-/*  now the rest of the meta-data  */
+/* now the rest of the meta-data */
 'CALLPIPE STEM META. | *:'
 If rc ^= 0 Then Exit rc
 
-/*  mark start of file body  */
+/* mark start of file body */
 'OUTPUT' "DATA"
 If rc ^= 0 Then Exit rc
 
-/*  and now pass the rest as-is  */
+/* and now pass the rest as-is */
 'CALLPIPE *: | *:'
 If rc ^= 0 Then Exit rc
 

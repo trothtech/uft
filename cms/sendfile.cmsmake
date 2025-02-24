@@ -9,56 +9,63 @@
 #
 
 MANIFEST    =   sendfile.filelist       \
-                sendfile.license        \
                 uft.readme              \
+                sendfile.license        \
+                \
+                sf.exec                 \
+                sf.helpcms              \
+                \
+                uftcfile.rexx           \
+                uftcuser.rexx           \
+                uftchost.rexx           \
+                uftxinmr.rexx           \
+                uftctcp.rexx            \
+                uftcrscs.rexx           \
+                uftcmail.rexx           \
+                \
+                maketext.rexx           \
+                maketext.helppipe       \
+                uftulist.rexx           \
+                \
+                uftume.messages         \
+                \
                 uft.copyright           \
                 uft.html                \
                 uft.install             \
                 uft.protocol            \
-                uft.readme              \
                 \
-                sf.exec                 \
-                uftcmain.rexx           \
-                uftctcp.rexx            \
-                uftcrscs.rexx           \
-                uftcmail.rexx           \
-                uftcfile.rexx           \
-                uftcuser.rexx           \
-                uftchost.rexx           \
                 64encode.rexx           \
                 64decode.rexx           \
-                sendmail.rexx           \
-                \
-                uftd.exec               \
-                uftd.rexx               \
-                uftulist.rexx           \
+                uftcmain.rexx           \
+                uftcmain.helppipe       \
                 uftxdspl.rexx           \
-                uftxinmr.rexx           \
-                maketext.rexx           \
-                maketext.helppipe       \
-                tcpshell.exec           \
-                forward.exec            \
-                hostname.exec           \
+                uftxdspl.helppipe       \
                 \
-                sf.helpcms              \
-                uftd.helpcms            \
                 uft.helptask            \
                 file.helpuft            \
                 user.helpuft            \
-                name.helpuft            \
                 type.helpuft            \
+                name.helpuft            \
                 data.helpuft            \
                 eof.helpuft             \
                 quit.helpuft            \
                 cpq.helpuft             \
                 msg.helpuft             \
                 ufttypes.helpuft        \
-                uftcmain.helppipe       \
-                tcpshell.helpcms        \
-                uftxdspl.helppipe       \
-                forward.helpcms         \
                 \
-                uftume.messages         \
+                uftd.helpcms            \
+                \
+                uftd.exec               \
+                uftd.rexx               \
+                tcpshell.exec           \
+                tcpshell.rexx           \
+                tcpshell.helpcms        \
+                \
+                forward.exec            \
+                forward.helpcms         \
+                sendmail.rexx           \
+                hostname.exec           \
+                \
                 uftdhelp.txt            \
                 rxdiagd4.assemble       \
                 system.snetid           \
