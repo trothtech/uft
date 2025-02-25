@@ -1,0 +1,131 @@
+* ------------------------------------------------------------------- *
+*                                                                     *
+*         Name: RXDIAGD4 ASSEMBLE                                     *
+*               REXX function DiagD4() sets the alternate userid      *
+*               (effective userid) for the virtual machine specified. *
+*       Author: Rick Troth, Rice University, Information Systems      *
+*         Date: 1993-Mar-24                                           *
+*                                                                     *
+*   build with:                                                       *
+*                                                                     *
+*               GLOBAL MACLIB DMSGPI DMSOM                            *
+*               HASM RXDIAGD4                                         *
+*               LOAD RXDIAGD4 (RLDSAVE                                *
+*               GENMOD RXDIAGD4                                       *
+*                                                                     *
+*      example:                                                       *
+*               /* REXX */                                            *
+*               Call DiagD4 userid(), someone_else                    *
+*                                                                     *
+*     See also: RXVALIDATE ASSEMBLE, RXVMGROUP ASSEMBLE, and friends  *
+*                                                                     *
+* ------------------------------------------------------------------- *
+*
+RXDIAGD4 CSECT ,
+RXDIAGD4 AMODE 24 (works only for HASM, remove when using ASSEMBLE)
+RXDIAGD4 RMODE 24 (works only for HASM, remove when using ASSEMBLE)
+*
+         USING *,R12                   R12 is preset by SVC 202/204
+         B     @HDR
+         DC    C' RXDIAGD4 &SYSDATE &SYSTIME '
+*
+*HDR     DS    0H
+@HDR     DS    0D       go for it!  waste up to six whole bytes!
+*
+         STM   R14,R12,12(R13)         save registers (yes please)
+* R12 and R15 both set by CMS to the entry point to this routine.
+*
+         CLM   R1,B'1000',=X'05'       called by the interpreter?
+         BNE   HELP                    if not, then give some help
+*
+         LTR   R0,R0                   called as a subroutine?
+         BM    INCORR                  yes, so incorrect call
+*
+         LR    R2,R0                   Save addr of Ext Plist
+         L     R2,16(R2)               Addr of addr/len list
+         LR    R3,R0                   Save addr of Ext Plist
+         L     R3,20(R3)               Addr of SYSFUNRT
+*
+         CLI   8(R2),X'FF'             should be two arguments
+         BE    INCORR                  if not, then return error
+         LM    R4,R7,0(R2)             else load two args and lehgths
+* we could verify that there are no more arguments,  but why bother?
+*
+         C     R5,=F'8'                is length of arg 1 more than 8?
+         BH    INCORR                  yes, so incorrect call
+         C     R7,=F'8'                is length of arg 2 more than 8?
+         BH    INCORR                  yes, so incorrect call
+*
+*        LA    R0,EVCTLEN              which is best, R0 or R1?
+*        LA    R1,EVCTLEN              should I set both?
+*        DMSFREE DWORDS=(0),MIN=(1)    get some core
+         CMSSTOR OBTAIN,DWORDS=EVCTLEN get some XA core
+         USING EVALBLOK,R1             R1 is set by DMSFREE/CMSSTOR
+         ST    R1,0(R3)                store address of EVALBLOK
+*
+         MVC   USER(8),0(R4)           fill-in the user field
+         LA    R4,USER                 point to that field ...
+         ALR   R4,R5                   then skip to end of string
+         MVC   0(8,R4),=CL8' '         and pad field with blanks
+*
+         MVC   ALTU(8),0(R6)           fill-in the alt-user field
+         LA    R6,ALTU                 point to that field ...
+         ALR   R6,R7                   then skip to end of string
+         MVC   0(8,R6),=CL8' '         and pad field with blanks
+*
+         LA    R4,0                    Rx to contain binary zero
+         LA    R6,USER                 subfunction four is "validate"
+         DIAG  R4,R6,X'00D4'           perform the DIAG A0 call to CP
+*
+* check the return code (Rx)
+         MVI   EVDATA,C'0'
+* check the return code (Rx)
+*
+         LA    R8,0                    (this could all be done better)
+         ST    R8,EVNEXT               zero-out EVNEXT (1st res word)
+         LA    R8,EVCTLEN
+         ST    R8,EVSIZE               store size of EVALBLOK
+         LA    R8,1                    return a fixed length string
+         ST    R8,EVLEN                store length of string returned
+         LA    R8,0
+         ST    R8,EVBPAD2              zero-out second reserved word
+*
+         SR    R15,R15                 Set return code = 0
+         LM    R0,R12,20(R13)          restore registers
+         BR    R14                     Return
+*
+INCORR   DS    0H
+         LA    R15,1                   Set return code = 1
+         LM    R0,R12,20(R13)          restore registers
+         BR    R14                     Return
+*
+HELP     DS    0H
+         LINEDIT TEXT='RXDIAGD4 - REXX function DiagD4(user,altuser) ',+
+               DOT=NO,COMP=NO
+         LINEDIT TEXT='returns TRUE if userid and alt-user match.    ',+
+               DOT=NO,COMP=NO
+         SR    R15,R15                 Set return code = 0
+         LM    R0,R12,20(R13)          restore registers
+         BR    R14                     Return
+*
+         LTORG ,
+*
+*
+EVALBLOK DSECT ,
+EVNEXT   DS    F                       next? next what? next EVALBLOK?
+EVSIZE   DS    F                       size of the block in d-words
+EVLEN    DS    F                       length of ret'd string in bytes
+EVBPAD2  DS    F                       should be zero
+EVDATA   DS    CL8
+*
+* these are part of the EVALBLOK so that they're in dynamic storage
+* (which means that this module could be put into a read-only segment)
+USER     DS    CL8                     put the userid string here
+ALTU     DS    CL8                     put the alt-user to match here
+         DS    CL8                     (overflow)
+*
+EVCTLEN  EQU   (*-EVALBLOK)/8
+*
+         REGEQU ,
+*
+         END   ,
