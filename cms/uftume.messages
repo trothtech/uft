@@ -1,4 +1,4 @@
-* © Copyright 1995, 1997, Richard M. Troth, all rights reserved. <plaintext>
+* © Copyright 1995-2025 Richard M. Troth, all rights reserved. <plaintext>
 *
 *         Name: UFTUME MESSAGES
 *       Author: Rick Troth, Houston, Texas, USA
@@ -24,9 +24,9 @@
 *         Note: the following line is essential:
 & 3
 *
-0000      1.6.1
-0001      UFT/1.6.1 client (CMS)
-0002      UFT/1.6.1 server (VM)
+0000      1.10.5
+0001      UFT/1.10.5 client (CMS)
+0002      UFT/1.10.5 server (z/VM)
 0004      UFT/&1
 0005      UFT/&1 client
 0006      UFT/&1 server
@@ -206,5 +206,5 @@
 0552      552 spool directory unavailable
 0549      549 workspace sequence error
 *
-9999      © Copyright 1995, 1997, Richard M. Troth, all rights reserved.
+9999      © Copyright 1995, 1997, 2025 Richard M. Troth, all rights reserved.
 *

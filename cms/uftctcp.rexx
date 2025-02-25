@@ -306,15 +306,31 @@ Return tcprc
 
 /* ------------------------------------------------------------ HOSTADDR
  *  return IP address for the supplied hostname
+ *  "#" stores the number which goes with the supplied name
  */
 _hostaddr: Procedure
-Parse Arg h . , .
+Parse Upper Arg h . , .
 If h = "" Then Return h
 var = "#" || h
-Return ""
 
-/* ---------------------------------------------------------------------
+/* if the address for this host is already known then return it */
+val = Value(var,,"SESSION NSLOOKUP")
+If val = "VAL" Then val = ""
+If val /= "" Then Return val
+
+/* try the lookup */
+Address "COMMAND" 'PIPE VAR H | hostbyname | VAR VAL'
+If rc /= 0 Then val = ""
+If val = "VAL" Then val = ""
+
+/* if we got an address then stash it for later reference */
+If val ^= "" Then Call Value var, val, "SESSION NSLOOKUP"
+
+Return val
+
+/* ------------------------------------------------------------ HOSTNAME
  *  return the internet hostname for the given IP address
+ *  "$" stores the name which goes with the supplied address
  */
 _hostname: Procedure
 If h = "" Then Return h

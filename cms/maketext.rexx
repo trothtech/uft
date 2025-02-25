@@ -43,15 +43,17 @@ If code ^= "" Then Do
     End  /*  If  ..  Do  */
 
 Select  /*  mode  */
-    When Abbrev("-LOCAL",mode,2)   Then Call LOCAL
-    When Abbrev("LOCAL",mode,3)    Then Call LOCAL
-    When Abbrev("LCL",mode,3)      Then Call LOCAL
-    When Abbrev("EBCDIC",mode,1)   Then Call LOCAL
-    When Abbrev("-NETWORK",mode,2) Then Call NETWORK
-    When Abbrev("NETWORK",mode,3)  Then Call NETWORK
-    When Abbrev("ASCII",mode,1)    Then Call NETWORK
-    When Abbrev("DOTTED",mode,3)   Then Call DOTTED
-    When Abbrev("UNIX",mode,1)     Then Call UNIX
+    When Abbrev("-LOCAL",mode,2)    Then Call LOCAL
+    When Abbrev("--LOCAL",mode,3)   Then Call LOCAL
+    When Abbrev("LOCAL",mode,3)     Then Call LOCAL
+    When Abbrev("LCL",mode,3)       Then Call LOCAL
+    When Abbrev("EBCDIC",mode,1)    Then Call LOCAL
+    When Abbrev("-NETWORK",mode,2)  Then Call NETWORK
+    When Abbrev("--NETWORK",mode,3) Then Call NETWORK
+    When Abbrev("NETWORK",mode,3)   Then Call NETWORK
+    When Abbrev("ASCII",mode,1)     Then Call NETWORK
+    When Abbrev("DOTTED",mode,3)    Then Call DOTTED
+    When Abbrev("UNIX",mode,1)      Then Call UNIX
     Otherwise Do
         Address "COMMAND" 'XMITMSG 3 MODE (ERRMSG'
         rc = 24

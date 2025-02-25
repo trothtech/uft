@@ -30,6 +30,10 @@ Say argo "FROM" remote_user || '@' || remote_host
 
 If ^Datatype(uft,'N') Then uft = 1
 
+/* fixup remote hostname from memory (from GlobalV) if possible */
+rh = _hostname(remote_addr)
+If rh ^= "" Then remote_host = rh
+
 Select  /*  verbose  */
     When verbose = "ON"       Then verbose = 1
     When verbose = "OFF"      Then verbose = 0
@@ -737,5 +741,71 @@ VERSION
 QUERY
 
  */
+
+
+/* ------------------------------------------------------------ HOSTADDR
+ *  return IP address for the supplied hostname
+ *  "#" stores the number which goes with the supplied name
+ */
+_hostaddr: Procedure
+Parse Upper Arg h . , .
+If h = "" Then Return h
+var = "#" || h
+
+/* if the address for this host is already known then return it */
+val = Value(var,,"SESSION NSLOOKUP")
+If val = "VAL" Then val = ""
+If val /= "" Then Return val
+
+/* try the lookup */
+Address "COMMAND" 'PIPE VAR H | hostbyname | VAR VAL'
+If rc /= 0 Then val = ""
+If val = "VAL" Then val = ""
+
+/* if we got an address then stash it for later reference */
+If val ^= "" Then Call Value var, val, "SESSION NSLOOKUP"
+
+Return val
+
+/* ------------------------------------------------------------ HOSTNAME
+ *  return the internet hostname for the given IP address
+ *  "$" stores the name which goes with the supplied address
+ */
+_hostname: Procedure
+Parse Arg h . , .
+If h = "" Then Return h
+var = "$" || h
+
+/* if this host is already known then return it as-is */
+val = Value(var,,"SESSION NSLOOKUP")
+If val = "VAL" Then val = ""
+If val /= "" Then Return val
+
+/* if the remote address is IPv6 then skip the lookup */
+If POS(":",h) > 0 Then Do
+    val = "[" || h || "]"
+    Call Value var, val, "SESSION NSLOOKUP"
+    Return val
+End
+
+/* try the lookup */
+Address "COMMAND" 'PIPE VAR H | HOSTBYADDR | VAR VAL'
+If rc /= 0 Then val = ""
+If val = "VAL" Then val = ""
+
+/* wrap failing address in parenthesis */
+If rc /= 0 Then Do
+    val = "(" || h || ")"
+    Call Value var, val, "SESSION NSLOOKUP"
+    Return val
+End
+
+/* if we got nuthin then return address as-is */
+If val = "" Then Return h
+
+/* otherwise set this for future reference */
+Call Value var, val, "SESSION NSLOOKUP"
+
+Return val
 
 
