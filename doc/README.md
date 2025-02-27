@@ -1,0 +1,105 @@
+# UFT
+
+Unsolicited File Transfer
+
+This is the documentation folder.
+
+## UFT Primary Control Verbs
+
+* FILE
+* PIPE
+* USER
+* TYPE
+* DATA
+* AUXDATA
+* EOF
+* ABORT
+* META
+* QUIT
+
+`FILE`, `USER`, `TYPE`, and `DATA` are mandatory.
+
+Note that `TYPE` might seem to be a meta command,
+but it remains a primary command because canonicalization is a
+central feature of UFT.
+
+A sample sequence might be ...
+* client connects
+* server sends the herald, a 200 code
+* client sends `FILE` *size* *from* *auth*
+* server acknowledges with a 200 code
+* client sends `USER` *recipient*
+* server acknowledges with a 200 code
+* client sends `TYPE A` indicating a plain text file
+* server acknowledges with a 200 code
+* client sends `DATA 12345`
+* server acknowledges with a 300 code
+* client sends 12345 bytes of file content
+* server acknowledges with a 200 code and switches back to command mode
+* client sends `EOF`
+* server acknowledges with a 200 code
+* client sends `QUIT`
+* server acknowledges with a 200 code and closes its end of the connection
+* client closes its end of the connection
+
+The above transaction uses 6 primary commands and does not require any
+meta commands nor secondary commands. Simplicity is the first objective.
+
+## UFT Supplemental Commands
+
+* CPQ
+* MSG
+* AGENT
+* HELP
+* NOOP
+
+## UFT Meta Verbs
+
+* META NAME
+* META DATE
+* META XDATE
+* META TITLE
+* META OWNER
+* META GROUP
+* META XPERM
+* META VERSION
+* META RECFMT
+* META RECLEN
+* META CLASS
+* META FORM
+* META HOLD
+* META COPY (or META COPIES)
+* META FCB
+* META UCS
+* META DEST
+* META DIST
+* META SEQ
+* META NOTIFY
+
+## Response Codes
+
+| 100s range | a spontaneous response from the server, an "info" message |
+| 200s range | acknowledgment (ACK)                                      |
+| 300s range | more input required                                       |
+|            | the client must supply additional information or data     |
+| 400s range | temporary error (NAK), typically a client error           |
+| 500s range | permanent error (NAK), typically a server error           |
+| 600s range | a required response from the server                       |
+|            | contrast with 100s range spontaneous responses            |
+
+UFT response codes are unique, but the first digit indicates basic
+success/failure and flow control.
+
+## UFT File Types (canonicalizations)
+
+|  `TYPE A`  | ASCII, Internet plain text with CR/LF delimited lines     |
+|            | (0x0D/0x0A, see NVT format), alias `TYPE T`               |
+|  `TYPE I`  | IMAGE, image (binary), alias `TYPE B`                     |
+|            | above two types are in keeping with FTP semantics         |
+|  `TYPE N`  | NETDATA, an IBM encoding                                  |
+|  `TYPE E`  | EBCDIC, IBM mainframe plain text                          |
+|            | with EBCDIC NL (0x15) delimited lines                     |
+|  `TYPE M`  | "mail", an RFC 822 message                                |
+|            | for those UFT server implementations which support it     |
+
+
