@@ -78,6 +78,8 @@ meta commands nor secondary commands. Simplicity is the first objective.
 
 ## Response Codes
 
+| range      | indication                                                |
+| ---------- | --------------------------------------------------------- |
 | 100s range | a spontaneous response from the server, an "info" message |
 | 200s range | acknowledgment (ACK)                                      |
 | 300s range | more input required                                       |
@@ -92,6 +94,8 @@ success/failure and flow control.
 
 ## UFT File Types (canonicalizations)
 
+| type       | canonicalization or translation                           |
+| ---------- | --------------------------------------------------------- |
 |  `TYPE A`  | ASCII, Internet plain text with CR/LF delimited lines     |
 |            | (0x0D/0x0A, see NVT format), alias `TYPE T`               |
 |  `TYPE I`  | IMAGE, image (binary), alias `TYPE B`                     |
