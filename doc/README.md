@@ -33,9 +33,13 @@ A sample sequence might be ...
 * client sends `TYPE A` indicating a plain text file
 * server acknowledges with a 200 code
 * client sends `DATA 12345`
-* server acknowledges with a 300 code
+* server acknowledges with a 300 code, "feed me more"
+
+The server switches to "data mode" to consume the next 12345 bytes
+sent from the client.
+
 * client sends 12345 bytes of file content
-* server acknowledges with a 200 code and switches back to command mode
+* server acknowledges with a 200 code and switches back to "command mode"
 * client sends `EOF`
 * server acknowledges with a 200 code
 * client sends `QUIT`
@@ -101,9 +105,25 @@ success/failure and flow control.
 |  `TYPE I`  | IMAGE, image (binary), alias `TYPE B`                     |
 |            | above two types are in keeping with FTP semantics         |
 |  `TYPE N`  | NETDATA, an IBM encoding                                  |
+
+Types `A` and `I` are mandatory.
+
+Type `N` is recommended, at least on receive, if you will be
+sending files to/from IBM mainframe systems such as z/VM or z/OS.
+
+The following types are rarely used but defined for the sake of
+developers and experimenters.
+
+| type       | canonicalization or translation                           |
+| ---------- | --------------------------------------------------------- |
+|  `TYPE V`  | variable length record-oriented                           |
+|            | each record is preceeded by a 16-bit length in network byte order |
 |  `TYPE E`  | EBCDIC, IBM mainframe plain text                          |
-|            | with EBCDIC NL (0x15) delimited lines                     |
+|            | with EBCDIC NL delimited lines (0x15)                     |
 |  `TYPE M`  | "mail", an RFC 822 message                                |
 |            | for those UFT server implementations which support it     |
+
+Any type which a receiver does not recognize or implement should be
+treated as `TYPE I` or something which saves the data stream as-is.
 
 
