@@ -1,5 +1,4 @@
-/* © Copyright 1994, 1995, 1996, 1997, 2025 Richard M. Troth,
- *              all rights reserved.                         <plaintext>
+/* © Copyright 1992-2025 Richard M. Troth, all rights reserved. <plaintext>
  *
  *        Name: UFTCRSCS REXX
  *              Pipeline stage to hand-off a SIFT/UFT job to RSCS

@@ -1,4 +1,4 @@
-/* © Copyright 1995, 1997, Richard M. Troth, all rights reserved. <plaintext>
+/* © Copyright 1993-2025 Richard M. Troth, all rights reserved. <plaintext>
  *
  *        Name: TCPSHELL REXX
  *              General purpose TCP/IP socket-to-pipeline interface
@@ -13,11 +13,12 @@
  *    GlobalVs: ARG0 (group TCPSHELL) names the group
  *              SERVER_NAME - FQDN of this server's host system
  *              SERVER_PORT - TCP port at which this server listens
- *              REMOTE_HOST - FQDN of client's system (once connected)
+ *
+ *   On Launch: REMOTE_HOST - FQDN of client's system (once connected)
  *              REMOTE_ADDR - dotted decimal IP address of client
  *              REMOTE_PORT - TCP port of client's connection
  *
- *              SERVER_PIPE_ATTACH - which means of attaching sub-pipes
+ *     Unloved: SERVER_PIPE_ATTACH - which means of attaching sub-pipes
  *              LOCALHOST
  *              LOCALPORT
  *              HOSTNAME
@@ -32,7 +33,7 @@ verbose = 1;  binary = 0;  ident = 0;  nslookup = 1
 wait = 5
 
 Parse Source . . arg0 .
-argo = arg0 || ':'      /*  arg0 is about to change!  */
+argo = arg0 || ':'   /* arg0 is about to change to match the service! */
 argp = arg0
 
 /*  we need a name and a port  */
@@ -40,12 +41,12 @@ Parse Arg test
 If Left(Strip(test),1) = '(' Then Do
     Parse Arg '(' opts ')' localport arg0 args
     opt0 = ""
-    End  /*  If .. Do  */
-/*  still have to support old syntax  */
+    End /* If .. Do */
+/* still have to support old syntax */
 Else Do
     Parse Upper Arg localport arg0 args '(' opt0 ')' .
     opts = ""
-    End  /*  Else Do  */
+    End /* Else Do */
 
 If localport = "" Then Do
     Address COMMAND 'XMITMSG 386 (ERRMSG'
@@ -63,23 +64,24 @@ If arg0 = "" Then Do
     Exit 24
     End  /*  If  ..  Do  */
 
-/*  deprecated options processing  */
+/* deprecated options processing */
 If opts = "" Then Do
     If opt0 ^= "" Then args = args '('
     Do While opt0 ^= ""
         Parse Var opt0 op opt0
-        Select  /*  op  */
-            When  Abbrev("BINARY",op,3)     Then binary = 1
+        Select /* op */
+            When Abbrev("BINARY",op,3) Then binary = 1
             Otherwise args = args op
-            End  /*  Select  op  */
-        End  /*  Do  While  */
-    End  /*  If .. Do  */
+            End /* Select op */
+        End  /* Do While */
+    End /* If .. Do */
 
 add_call = "CALLPIPE"
-/*  preferred options processing  */
+dynamic = ""
+/* preferred options processing */
 Do While opts ^= ""
     Parse Upper Var opts op opts
-    Select  /*  op  */
+    Select /* op */
         When  Abbrev("BINARY",op,3)     Then binary = 1
         When  Abbrev("NOBINARY",op,3)   Then binary = 0
         When  Abbrev("TEXT",op,1)       Then binary = 0
@@ -96,9 +98,11 @@ Do While opts ^= ""
         When  Abbrev("SINGLE",op,1)     Then add_call = "CALLPIPE"
         When  Abbrev("MULTIPLE",op,1)   Then add_call = "ADDPIPE"
         When  Abbrev("NOMULTIPLE",op,3) Then add_call = "CALLPIPE"
+        When  Abbrev("DYNAMIC",op,3)    Then ,
+            Parse Upper Var opts dynamic opts
         Otherwise Address COMMAND 'XMITMSG 3 OP (ERRMSG'
-        End  /*  Select  op  */
-    End  /*  Do  While  */
+        End /* Select op */
+    End /* Do While */
 
 /*  a restart timestamp if running verbose  */
 If verbose Then Do
@@ -356,7 +360,7 @@ Return 0 data
  *  process incoming TCP connections
  */
 PIPETCP: Procedure Expose arg0 argo pipe nslookup verbose ident ,
-                        server_port add_call
+                        server_port add_call dynamic
 
 Parse Arg record
 /*
@@ -417,7 +421,7 @@ If hostname = "" Then client = userid || '@' || host
 Address COMMAND 'GLOBALV SELECT' arg0 'PUT CLIENT'
 If verbose Then Say argo "Accepted" sock "at" Time() "client" client
 
-/*  clear this, just in case  */
+/* clear this, just in case */
 Address COMMAND 'GLOBALV SELECT' arg0 'SET QUIT'
 
 If 0 Then Do
@@ -431,11 +435,33 @@ Do i = 1 to stem.0
     End  /*  Do  For  */
 End /* bypass */
 
+/* Here is a hack to promote multi-stream operation.                  *
+ * Global variables are not the best way to pass info to the          *
+ * sub-stage when it runs concurrently with other sub-stages.         *
+ * So instead, pass dynamic variables via the command line.           *
+ * Works for both CALLPIPE and (especially) ADDPIPE.                  */
+Select /* dynamic */
+    When dynamic = "VARS" Then Do
+        vars = ""
+        If remote_addr ^= "" Then vars = vars "REMOTE_ADDR=" || remote_addr
+        If remote_host ^= "" Then vars = vars "REMOTE_HOST=" || remote_host
+        If remote_port ^= "" Then vars = vars "REMOTE_PORT=" || remote_port
+    End /* When .. Do */
+    When dynamic = "OPTS" Then Do
+        vars = "("
+        If remote_addr ^= "" Then vars = vars "REMOTE_ADDR" remote_addr
+        If remote_host ^= "" Then vars = vars "REMOTE_HOST" remote_host
+        If remote_port ^= "" Then vars = vars "REMOTE_PORT" remote_port
+    End /* When .. Do */
+    Otherwise vars = ""
+End /* Select */
+
 /*  Now here is where we do all of the real work.                     *
  *  When the gem goes to end-of-file,  then the pipeline              *
  *  terminates and the socket is closed for another iteration.        */
 add_call 'LITERAL' c2x(record) '| STRIP | SPEC 1-* X2C 1' ,
-    '| LOOP: FANIN | TCPDATA | ELASTIC |' pipe '| LOOP:'
+    '| LOOP: FANIN | TCPDATA | ELASTIC |' pipe vars '| LOOP:'
+If rc ^= 0 Then Return rc
 If add_call = "ADDPIPE" Then 'CALLPIPE LITERAL +3 | DELAY'
 Return rc
 

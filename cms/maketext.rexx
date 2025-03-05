@@ -1,4 +1,4 @@
-/* © Copyright 1994, Richard M. Troth, all rights reserved.  <plaintext>
+/* © Copyright 1994-2025 Richard M. Troth, all rights reserved. <plaintext>
  *
  *        Name: MAKETEXT REXX
  *              VM TCP/IP Network Client and Server text converter

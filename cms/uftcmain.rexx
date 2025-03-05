@@ -1,4 +1,4 @@
-/* © Copyright 1995, 1997, 2024, Richard M. Troth, all rights reserved. (casita sourced) <plaintext>
+/* © Copyright 1993-2025 Richard M. Troth, all rights reserved. <plaintext>
  *
  *        Name: UFTCMAIN REXX (uftcmain.rexx)
  *    Formerly: UFTCHOST REXX and UFTCUSER REXX

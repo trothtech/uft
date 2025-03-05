@@ -1,4 +1,4 @@
-/* © Copyright 1995, 1997, 2024, Richard M. Troth, all rights reserved. (casita sourced) <plaintext>
+/* © Copyright 1992-2025 Richard M. Troth, all rights reserved. <plaintext>
  *
  *        Name: UFTCMAIL REXX
  *              Pipeline stage to hand-off a SIFT job to MAILER
@@ -11,8 +11,8 @@
  *        Note: UFTCMAIL is not a user-level pipeline stage
  */
 
-version = "1.0"         /*  MIME version  */
-loadmsg = 0             /*  load/unload message repository  */
+version = "1.0"         /* MIME version, not related to UFT version */
+loadmsg = 0             /* load/unload message repository */
 
 Parse Arg host . '(' . ')' .
 If host = "" Then Do

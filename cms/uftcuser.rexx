@@ -1,4 +1,5 @@
-/*
+/* © Copyright 1993-2025 Richard M. Troth, all rights reserved. <plaintext>
+ *
  *        Name: UFTCUSER REXX
  *              inserts USER record in the SIFT job
  *              Sender-Initiated File Transfer

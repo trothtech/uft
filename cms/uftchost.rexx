@@ -1,4 +1,5 @@
-/*
+/* © Copyright 1993-2025 Richard M. Troth, all rights reserved. <plaintext>
+ *
  *        Name: UFTCHOST REXX
  *              passes the SIFT job to the target host stage
  *              Sender-Initiated File Transfer

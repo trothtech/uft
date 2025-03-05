@@ -1,5 +1,4 @@
-/* © Copyright 1994, 1995, 1996, 1997, Richard M. Troth,
- *              all rights reserved.                         <plaintext>
+/* © Copyright 1992-2025 Richard M. Troth, all rights reserved. <plaintext>
  *
  *        Name: UFTXINMR REXX
  *              Unsolicited File Transfer common INMR stage
@@ -33,7 +32,7 @@ If server Then ls = fn ft fm "V 65535 0 0" Date('U') Time()
 
 /*  If file is disk resident,  discover some characteristics  */
 Else Do
-    'CALLPIPE CMS LISTFILE' fn ft fm '(DATE | VAR RS | DROP | VAR LS'
+    'CALLPIPE CMS LISTFILE' fn ft fm '(SHORTDATE | VAR RS | DROP | VAR LS'
     If rc ^= 0 Then Do
         Say rs
         Exit rc

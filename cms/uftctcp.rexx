@@ -1,4 +1,4 @@
-/* © Copyright 1995, 2024, Richard M. Troth, all rights reserved. <plaintext>
+/* © Copyright 1993-2025 Richard M. Troth, all rights reserved. <plaintext>
  *
  *        Name: UFTCTCP REXX
  *              Pipeline stage to feed a SIFT job to UFTD via TCP/IP

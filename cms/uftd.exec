@@ -1,4 +1,4 @@
-/* © Copyright 1995, Richard M. Troth, all rights reserved.  <plaintext>
+/* © Copyright 1993-2025 Richard M. Troth, all rights reserved. <plaintext>
  *
  *        Name: UFTD EXEC
  *              Sender-Initiated File Transfer server
@@ -67,9 +67,9 @@ If ^uftisnet & rscsid ^= "*" Then Do
 /* now... the real work */
 If verbose Then verbose = "VERBOSE"
            Else verbose = "TERSE"
-'EXEC TCPSHELL (BINARY' verbose 'MULTI)' port arg0 args
+'EXEC TCPSHELL (BINARY' verbose 'MULTI DYN OPTS)' port arg0 args
 If rc = 24 Then ,
-'EXEC TCPSHELL (BINARY' verbose ')' port arg0 args
+'EXEC TCPSHELL (BINARY' verbose 'DYN OPTS)' port arg0 args
 
 Exit rc
 

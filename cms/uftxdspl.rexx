@@ -1,4 +1,4 @@
-/* © Copyright 1995, 2025 Richard M. Troth, all rights reserved.  <plaintext>
+/* © Copyright 1995-2025 Richard M. Troth, all rights reserved. <plaintext>
  *
  *        Name: UFTXDSPL REXX (CMS Pipelines "gem")
  *              de-spool a file into a SIFT job (UFT usable format)
