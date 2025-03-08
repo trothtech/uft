@@ -304,9 +304,11 @@ Do Forever
         When verb = "MSG" & ^meta Then Do
             /* if it's the meta command or is ON or OFF then this     */
             Parse Upper Var line . tst txt
-            If txt = "" & (tst = "OFF" | tst = "ON") Then msg = tst
-            Else Do
-                /* if not a meta command then send message to user    */
+            If txt = "" & (tst = "OFF" | tst = "ON") Then Do
+                msg = tst
+                rc = 0
+            End /* If .. Do */ ; Else Do
+            /* if not a meta command then send message to named user  */
                 Parse Var line . . txt
                 tmt = tst "From" remote_host
                 Select
@@ -319,12 +321,26 @@ Do Forever
         'CALLPIPE VAR TMT | SPEC /MSGNOH / 1 1-* NEXT | CP | STEM RS.'
                 If rc = 1 Then ,
         'CALLPIPE VAR TMT | SPEC /MSG / 1 1-* NEXT | CP | STEM RS.'
+                xrc = rc
                 'CALLPIPE STEM RS. | SPEC /199 / 1 1-* NEXT' ,
                     '| *.OUTPUT:'
+                rc = xrc
             End /* Else Do */
-            'CALLPIPE COMMAND XMITMSG 200 (APPLID UFT' ,
-                'CALLER SRV NOHEADER | *.OUTPUT:'
-            End /* When .. Do */
+            Select /* rc */
+                When rc = 0 Then ,
+                    'CALLPIPE COMMAND XMITMSG 200 (APPLID UFT' ,
+                    'CALLER SRV NOHEADER | *.OUTPUT:'
+                When rc = 45 Then ,
+                    'CALLPIPE COMMAND XMITMSG 545 (APPLID UFT' ,
+                    'CALLER SRV NOHEADER | *.OUTPUT:'
+                When rc = 57 Then ,
+                    'CALLPIPE COMMAND XMITMSG 557 (APPLID UFT' ,
+                    'CALLER SRV NOHEADER | *.OUTPUT:'
+                Otherwise ,
+                    'CALLPIPE COMMAND XMITMSG 500 (APPLID UFT' ,
+                    'CALLER SRV NOHEADER | *.OUTPUT:'
+            End /* Select */
+        End /* When .. Do */
 
         /* a BITNETism, because I like it */
         When verb = "CPQ"  Then Do
