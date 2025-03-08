@@ -1,3 +1,4 @@
 uft                608/tcp      # Unsolicited File Transfer
 rd                 608/udp      # Radio Dog
-ufts              7608/tcp      # Unsolicited File Transfer with TLS
+#ufts             7608/tcp      # Unsolicited File Transfer with TLS
+ufts              5608/tcp      # Unsolicited File Transfer with SSL/TLS

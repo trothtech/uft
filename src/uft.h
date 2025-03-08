@@ -11,16 +11,16 @@
 
 #include "tcpio.h"
 
-#define         UFT_ANONYMOUS
+/*       define UFT_ANONYMOUS to use 'uftd' via Tor                   */
 
-/*  the version number and copyright  */
+/* the version number and copyright */
 #define         UFT_PROTOCOL    "UFT/2"
-#define         UFT_VERSION     "POSIXUFT/1.10.5"
-#define         UFT_COPYRIGHT   "© Copyright 1995, 2024 Richard M. Troth"
-#define         UFT_VRM         "1.10.5"
+#define         UFT_VERSION     "POSIXUFT/1.10.6"
+#define         UFT_COPYRIGHT   "© Copyright 1995-2025 Richard M. Troth"
+#define         UFT_VRM         "1.10.6"
 
-/*  server constants  */
-/*  the SPOOLDIR has a sub-directory for each recipient  */
+/* server constants */
+/* the SPOOLDIR has a sub-directory for each recipient */
 #ifndef         UFT_SPOOLDIR
 #define         UFT_SPOOLDIR    "/var/spool/uft"
 #endif
@@ -33,23 +33,23 @@
 #define         UFT_PIPESDIR    "/usr/lib/uft"
 #endif
 
-/*  the SEQuence file name may be platform dependent  */
+/* the SEQuence file name may be platform dependent */
 #define         UFT_SEQFILE             ".seq"
 #define         UFT_SEQFILE_ALT         "seqno"
 
-/*  file name extensions  */
-#define         UFT_EXT_CONTROL         ".cf"/*  control , metadata  */
-#define         UFT_EXT_DATA            ".df"/*  data  */
-#define         UFT_EXT_EXTRA           ".ef"/*  auxdata , resource  */
-#define         UFT_EXT_LIST            ".lf"/*  'ls -l' format  */
+/* file name extensions */
+#define         UFT_EXT_CONTROL         ".cf" /* control, metadata */
+#define         UFT_EXT_DATA            ".df" /* data */
+#define         UFT_EXT_EXTRA           ".ef" /* auxdata, resource */
+#define         UFT_EXT_LIST            ".lf" /* 'ls -l' format */
 #define         UFT_EXT_WORK            ".wf"
 
-/*  client constants  */
-/*  flag bits  */
+/* client constants */
+/* flag bits */
 #define         UFT_BINARY      0x8000
 #define         UFT_VERBOSE     0x4000
 
-/*  registered port for this service  */
+/* registered port for this service */
 #define         UFT_PORT        608
 #define         IDENT_PORT      113
 
@@ -65,19 +65,19 @@
 
 struct          UFTFILE
                         {
-                /*  to-and-from spool space  */
-                int     cfd;    /*  control file descriptor  */
-                int     dfd;    /*  data file descriptor  */
-                int     efd;    /*  ext attr file descriptor  */
-                int     lfd;    /*  log file descriptor  */
-                /*  client-server interaction  */
-                int     sfd;    /*  server stream  */
-                int     rfd;    /*  response stream  */
-                /*  (daemon uses both sets of fds)  */
-                char    *cfn;   /*  control file path  */
-                char    *dfn;   /*  data file path  */
-                char    *efn;   /*  ext attr file path  */
-                char    *lfn;   /*  log file path  */
+                /* to-and-from spool space */
+                int     cfd;    /* control file descriptor */
+                int     dfd;    /* data file descriptor */
+                int     efd;    /* ext attr file descriptor */
+                int     lfd;    /* log file descriptor */
+                /* client-server interaction */
+                int     sfd;    /* server stream */
+                int     rfd;    /* response stream */
+                /* (daemon uses both sets of fds) */
+                char    *cfn;   /* control file path */
+                char    *dfn;   /* data file path */
+                char    *efn;   /* ext attr file path */
+                char    *lfn;   /* log file path */
 
                 char    from[64],
                         name[64],
@@ -93,7 +93,7 @@ struct          UFTFILE
 
 #define         UFT_B64_CODE    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 
-/*  RDR FILE >this< SENT FROM $from RDR WAS yadda yadda  */
+/* RDR FILE >this< SENT FROM $from RDR WAS yadda yadda */
 #define         UFT_TYPE_A_EXPANSION    /* "ASCII" */ "TXT"
 #define         UFT_TYPE_B_EXPANSION    "BIN"
 #define         UFT_TYPE_C_EXPANSION    "PRT"
@@ -103,7 +103,7 @@ struct          UFTFILE
 #define         UFT_TYPE_P_EXPANSION    "PRT"
 #define         UFT_TYPE_T_EXPANSION    "TXT"
 #define         UFT_TYPE_U_EXPANSION    /* "UNSPEC" */ "BIN"
-#define         UFT_TYPE_V_EXPANSION    "VAR"/*  or  "V16"  */
+#define         UFT_TYPE_V_EXPANSION    "VAR" /* or "V16" */
 /*
 RDR FILE $FILE SENT FROM $RSCS RDR WAS #### ####
 xxx FILE nnnn  SEND FROM u@h
@@ -121,7 +121,7 @@ static char *uft_copyright = UFT_COPYRIGHT;
  *        Date: 1994-Jul-26, 1996-Mar-24
  */
 
-/*  flags  */
+/* flags */
 #define         MSG_IDENT               0x0001
 #define         MSG_VERBOSE             0x0002
 

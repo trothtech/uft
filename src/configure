@@ -95,8 +95,9 @@ case "$US" in
     OS390)              # OS/390, z/OS
         UM="s390x" # guessing! since both "s390x" and "s390" are viable
         CC="xlc"
-        CFLAGS="-DOECS -D_OE_SOCKETS"
-        LDFLAGS="-O -qxplink"
+        CFLAGS="-DOECS -D_OE_SOCKETS -D__UU"
+#       LDFLAGS="-O -qxplink"
+        LDFLAGS=""
         SHFLAGS="$LDFLAGS -qdll"
         if [ -d /usr/lib/nls/msg ] ; then LOCDIR=/usr/lib/nls/msg ; fi
         ;;
@@ -122,7 +123,7 @@ if [ ! -z "$CHICORY_SYSTEM" ] ; then SYSTEM=$CHICORY_SYSTEM
 
 #
 # announce
-echo "$Z: setting up 'sendfile' for $SYSTEM ..."
+echo "$Z: setting up for $SYSTEM ..."
 
 #
 # silently move old makefile aside:

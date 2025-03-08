@@ -1,5 +1,7 @@
 #!/bin/sh
 #
+#         Name: rcv (shell script)
+#               "receive" a file sent via UFT
 #         Date: 2024-04-19 (Fri) Gallatin
 #
 

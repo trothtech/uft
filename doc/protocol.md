@@ -109,6 +109,11 @@ The range of the code indicates any of a half dozen conditions.
 | 600s range | a required response from the server                       |
 |            | contrast with 100s range spontaneous responses            |
 
+When the server receives a connection, it immediately presents a
+222 messages as the "herald". When the client sends `QUIT`, the server
+replies with a 221 message and closes the connection. Both 222 and 221
+are success indications.
+
 ## UFT File Types (canonicalizations)
 
 | type       | canonicalization or translation                           |

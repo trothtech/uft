@@ -1,4 +1,4 @@
-# © Copyright 1995, Richard M. Troth, all rights reserved.   <plaintext>
+# Copyright 1995, Richard M. Troth, all rights reserved.   <plaintext>
 #
 #         Name: .../posixuft/src/makefile.in
 #               make file source for UFTD and UFTC (Internet SENDFILE)
@@ -7,7 +7,7 @@
 #
 
 APPLID          =       uft
-VERSION         =       1.10.5
+VERSION         =       1.10.6
 DELIVERABLES    =       uftd sf rls rcv
 SOURCEURL       =       https://raw.githubusercontent.com/trothtech/uft/refs/heads/main
 #                       https://raw.githubusercontent.com/trothtech/uft/master
