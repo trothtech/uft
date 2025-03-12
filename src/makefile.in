@@ -1,4 +1,4 @@
-# Copyright 1995, Richard M. Troth, all rights reserved.   <plaintext>
+# Copyright 1995-2025 Richard M. Troth, all rights reserved. <plaintext>
 #
 #         Name: .../posixuft/src/makefile.in
 #               make file source for UFTD and UFTC (Internet SENDFILE)
@@ -20,6 +20,9 @@ CFLAGS          =       %CFLAGS% -DPREFIX=\"$(PREFIX)\"
 PREFIX          =       %PREFIX%
 SHFLAGS         =       %SHFLAGS%
 # we may later use CC, CXX, CPP, CPPFLAGS, and/or CXXFLAGS
+
+LOCDIR          =       %LOCDIR%
+LOCALE          =       %LOCALE%
 
 .PHONY: 	clean distclean config help
 
@@ -119,6 +122,7 @@ distclean:
 			tell msgpipe msgcat msgd imsg \
 			*:* *';'* makefile Makefile makefile.old \
 			uft.spec configure.sh configure.h *.rpm *.log .rpmseq
+		rm -rf rpmbuild.d
 
 #makefile:	makefile.in configure
 #		@echo "$(MAKE): makefile is out of synch"
@@ -232,7 +236,8 @@ homedir.o:	makefile homedir.c
 #		mv maketext msgpipe $(PREFIX)/lib/.
 #		mv uftd msgd $(PREFIX)/sbin/.
 install:	sf uftd
-		mkdir -p $(PREFIX)/bin $(PREFIX)/sbin $(PREFIX)/etc/xinetd.d
+		mkdir -p $(PREFIX)/bin $(PREFIX)/sbin $(PREFIX)/etc/xinetd.d \
+			$(PREFIX)/share/locale/$(LOCALE)
 		cp -p sf rls rcv $(PREFIX)/bin/.
 		cp -p uftd $(PREFIX)/sbin/.
 #		cp -p uftd $(PREFIX)/libexec/.
@@ -264,6 +269,8 @@ uft.spec:       uft.spec.in
 		  | sed 's#%SPEC_RELEASE%#$(RELEASE)#g' \
 		  | sed 's#%SPEC_UNAMEM%#$(UNAMEM)#g' \
 		  | sed 's#%SPEC_STAGING%#$(STAGING)#g' \
+                  | sed 's#%SPEC_LOCDIR%#$(LOCDIR)#g' \
+                  | sed 's#%SPEC_LOCALE%#$(LOCALE)#g' \
 		  > uft.spec
 
 #Get yourself an easy source package, e.g. telnet-*-.src.rpm and do an

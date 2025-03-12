@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <libgen.h>
+#include <unistd.h>
 
 #include <errno.h>
 
@@ -322,7 +323,7 @@ int main(int argc,char*argv[])
             return i; }
         if (uftcflag & UFT_VERBOSE) (void) uft_putline(2,temp);
 
-        (void) sprintf(temp,"XDATE %ld",mtime);
+        (void) sprintf(temp,"META XDATE %ld",mtime);
         if (uftcflag & UFT_VERBOSE) (void) uft_putline(2,temp);
         i = tcpputs(s,temp);
         i = uftcwack(r,temp,sizeof(temp));
@@ -336,7 +337,7 @@ int main(int argc,char*argv[])
     /* do we have a time stamp on it? */
     if (prot != 0)
       {
-        (void) sprintf(temp,"PROT %s",uftcprot(prot));
+        (void) sprintf(temp,"META PROT %s",uftcprot(prot));
         if (uftcflag & UFT_VERBOSE) (void) uft_putline(2,temp);
         i = tcpputs(s,temp);
         i = uftcwack(r,temp,sizeof(temp));
@@ -413,6 +414,9 @@ int main(int argc,char*argv[])
         else (void) uft_putline(2,temp);
         return i; }
     if (uftcflag & UFT_VERBOSE) (void) uft_putline(2,temp);
+
+    /* arbitrary delay so the server can catch up if needed */
+    sleep(2);
 
     /* close the socket */
     (void) close(s);

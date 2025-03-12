@@ -81,6 +81,7 @@ rsync -a -u -x -H -O -S -v %SPEC_STAGING%/. $HOME/rpmbuild/BUILDROOT/%SPEC_APPLI
 #%dir /usr/spool/uft
 #/usr/src/redhat/RPMS/*
 %SPEC_PREFIX%/etc/xinetd.d/uft
+%SPEC_PREFIX%/share/locale/%SPEC_LOCALE%/uft.msgs
 
 %clean
 # Here is where we clean-up after all the building and packaging.

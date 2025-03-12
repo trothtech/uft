@@ -38,6 +38,10 @@ UNAMEM=`uname -m | sed 's#^i.86$#i386#' | sed 's#^armv.l$#arm#'`
 export UNAMEM RELEASE STAGING
 
 #
+# we're moving more settings into the config artifacts
+. ./configure.sh
+
+#
 # process the skeletal spec file into a usable spec file
 rm -f uft.spec
 make STAGING=$STAGING UNAMEM=$UNAMEM RELEASE=$RELEASE uft.spec
