@@ -20,11 +20,11 @@ extern	int	errno;
 #include "uft.h"
 
 /* ------------------------------------------------------------ UFTDUSER
- *  Move into the specified user's UFT sub-dir,  possibly creating it,
- *  and try to  seteuid()  to that user too.
+ *  Move into the specified user's UFT sub-dir, possibly creating it,
+ *  and try to seteuid() to that user too.
  */
 int uftduser(char*user)
-  {
+  { static char _eyecatcher[] = "uftduser()";
     int 	i, uuid;
     struct passwd *pwdent;
 

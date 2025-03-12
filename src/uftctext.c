@@ -17,7 +17,7 @@
 /* ------------------------------------------------------------ UFTCTEXT
  */
 int uftctext(int s,char*b,int l)
-  {
+  { static char _eyecatcher[] = "uftctext()";
     char	t[BUFSIZ] /* , *p */ ;
     int 	i, j, k;
 

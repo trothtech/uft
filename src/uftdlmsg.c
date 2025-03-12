@@ -15,8 +15,7 @@
 
 /* ------------------------------------------------------------------ */
 int uftdlmsg(char*user,char*file,char*from,char*type)
-  {
-    static char *eyectchr = "uftdlmsg()";
+  { static char _eyecatcher[] = "uftdlmsg()";
 
 /*  (void) openlog("UFT",LOG_CONS,LOG_UUCP);  */
     (void) openlog("uftd",LOG_PID|LOG_CONS,LOG_UUCP);

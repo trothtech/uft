@@ -63,11 +63,11 @@ uftd.o: 	makefile uft.h uftd.c
 sf:		makefile uftc.o \
 			uftcwack.o uftctext.o uftcprot.o \
 			tcpio.o getline.o putline.o \
-			userid.o aecs.o readspan.o
+			userid.o aecs.o readspan.o abbrev.o
 		$(CC) $(CFLAGS) -o sf uftc.o \
 			uftcwack.o uftctext.o uftcprot.o \
 			tcpio.o getline.o putline.o \
-			userid.o aecs.o readspan.o $(LIBS)
+			userid.o aecs.o readspan.o abbrev.o $(LIBS)
 
 uftc.o: 	makefile uft.h uftc.c
 		$(CC) $(CFLAGS) -c uftc.c
@@ -172,7 +172,6 @@ readspan.o: 	makefile readspan.c
 #	  Date: 1997-Mar-23 (Sun)
 #
 
-
 secure: 	default
 		chgrp msg tell msgd
 		chmod g+s tell msgd
@@ -238,6 +237,8 @@ install:	sf uftd
 		cp -p uftd $(PREFIX)/sbin/.
 #		cp -p uftd $(PREFIX)/libexec/.
 		cp -p uft.inet $(PREFIX)/etc/xinetd.d/uft
+#
+                cp -p uft.msgs $(PREFIX)/share/locale/$(LOCALE)/.
 
 ########################################################################
 # RPM support

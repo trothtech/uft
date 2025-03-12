@@ -33,8 +33,7 @@ extern struct  UFTFILE  uftfile0;
 /*  ----------------------------------------------------------- UFTDLIST
  */
 int uftdlist(int seqn,char*from)
-  {
-    static char *eyecatch = "uftdlist()";
+  { static char _eyecatcher[] = "uftdlist()";
 
     char	string[80];
     int 	fd, i;

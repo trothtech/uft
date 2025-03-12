@@ -53,7 +53,7 @@ char    tcp_umsg[TCPSMALL];
  *  but connects to a TCP port,  not a local file.
  */
 int tcpopen(char*host,int flag,int mode)
-  {
+  { static char _eyecatcher[] = "tcpopen()";
     int         s, i, port, rc, j;
     struct sockaddr name;
     struct hostent *hent, myhent;
@@ -163,14 +163,14 @@ int tcpopen(char*host,int flag,int mode)
  *  Like  tcpopen(),  but connects to a Mail eXchanger IP host.
  */
 int mxopen(char*host,int flag,int mode)
-  {
+  { static char _eyecatcher[] = "mxopen()";
     return -1;
   }
 
 /* ------------------------------------------------------------ TCPCLOSE
  */
 int tcpclose(int fd)
-  {
+  { static char _eyecatcher[] = "tcpclose()";
     return close(fd);
   }
 
@@ -183,7 +183,7 @@ int tcpclose(int fd)
  *    See also: getline.c, putline.c
  */
 int tcpgets(int s,char*b,int l)
-  {
+  { static char _eyecatcher[] = "tcpgets()";
     char       *p;
     int         i;
 
@@ -246,7 +246,7 @@ int tcpgets(int s,char*b,int l)
  *    See also: getline.c, putline.c
  */
 int tcpputs(int s,char*b)
-  {
+  { static char _eyecatcher[] = "tcpputs()";
     int         i,  j;
     char        temp[4096];
 
@@ -278,14 +278,14 @@ int tcpputs(int s,char*b)
 /* ------------------------------------------------------------ TCPWRITE
  */
 int tcpwrite(int fd,char*s,int n)
-  {
+  { static char _eyecatcher[] = "tcpwrite()";
     return write(fd,s,n);
   }
 
 /* ------------------------------------------------------------- TCPREAD
  */
 int tcpread(int fd,char*s,int n)
-  {
+  { static char _eyecatcher[] = "tcpread()";
     return read(fd,s,n);
   }
 
@@ -315,7 +315,7 @@ int tcpread(int fd,char*s,int n)
 #define         IDENT_PORT      113
 
 int tcpident(int sock,char*buff,int size)
-  {
+  { static char _eyecatcher[] = "tcpident()";
     struct  sockaddr    sadr;
     struct  hostent    *hent;
     int         i, rc, slen, styp, soff;
@@ -467,8 +467,8 @@ int tcpident(int sock,char*buff,int size)
 /* --------------------------------------------------------------- HTONC
  *  Host-to-Network, alpha (character)
  */
-unsigned char htonc (unsigned char c)
-  {
+unsigned char htonc(unsigned char c)
+  { static char _eyecatcher[] = "htonc()";
 #if     '\n' == 0x15
     return (asc8859[c]);
 #else
@@ -479,8 +479,8 @@ unsigned char htonc (unsigned char c)
 /* --------------------------------------------------------------- NTOHC
  *  Network-to-Host, alpha (character)
  */
-unsigned char ntohc (unsigned char c)
-  {
+unsigned char ntohc(unsigned char c)
+  { static char _eyecatcher[] = "ntohc()";
 #if     '\n' == 0x15
     return (ebc8859[c]);
 #else
@@ -491,8 +491,8 @@ unsigned char ntohc (unsigned char c)
 /* --------------------------------------------------------------- HTONZ
  *  Host-to-Network, alpha (Z-string)
  */
-int htonz (unsigned char * s)
-  {
+int htonz(unsigned char*s)
+  { static char _eyecatcher[] = "htonz()";
 #if     '\n' == 0x15
     int i;
     for (i = 0; (s[i] = asc8859[s[i]]) != 0x00; i++);
@@ -505,8 +505,8 @@ int htonz (unsigned char * s)
 /* --------------------------------------------------------------- NTOHZ
  *  Network-to-Host, alpha (Z-string)
  */
-int ntohz (unsigned char * s)
-  {
+int ntohz(unsigned char*s)
+  { static char _eyecatcher[] = "ntohz()";
 #if     '\n' == 0x15
     int i;
     for (i = 0; (s[i] = ebc8859[s[i]]) != 0x00; i++);
@@ -521,8 +521,8 @@ int ntohz (unsigned char * s)
 /* --------------------------------------------------------------- HTONB
  *  Host-to-Network, alpha (block)
  */
-int htonb ( unsigned char * p, unsigned char * q, size_t l )
-  {
+int htonb(unsigned char*p,unsigned char*q,size_t l)
+  { static char _eyecatcher[] = "htonb()";
     unsigned char v;
     int         i, j;
 
@@ -550,8 +550,8 @@ int htonb ( unsigned char * p, unsigned char * q, size_t l )
 /* --------------------------------------------------------------- NTOHB
  *  Network-to-Host, alpha (block)
  */
-int ntohb ( unsigned char * p, unsigned char * q, size_t l )
-  {
+int ntohb(unsigned char*p,unsigned char*q,size_t l)
+  { static char _eyecatcher[] = "ntohb()";
     unsigned char v;
     int         i, j;
 

@@ -19,10 +19,9 @@
 
 /* ------------------------------------------------------------------ */
 int uftdimsg(char*user,char*file,char*from,char*type)
-  /*  spoolid (file) is character in case spoolids go non-numeric
-	(discouraged)  or the number of digits increases (likely)  */
-  {
-    static char *eyecatch = "uftdimsg()";
+  /* spoolid (file) is character in case spoolids go non-numeric      *
+   * (discouraged) or the number of digits increases (likely)         */
+  { static char _eyecatcher[] = "uftdimsg()";
 
     char	imsg[BUFSIZ], *p;
     int 	i;

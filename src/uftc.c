@@ -1,33 +1,32 @@
-/* Copyright 1995, Richard M. Troth, all rights reserved.  <plaintext>
+/* Copyright 1994-2025 Richard M. Troth, all rights reserved. <plaintext>
  *
  *        Name: uftc.c, sendfile.c
  *              Unsolicited File Transfer client
- *              *finally* an Internet SENDFILE for UNIX
+ *              *finally* an Internet SENDFILE for Unix
  *      Author: Rick Troth, Houston, Texas, USA
  *        Date: 1994-Jun-30, 1995-Jan-22
  *
  */
 
-#include        <string.h>
-#include        <stdio.h>
-#include        <fcntl.h>
-#include        <sys/stat.h>
-#include        <stdlib.h>
-#include        <time.h>
-#include        <errno.h>
+#include <string.h>
+#include <stdio.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <stdlib.h>
+#include <time.h>
+#include <libgen.h>
 
-#include        "uft.h"
+#include <errno.h>
 
-extern  int     errno;
+#include "uft.h"
+
 char           *arg0;
-int             uftv;           /*  protocol level  (1 or 2)  */
+int             uftv;           /* protocol level (1 or 2) */
 int             uftcflag;
 
 /* ------------------------------------------------------------------ */
-int main(argc,argv)
-  int     argc;
-  char   *argv[];
-  {
+int main(int argc,char*argv[])
+  { static char _eyecatcher[] = "UFTC main()";
     int         i, fd0, s, size, r, copy;
     char        temp[256], targ[256], b[BUFSIZ],
                *from, *host, *name, *type, *auth, *class;
@@ -37,43 +36,44 @@ int main(argc,argv)
     mode_t      prot;
     struct tm *gmtstamp;
 
-    /*  note command name and set defaults  */
-    arg0 = argv[0];
-    uftcflag = UFT_BINARY;      /*  default  */
+    /* note command name and set defaults */
+/*  arg0 = argv[0];  */
+    arg0 = basename(argv[0]);
+    uftcflag = UFT_BINARY;      /* default */
     name = type = class = "";
-    auth = "-";         /*  no particular authentication scheme  */
+    auth = "-";         /* no particular authentication scheme */
     copy = 0;
 
-    /*  process options  */
+    /* process options */
     for (i = 1; i < argc && argv[i][0] == '-' &&
                             argv[i][1] != 0x00; i++)
       {
         switch (argv[i][1])
           {
-            case 'a':   case 'A':       /*  ASCII (ie: plain text)  */
+            case 'a':   case 'A':       /* ASCII (ie: plain text) */
                         uftcflag &= ~UFT_BINARY;
                         type = "A";
                         break;
 
-            case 'b':   case 'B':       /*  BINARY  */
-            case 'i':   case 'I':       /*  aka IMAGE  */
+            case 'b':   case 'B':       /* BINARY */
+            case 'i':   case 'I':       /* aka IMAGE */
                         uftcflag |= UFT_BINARY;
                         type = "I";
                         break;
 
 #ifdef  OECS
-            case 'e':   case 'E':       /*  EBCDIC  (IBM plain text)  */
+            case 'e':   case 'E':       /* EBCDIC (IBM plain text) */
                         uftcflag |= UFT_BINARY;
                         type = "E";
                         break;
 #endif
 
-            case 't':   case 'T':       /*  TYPE  */
+            case 't':   case 'T':       /* TYPE */
                         i++;   
                         type = argv[i];
                         break;
 
-            case 'n':   case 'N':       /*  NAME  */
+            case 'n':   case 'N':       /* NAME */
                         i++;
                         name = argv[i];
                         break;
@@ -84,38 +84,71 @@ int main(argc,argv)
                         uftcflag |= UFT_VERBOSE;
                         break;
 
-            case 'c':   case 'C':       /*  CLASS  */
+            case 'c':   case 'C':       /* CLASS */
                         i++;   
                         class = argv[i];
                         break;
 
-            case 'm':   case 'M':       /*  TYPE=M  */
+            case 'm':   case 'M':       /* TYPE=M */
                         uftcflag &= ~UFT_BINARY;
                         type = "M";
                         break;
 
-            case '#':   /*  COPY -or- COPIES  */
+            case '#':   /* COPY -or- COPIES */
                         i++;    
                         copy = atoi(argv[i]);
                         break;
 
-            default:    (void) sprintf(temp,
-                                "%s: invalid option %s",
+/* ------------------------------------------------------------------ */
+            case '-':   /* long format options */
+                if (abbrev("--version",argv[i],6) > 0)
+                  { sprintf(temp,"%s: %s Internet SENDFILE client",
+                            arg0,UFT_VERSION);
+                    uft_putline(2,temp);
+                    return 0; } else
+                if (abbrev("--ascii",argv[i],5) > 0 ||
+                    abbrev("--text",argv[i],6) > 0)
+                  { uftcflag &= ~UFT_BINARY; type = "A"; } else
+                if (abbrev("--binary",argv[i],5) > 0 ||
+                    abbrev("--image",argv[i],4) > 0)
+                  { uftcflag |= UFT_BINARY; type = "I"; } else
+#ifdef  OECS
+                if (abbrev("--ebcdic",argv[i],8) > 0)
+                  { uftcflag |= UFT_BINARY; type = "E"; } else
+#endif
+                if (abbrev("--type",argv[i],6) > 0)
+                  { i++; type = argv[i]; } else
+                if (abbrev("--name",argv[i],6) > 0)
+                  { i++; name = argv[i]; } else
+                if (abbrev("--verbose",argv[i],6) > 0)
+                  { uftcflag |= UFT_VERBOSE; } else
+                if (abbrev("--class",argv[i],4) > 0)
+                  { i++; class = argv[i]; } else
+                if (abbrev("--mail",argv[i],6) > 0 ||
+                    abbrev("--email",argv[i],4) > 0)
+                  { uftcflag &= ~UFT_BINARY; type = "M"; } else
+                if (abbrev("--copy",argv[i],4) > 0 ||
+                    abbrev("--copies",argv[i],4) > 0)
+                  { i++; copy = atoi(argv[i]); }
+                        break;
+/* ------------------------------------------------------------------ */
+
+            default:    (void) sprintf(temp,"%s: invalid option %s",
                                 arg0,argv[i]);
                         (void) uft_putline(2,temp);
-                        return 20;
+                        return 1;
                         break;
           }
       }
 
-    /*  announcement  (iff verbose option requested)  */
+    /* announcement (iff verbose option requested) */
     if (uftcflag & UFT_VERBOSE)
       {
         (void) sprintf(temp,"%s: %s Internet SENDFILE client",
                 arg0,UFT_VERSION);
         (void) uft_putline(2,temp); }
 
-    /*  be sure we still have enough args (min 2) left over  */
+    /* be sure we still have enough args (min 2) left over */
     if ((argc - i) < 2)
       {
         (void) sprintf(temp,
@@ -125,9 +158,9 @@ int main(argc,argv)
                 "          [ -n name ] [ -c class ]");
         (void) uft_putline(2,temp);
         if (uftcflag & UFT_VERBOSE) return 0;
-                              else  return 24; }
+                              else  return 1; }
 
-    /*  flag some known canonicalization types  */
+    /* flag some known canonicalization types */
     switch (type[0])
       {
         case 'a':   case 'A':
@@ -141,7 +174,7 @@ int main(argc,argv)
                                 break;
       }
 
-    /*  open the input file,  if not stdin  */
+    /* open the input file, if not stdin */
     if (argv[i][0] == '-' && argv[i][1] == 0x00)
       {
         fd0 = dup(0); }
@@ -150,14 +183,14 @@ int main(argc,argv)
         if (name[0] == 0x00) name = argv[i];
         fd0 = open(argv[i],O_RDONLY); }
 
-    /*  verify that the open() worked  */
+    /* verify that the open() worked */
     if (fd0 < 0)
       {
         if (*name != 0x00) (void) perror(name);
                 else    (void) perror("stdin");
         return fd0; }
 
-    /*  do we have any ideas about this file?  */
+    /* do we have any ideas about this file? */
     if (fstat(fd0,&uftcstat) == 0)
       {
         size = uftcstat.st_size;
@@ -167,7 +200,7 @@ int main(argc,argv)
       {
         size = 0;  mtime = 0;  prot = 0; }
 
-    /*  see if we're running IDENT locally  */
+    /* see if we're running IDENT locally */
     (void) sprintf(temp,"%s:%d","localhost",IDENT_PORT);
     s = tcpopen(temp,0,0);
     if (s >= 0)
@@ -175,7 +208,7 @@ int main(argc,argv)
         auth = "IDENT";
         (void) close(s); }
 
-    /*  open a socket to the server  */
+    /* open a socket to the server */
     (void) strcpy(targ,argv[argc-1]);
     host = targ;
     while (*host != 0x00 && *host != '@') host++;
@@ -197,19 +230,19 @@ int main(argc,argv)
         return i; }
     if (uftcflag & UFT_VERBOSE) (void) uft_putline(2,temp);
 
-    /*  figure out what protocol version the server likes  */
+    /* figure out what protocol version the server likes */
     uftv = temp[0] & 0x0F;
     if (uftcflag & UFT_VERBOSE)
       {
         (void) sprintf(temp,"%s: UFT protocol %d",arg0,uftv);
         (void) uft_putline(2,temp); }
-    /*  (above is only good for UFT1 or UFT2)  */
+    /* (above is only good for UFT1 or UFT2) */
     if (uftv < 1) uftv = 1;
 
-    /*  identify this client to the server  */
+    /* identify this client to the server */
     (void) sprintf(temp,"#%s client %s",UFT_PROTOCOL,UFT_VERSION);
     (void) tcpputs(s,temp);
-    /*  NO ACK FOR COMMENTS SO DON'T WAIT FOR ONE HERE  */
+    /* NO ACK FOR COMMENTS SO DON'T WAIT FOR ONE HERE */
     if (uftcflag & UFT_VERBOSE) (void) uft_putline(2,temp);
 
     /* start the transaction */
@@ -225,7 +258,7 @@ int main(argc,argv)
         return i; }
     if (uftcflag & UFT_VERBOSE) (void) uft_putline(2,temp);
 
-    /*  tell the server who it's for  */
+    /* tell the server who it's for */
     (void) sprintf(temp,"USER %s",targ);
     if (uftcflag & UFT_VERBOSE) (void) uft_putline(2,temp);
     (void) tcpputs(s,temp);
@@ -237,12 +270,12 @@ int main(argc,argv)
         return i; }
     if (uftcflag & UFT_VERBOSE) (void) uft_putline(2,temp);
 
-    /*  signal the type for canonicalization  */
+    /* signal the type for canonicalization */
     if (type == 0x0000 || type[0] == 0x00)
       {
         if (uftcflag & UFT_BINARY) type = "I";
-                /*  "applcation/octet-stream"  */
-        else type = "A";    /*  "text/plain"  */
+                /* "applcation/octet-stream" */
+        else type = "A";    /* "text/plain" */
       }
     (void) sprintf(temp,"TYPE %s",type);
     if (uftcflag & UFT_VERBOSE) (void) uft_putline(2,temp);
@@ -269,7 +302,7 @@ int main(argc,argv)
             return i; }
         if (uftcflag & UFT_VERBOSE) (void) uft_putline(2,temp); }
 
-    /*  do we have a time stamp on it?  */
+    /* do we have a time stamp on it? */
     if (mtime != 0)
       {
         gmtstamp = localtime(&mtime);
@@ -300,7 +333,7 @@ int main(argc,argv)
             return i; }
         if (uftcflag & UFT_VERBOSE) (void) uft_putline(2,temp); }
 
-    /*  do we have a time stamp on it?  */
+    /* do we have a time stamp on it? */
     if (prot != 0)
       {
         (void) sprintf(temp,"PROT %s",uftcprot(prot));
@@ -328,7 +361,7 @@ int main(argc,argv)
             return i; }
         if (uftcflag & UFT_VERBOSE) (void) uft_putline(2,temp); }
 
-    /*  now send the file down the pipe  */
+    /* now send the file down the pipe */
     while (1)
       {
         if (uftcflag & UFT_BINARY)
@@ -354,10 +387,10 @@ int main(argc,argv)
             return i; }
         if (uftcflag & UFT_VERBOSE) (void) uft_putline(2,temp); }
 
-    /*  close the file handle  */
+    /* close the file handle */
     (void) close(fd0);
 
-    /*  signal end-of-file to the server  */
+    /* signal end-of-file to the server */
     (void) sprintf(temp,"EOF");
     if (uftcflag & UFT_VERBOSE) (void) uft_putline(2,temp);
     (void) tcpputs(s,temp);
@@ -369,7 +402,7 @@ int main(argc,argv)
         return i; }
     if (uftcflag & UFT_VERBOSE) (void) uft_putline(2,temp);
 
-    /*  tell the server we're done  */
+    /* tell the server we're done */
     (void) sprintf(temp,"QUIT");
     if (uftcflag & UFT_VERBOSE) (void) uft_putline(2,temp);
     (void) tcpputs(s,temp);
@@ -381,10 +414,10 @@ int main(argc,argv)
         return i; }
     if (uftcflag & UFT_VERBOSE) (void) uft_putline(2,temp);
 
-    /*  close the socket  */
+    /* close the socket */
     (void) close(s);
 
-    /*  get outta here  */
+    /* get outta here */
     return 0;
  }
 

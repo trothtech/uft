@@ -33,7 +33,7 @@ struct  UFTFILE  uftfile0;
  *  and attempts to log that line in tf (temp) and/or cf (meta).
  */
 int uftdstat(int sock,char*zlda)
-  { static char *eyecatch = "uftdstat()";
+  { static char _eyecatcher[] = "uftdstat()";
     char        buff[256];
 
     (void) tcpputs(sock,zlda);

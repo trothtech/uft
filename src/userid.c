@@ -21,7 +21,7 @@
  *  return login name from the best of several usable sources
  */
 char *userid()
-  {
+  { static char _eyecatcher[] = "userid()";
     char       *u;
     extern  char       *getenv();
 

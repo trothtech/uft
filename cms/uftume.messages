@@ -24,9 +24,9 @@
 *         Note: the following line is essential:
 & 3
 *
-0000      1.10.5
-0001      UFT/1.10.5 client (CMS)
-0002      UFT/1.10.5 server (z/VM)
+0000      1.10.6
+0001      UFT/1.10.6 client (CMS)
+0002      UFT/1.10.6 server (z/VM)
 0004      UFT/&1
 0005      UFT/&1 client
 0006      UFT/&1 server
@@ -73,7 +73,7 @@
 0101  29  101    HELP
 0101  30  101
 *
-0113      113 &1; SEND &1 bytes of data.
+0113      113 SEND &1 bytes of data.
 *114      114 &1
 0114      114 HELP follows:
 *214  02  114-End of HELP.
@@ -84,13 +84,15 @@
 0185    I Active reader class empty (Next file &1 Class &2).
 *131      131 SEND &1 bytes of data.
 0118      118 SEQ=&1 (server)
+0119      118 SEQ=&1 (user)
 *
 * 2XX range are ACKs:
 0200      200 ACK
 0201      201 Command okay.
 0202      202 Command not implemented, superfluous at this site.
+0208      208 user &1 okay
 0211      211 System status, or system help reply.
-0213      213 &1; received &1 bytes of data.
+0213      213 received &1 bytes of data.
 0214      214 End of HELP.
 0216      216 ABORT/ROLLBACK
 0225      225 Data connection already open; transfer starting.
@@ -106,13 +108,13 @@
 *
 * 3XX range are "send more" signals:
 0300      300 SEND &1 bytes of data.
-0313      313 &1; send &1 bytes of data.
-0323      323 SEND &1; send &1 bytes of data.
+0313      313 send &1 bytes of data.
+0323      323 send &1 bytes of data.
 0350      350 Requested file action pending further information.
 0354      354 Enter mail, end with "." on a line by itself
 *
 * 4XX range are client errors:
-0400      400 NAK; client error.
+0400      400 client error.
 0401      401 Syntax error in parameters or arguments.
 0402      402 Command &1 not implemented.
 0403      403 Bad sequence of commands.
@@ -125,7 +127,7 @@
 0475    E No (recipient) names specified
 *
 * 5XX range are server errors:
-0500      500 NAK; server error.
+0500      500 server error.
 *500      500 Unspecified error
 *500      500 command not understood
 0501      501 Syntax error in parameters or arguments.

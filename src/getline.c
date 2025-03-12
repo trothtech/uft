@@ -23,7 +23,7 @@
 
 /* ------------------------------------------------------------------ */
 int uft_getline(int s,char*b)
-  {
+  { static char _eyecatcher[] = "uft_getline()";
     char       *p;
     int 	i;
 

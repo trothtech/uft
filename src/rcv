@@ -1,4 +1,5 @@
 #!/bin/sh
+# Copyright 1995-2005 Richard M. Troth, all rights reserved. <plaintext>
 #
 #         Name: rcv (shell script)
 #               "receive" a file sent via UFT
@@ -46,24 +47,16 @@ yes | rm $D/$S.*
 
 exit
 
+# some example UFT file attributes:
 
-
-
-
-
-
-exit
-
-UFT_REMOTE=
-UFT_SIZE='36K'
-UFT_FROM='ltroth3'
-UFT_USER='rmt'
-UFT_SIZE='36K'
-UFT_FROM='ltroth3'
-UFT_TYPE='I '
-UFT_NAME='uftcreqs.tar'
-UFT_DATE='.2024-04-19. 20:22:31 '
-UFT_RECFM='F'
-UFT_LRECL='512'
+UFT_REMOTE=                             # the sending user@host if available
+UFT_SIZE='36K'                          # estimated size reported by sender
+UFT_FROM='ltroth3'                      # sending user per the FILE command
+UFT_USER='rmt'                          # intended recipient
+UFT_TYPE='I'                            # text? binary? or something else?
+UFT_NAME='uftcreqs.tar'                 # the name of the file, if available
+UFT_DATE='2024-04-19 20:22:31'          # date stamp on the file being sent
+UFT_RECFM='F'                           # record format, if applicable
+UFT_LRECL='512'                         # record length, if applicable
 
 

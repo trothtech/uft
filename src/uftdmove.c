@@ -12,7 +12,7 @@
 /* ------------------------------------------------------------ UFTDMOVE
  */
 int uftdmove(int a,int b)
-  {
+  { static char _eyecatcher[] = "uftdmove()";
     int 	i, j;
     char	q[4096];
     (void) lseek(b,0,0);	/*  "rewind"  */

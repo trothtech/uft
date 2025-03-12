@@ -12,7 +12,7 @@
  *  from, to, count,  in this case  fd, fd, int.
  */
 int uftddata(int o,int i,int n)
-  {
+  { static char _eyecatcher[] = "uftddata()";
     int 	j, k, l;
     char	b[BUFSIZ];
     l = n;

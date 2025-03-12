@@ -12,7 +12,7 @@
 /* ------------------------------------------------------------ UFTCPROT 
  */ 
 char *uftcprot(mode_t prot) 
-  { 
+  { static char _eyecatcher[] = "uftcprot()";
     static char buffer[256]; 
     char	*p; 
  

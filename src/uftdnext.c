@@ -17,7 +17,7 @@
 /* ------------------------------------------------------------ UFTDNEXT
  */
 int uftdnext()
-  {
+  { static char _eyecatcher[] = "uftdnext()";
     int 	i, n, n0, sf;
     char	temp[256], *seq;
 
