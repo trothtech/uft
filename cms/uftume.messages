@@ -24,9 +24,9 @@
 *         Note: the following line is essential:
 & 3
 *
-0000      1.10.6
-0001      UFT/1.10.6 client (CMS)
-0002      UFT/1.10.6 server (z/VM)
+0000      1.10.7
+0001      UFT/1.10.7 client (CMS)
+0002      UFT/1.10.7 server (z/VM)
 0004      UFT/&1
 0005      UFT/&1 client
 0006      UFT/&1 server
@@ -122,9 +122,11 @@
 0407      407 Proxy Authentication Required
 *421      421 (see 521)
 0426      426 Connection closed; transfer aborted.
-*432      432 No such local user: &1
+*432      432 No such local user &1
+0433    E 433 Invalid option &1
 *450      450 Requested file action pending further information.
-0475    E No (recipient) names specified
+0470    E 470 Invalid parameter &1
+0475    E 475 No (recipient) names specified
 *
 * 5XX range are server errors:
 0500      500 server error.

@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright 1995-2005 Richard M. Troth, all rights reserved. <plaintext>
+# Copyright 1995-2025 Richard M. Troth, all rights reserved. <plaintext>
 #
 #         Name: rcv (shell script)
 #               "receive" a file sent via UFT
@@ -12,7 +12,8 @@ U=`id | awk -F\( '{print $2}' | awk -F\) '{print $1}'`
 
 D=/var/spool/uft/$U
 if [ ! -d $D ] ; then
-exec ls -ld $D ; fi
+echo "$Z: UFT configuration problem: no spool directory" 1>&2
+exec ls -ld $D ; fi             # 'ls' here throws an informative error
 
 #
 # clean-up the spool ID
@@ -28,21 +29,36 @@ RC=$? ; if [ $RC -ne 0 ] ; then rm -f /tmp/$$.set ; exit $RC ; fi
 rm /tmp/$$.set
 
 #
-# file needs a name
+# file needs a name - command line can override or specify a name
 T="$2"
 if [ -z "$T" ] ; then T="$UFT_NAME" ; fi
 if [ -z "$T" ] ; then
-    echo "$Z: UFT file $S needs a name"
+    echo "$Z: UFT file $S needs a name" 1>&2
     exit 1 ; fi
 
 #
 # report and receive
 echo "$Z: receiving UFT file $S as '$T'"
-cat $D/$S.df > $T
-RC=$? ; if [ $RC -ne 0 ] ; then exit $RC ; fi
 
 #
-# if that worked then discard the spool file
+# be selective about canonicalization
+case "$UFT_TYPE" in
+    a*|A*|t*|T*)                # "ASCII" or plain text
+        cat $D/$S.df | sed 's#\r$##' > $T
+        RC=$?
+        ;;
+    n*|N*)                      # IBM NETDATA (convert to plain text)
+        RC=$?
+        ;;
+    *)
+        cat $D/$S.df > $T
+        RC=$?
+        ;;
+esac
+if [ $RC -ne 0 ] ; then exit $RC ; fi
+
+#
+# if that worked then discard the spool file (all components)
 yes | rm $D/$S.*
 
 exit

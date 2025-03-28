@@ -13,7 +13,7 @@
 
 /* some settings */
 port = 608
-vrm = "1.10.6"                  /* to coincide with the POSIX version */
+vrm = "1.10.7"                  /* to coincide with the POSIX version */
 verbose = 0
 uft = 2                     /* we really should not see UFT/1 anymore */
 

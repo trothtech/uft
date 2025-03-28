@@ -77,6 +77,7 @@ rsync -a -u -x -H -O -S -v %SPEC_STAGING%/. $HOME/rpmbuild/BUILDROOT/%SPEC_APPLI
 %SPEC_PREFIX%/usr/bin/sf
 %SPEC_PREFIX%/usr/bin/rls
 %SPEC_PREFIX%/usr/bin/rcv
+%SPEC_PREFIX%/usr/bin/uftcndd
 %SPEC_PREFIX%/usr/sbin/uftd
 #%dir /usr/spool/uft
 #/usr/src/redhat/RPMS/*

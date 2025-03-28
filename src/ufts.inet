@@ -1,13 +1,12 @@
 #
 # description: an RFC 1440 file receiver server
 # Note that the RFC is out of date. (Wanna help with the re-write?)
-# This protocol provides a way to send files with the sender
+# This protocol provides a way to send files with the sending user
 # not needing to have any credentials on the receiving end.
 # ("unsolicited" file transfer, a.k.a.: sender-initiated file transfer)
 #
 service ufts
 {
-#       port            = 7608
         port            = 5608
         socket_type     = stream
         protocol        = tcp

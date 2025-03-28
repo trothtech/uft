@@ -7,7 +7,7 @@
 #
 
 APPLID          =       uft
-VERSION         =       1.10.6
+VERSION         =       1.10.7
 DELIVERABLES    =       uftd sf rls rcv
 SOURCEURL       =       https://raw.githubusercontent.com/trothtech/uft/refs/heads/main
 #                       https://raw.githubusercontent.com/trothtech/uft/master
@@ -26,7 +26,7 @@ LOCALE          =       %LOCALE%
 
 .PHONY: 	clean distclean config help
 
-all:		uftd sf
+all:		uftd sf uftcndd
 #			maketext cpq cpqu \
 #			tell msgpipe msgcat msgd
 
@@ -97,6 +97,9 @@ uftcnote.h:	makefile uftcnote.txt
 uftcmime:	makefile uftcmime.c uftcnote.h
 		$(CC) $(CFLAGS) -o uftcmime uftcmime.c $(LIBS)
 
+uftcndd:	makefile uftcndd.c uft.h
+		$(CC) $(CFLAGS) -o uftcndd uftcndd.c $(LIBS)
+
 maketext:	makefile maketext.o getline.o putline.o tcpio.o aecs.o
 		$(CC) $(CFLAGS) -o maketext \
 			maketext.o getline.o putline.o tcpio.o aecs.o $(LIBS)
@@ -114,12 +117,12 @@ cpqu:		makefile cpqu.o uftcwack.o \
 clean:
 		rm -f core a.out *.o *.a *.lst CEEDUMP.* \
 			uftd sf maketext cpq cpqu uftcmime \
-			tell msgpipe msgcat msgd imsg
+			tell msgpipe msgcat msgd imsg uftcndd
 
 distclean:
 		rm -f core a.out *.o *.a *.lst CEEDUMP.* \
 			uftd sf maketext cpq cpqu uftcmime \
-			tell msgpipe msgcat msgd imsg \
+			tell msgpipe msgcat msgd imsg uftcndd \
 			*:* *';'* makefile Makefile makefile.old \
 			uft.spec configure.sh configure.h *.rpm *.log .rpmseq
 		rm -rf rpmbuild.d
@@ -238,7 +241,7 @@ homedir.o:	makefile homedir.c
 install:	sf uftd
 		mkdir -p $(PREFIX)/bin $(PREFIX)/sbin $(PREFIX)/etc/xinetd.d \
 			$(PREFIX)/share/locale/$(LOCALE)
-		cp -p sf rls rcv $(PREFIX)/bin/.
+		cp -p sf rls rcv uftcndd $(PREFIX)/bin/.
 		cp -p uftd $(PREFIX)/sbin/.
 #		cp -p uftd $(PREFIX)/libexec/.
 		cp -p uft.inet $(PREFIX)/etc/xinetd.d/uft

@@ -15,9 +15,9 @@
 
 /* the version number and copyright */
 #define         UFT_PROTOCOL    "UFT/2"
-#define         UFT_VERSION     "POSIXUFT/1.10.6"
+#define         UFT_VERSION     "POSIXUFT/1.10.7"
 #define         UFT_COPYRIGHT   "© Copyright 1995-2025 Richard M. Troth"
-#define         UFT_VRM         "1.10.6"
+#define         UFT_VRM         "1.10.7"
 
 /* server constants */
 /* the SPOOLDIR has a sub-directory for each recipient */
@@ -63,8 +63,7 @@
 
 #define         UFT_SYSLOG_FACILITY     LOG_UUCP
 
-struct          UFTFILE
-                        {
+typedef struct  UFTFILE {
                 /* to-and-from spool space */
                 int     cfd;    /* control file descriptor */
                 int     dfd;    /* data file descriptor */
@@ -89,28 +88,97 @@ struct          UFTFILE
                         form[16], dist[16], dest[16];
                 int     size, copies;
                 char    title[64];
-                        } ;
+                        } UFTFILE ;
 
 #define         UFT_B64_CODE    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 
 /* RDR FILE >this< SENT FROM $from RDR WAS yadda yadda */
-#define         UFT_TYPE_A_EXPANSION    /* "ASCII" */ "TXT"
+#define         UFT_TYPE_A_EXPANSION    "TXT" /* "ASCII" */ 
 #define         UFT_TYPE_B_EXPANSION    "BIN"
 #define         UFT_TYPE_C_EXPANSION    "PRT"
-#define         UFT_TYPE_I_EXPANSION    /* "IMAGE" */ "BIN"
+#define         UFT_TYPE_I_EXPANSION    "BIN" /* "IMAGE" */ 
 #define         UFT_TYPE_M_EXPANSION    "MAIL"
 #define         UFT_TYPE_N_EXPANSION    "NETDATA"
 #define         UFT_TYPE_P_EXPANSION    "PRT"
 #define         UFT_TYPE_T_EXPANSION    "TXT"
-#define         UFT_TYPE_U_EXPANSION    /* "UNSPEC" */ "BIN"
+#define         UFT_TYPE_U_EXPANSION    "BIN" /* "UNSPEC" */ 
 #define         UFT_TYPE_V_EXPANSION    "VAR" /* or "V16" */
 /*
 RDR FILE $FILE SENT FROM $RSCS RDR WAS #### ####
 xxx FILE nnnn  SEND FROM u@h
  */
 
-static char *uft_copyright = UFT_COPYRIGHT;
+/* constants in support of IBM NETDATA encoding */
+#define   UFT_ND_FIRST    0x80
+#define   UFT_ND_LAST     0x40
+#define   UFT_ND_CTRL     0x20
+#define   UFT_ND_NEXT     0x10
+#define   UFT_ND_INMR01   "\xc9\xd5\xd4\xd9\xf0\xf1"  /* first record of transmission */
+#define   UFT_ND_INMR02   "\xc9\xd5\xd4\xd9\xf0\xf2"
+#define   UFT_ND_INMR03   "\xc9\xd5\xd4\xd9\xf0\xf3"
+#define   UFT_ND_INMR04   "\xc9\xd5\xd4\xd9\xf0\xf4"
+#define   UFT_ND_INMR06   "\xc9\xd5\xd4\xd9\xf0\xf6"  /* last record in transmission */
+#define   UFT_ND_INMR07   "\xc9\xd5\xd4\xd9\xf0\xf7"
 
+typedef struct  UFTNDIO {
+            void *buffer;
+            int   bufmax;
+            int   buflen;
+            int   bufdex;
+                        } UFTNDIO ;
+
+int uft_getndr(int,struct UFTNDIO*,int*,char**,int*);
+
+/*
+
+UFT_ND_FIRST|UFT_ND_LAST is a single record
+UFT_ND_FIRST|UFT_ND_LAST|UFT_ND_CTRL is a single control record
+
+0       1       Length of segment including two-byte header
+                (length is in the range of 2 to 255)
+
+1       1       Segment descriptor flags:
+                    X'80' - First segment of original record.
+                    X'40' - Last segment of original record.
+                    X'20' - This is (part of) a control record.
+                    X'10' - This is record number of next record.
+
+2       n-2     Data (n is in the range of 0 to 253).
+                Control records have a control record identifier
+                (for example, INMR01) in bytes 2-7. Text units generally
+                begin in byte 8. Data records begin directly in byte 2.
+
+https://www.ibm.com/docs/en/zvm/7.2?topic=reference-netdata-format
+
+
+66E0C9D5D4D9F0F1 always the first record of a transmission
+ " " I N M R 0 1
+
+                  if (memcmp("\311\325\324\331\360\361",line+4,6)==0)
+                    is_netdata = 1; // INMR01 at start of record
+
+75E0C9D5D4D9F0F2
+ " " I N M R 0 2
+
+30E0C9D5D4D9F0F3
+ " " I N M R 0 3
+
+08E0C9D5D4D9F0F6
+ " " I N M R 0 6
+
+time
+
+    year (4)
+    month (2)
+    day (2)
+    hour (2)
+    minute (2)
+    second (2)
+    fraction of seconds (n).
+
+ */
+
+static char *uft_copyright = UFT_COPYRIGHT;
 
 /* © Copyright 1996, Richard M. Troth, all rights reserved.  <plaintext>
  *              (casita sourced)
@@ -137,7 +205,7 @@ static char *uft_copyright = UFT_COPYRIGHT;
 #include <time.h>
 #include <fcntl.h>
 
-struct uft_stat {
+typedef struct  UFTSTAT {
     int         uft_ino;        /* UFT spoolid */
     mode_t      uft_mode;       /* UFT "xperm" protection */
     int         uft_nlink;      /* UFT copy count */
@@ -166,12 +234,9 @@ struct uft_stat {
                 dist[16],
                 dest[16],
                 title[64];
+                        } UFTSTAT ;
 
-};
-
-
-
-int uft_stat(const char *,struct uft_stat *);
+int uft_stat(const char*,struct UFTSTAT*);
 
 /*
 
@@ -188,12 +253,11 @@ uft stat <spoolid> <varname>
 #
 # from
 # class
-# formcode
+# form
 # hold|nohold
-# distcode
-# destcode
-# fcbcode
-# formcode
+# dist
+# dest
+# fcb
 #
 
 uft_title == an arbitrary string labelling this file
@@ -213,7 +277,6 @@ uft_umsg.html ==
 uft_user.html ==
 
  */
-
 
 ssize_t getuftentries(int,char*,size_t,off_t*);
 /* ssize_t getuftentries(int fd, char *buf, size_t nbytes , off_t *basep); */

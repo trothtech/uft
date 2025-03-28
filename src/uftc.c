@@ -27,7 +27,7 @@ int             uftcflag;
 
 /* ------------------------------------------------------------------ */
 int main(int argc,char*argv[])
-  { static char _eyecatcher[] = "UFTC main()";
+  { static char _eyecatcher[] = "uftc.c main()";
     int         i, fd0, s, size, r, copy;
     char        temp[256], targ[256], b[BUFSIZ],
                *from, *host, *name, *type, *auth, *class;

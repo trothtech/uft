@@ -24,7 +24,7 @@
  */
 
 /*  set some initial values  */
-vrm0 = "1.10.6"                 /* to coincide with the POSIX version */
+vrm0 = "1.10.7"                 /* to coincide with the POSIX version */
 
 /*  identify this stage  */
 Parse Source . . arg0 .
@@ -35,7 +35,7 @@ Address COMMAND 'GLOBALV SELECT' arg0 'GET HOSTID VRM VERBOSE' ,
     'REMOTE_HOST REMOTE_ADDR REMOTE_USER REMOTE_IDENT' ,
         'UFT LOCALHOST SERVER_PIPE_ATTACH'
 If vrm ^= vrm0 Then ,
-    Address COMMAND 'XMITMSG 1200 VRM0 VRM (APPLID UFT ERRMSG'
+    Address COMMAND 'XMITMSG 1200 VRM0 VRM (APPLID UFT CALLER SRV'
 If remote_host = "" Then remote_host = remote_addr
 If remote_user = "" Then remote_user = remote_ident
 
@@ -168,10 +168,14 @@ Do Forever
         Parse Upper Var line . verb .
         Parse       Var line . line
         meta = 1
-        End  /*  If .. Do  */
+    End /* If .. Do */
     code = 0
+/*
+402 Command XDATE not implemented.
+402 Command PROT not implemented.
+ */
 
-    Select  /*  verb  */
+    Select /* verb */
 
         When ^meta & verb = "" Then nop
         When ^meta & Left(verb,1) = '*' Then If verbose Then Say line
@@ -331,10 +335,10 @@ Do Forever
                     'CALLPIPE COMMAND XMITMSG 200 (APPLID UFT' ,
                     'CALLER SRV NOHEADER | *.OUTPUT:'
                 When rc = 45 Then ,
-                    'CALLPIPE COMMAND XMITMSG 545 (APPLID UFT' ,
+                    'CALLPIPE COMMAND XMITMSG 545 TST (APPLID UFT' ,
                     'CALLER SRV NOHEADER | *.OUTPUT:'
                 When rc = 57 Then ,
-                    'CALLPIPE COMMAND XMITMSG 557 (APPLID UFT' ,
+                    'CALLPIPE COMMAND XMITMSG 557 TST (APPLID UFT' ,
                     'CALLER SRV NOHEADER | *.OUTPUT:'
                 Otherwise ,
                     'CALLPIPE COMMAND XMITMSG 500 (APPLID UFT' ,
@@ -345,11 +349,17 @@ Do Forever
         /* a BITNETism, because I like it */
         When verb = "CPQ"  Then Do
             Parse Upper Var line . cpq
-            /* LOGMSG, USER user, USERS, NAMES, TIME, etc. */
-            'CALLPIPE VAR CPQ | SPEC /QUERY / 1 1-* NEXT' ,
-                '| CP | SPEC /199 / 1 1-* NEXT | *.OUTPUT:'
-            'CALLPIPE COMMAND XMITMSG 200 (APPLID UFT' ,
-                'CALLER SRV NOHEADER | *.OUTPUT:'
+            Parse Value _cpq(cpq) With rc rs
+            If rc = 0 Then Do
+                'CALLPIPE VAR RS | SPLIT AT x15' ,
+                    '| SPEC /199 / 1 1-* NEXT | *.OUTPUT:'
+                'CALLPIPE COMMAND XMITMSG 200 (APPLID UFT' ,
+                    'CALLER SRV NOHEADER | *.OUTPUT:'
+            End ; Else Do
+                Parse Var cpq cpq .
+                'CALLPIPE COMMAND XMITMSG 470 CPQ (APPLID UFT' ,
+                    'CALLER SRV NOHEADER | *.OUTPUT:'
+            End /* If .. Do */
         End /* When .. Do */
 
         When Abbrev("SEQUENCE",verb,3) Then Do
@@ -589,7 +599,8 @@ line.0 = i
 Select  /*  type  */
 
     When type = "A" | type = "T" Then Do
-        If dev = "" Then dev = "PRT"
+/*      If dev = "" Then dev = "PRT"                                  */
+        If dev = "" Then dev = "VAFP"
         pipe = 'MAKETEXT -LOCAL'
         If cc = 'C' Then pipe = pipe '| ASATOMC'
                     Else pipe = pipe '| SPEC .09. X2C 1 1-* NEXT'
@@ -874,5 +885,36 @@ If val = "" Then Return h
 Call Value var, val, "SESSION NSLOOKUP"
 
 Return val
+
+/* ----------------------------------------------------------------- CPQ
+ *  selective 'cpq' logic
+               LOGMSG, USER user, USERS, NAMES, TIME, etc.
+ */
+_cpq: Procedure
+Parse Upper Arg a b .
+
+Select /* a */
+    When Abbrev("CPLEVEL",a,3)  Then ,
+        Parse Value DiagRC(08,"QUERY CPLEVEL") With 1 rc 10 . 17 rs
+    When Abbrev("CPUID",a,3)    Then ,
+        Parse Value DiagRC(08,"QUERY CPUID")   With 1 rc 10 . 17 rs
+    When Abbrev("FILES",a,1)    Then ,
+        Parse Value DiagRC(08,"QUERY FILES")   With 1 rc 10 . 17 rs
+    When Abbrev("INDICATE",a,3) Then ,
+        Parse Value DiagRC(08,"INDICATE")      With 1 rc 10 . 17 rs
+    When Abbrev("LOGMSG",a,3)   Then ,
+        Parse Value DiagRC(08,"QUERY LOGMSG")  With 1 rc 10 . 17 rs
+    When Abbrev("NAMES",a,1)    Then ,
+        Parse Value DiagRC(08,"QUERY NAMES")   With 1 rc 10 . 17 rs
+    When Abbrev("TIME",a,1)     Then ,
+        Parse Value DiagRC(08,"QUERY TIME")    With 1 rc 10 . 17 rs
+    When Abbrev("USERS",a,1) & b = "" Then ,
+        Parse Value DiagRC(08,"QUERY USERS")   With 1 rc 10 . 17 rs
+    When Abbrev("USERS",a,1) & b ^= "" Then ,
+        Parse Value DiagRC(08,"QUERY USER" b)  With 1 rc 10 . 17 rs
+    Otherwise Return 433 "Invalid option" a
+End /* Select a */
+
+Return rc rs
 
 

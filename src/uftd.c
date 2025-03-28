@@ -44,7 +44,7 @@ int uftdstat(int sock,char*zlda)
 
 /* ------------------------------------------------------------------ */
 int main(int argc,char*argv[])
-  { static char *eyecatch = "uftd.c main()";
+  { static char _eyecatcher[] = "uftd.c main()";
 
     char        line[256], temp[256], user[64], auth[256], *p, *q;
     int         n, uuid, i;
