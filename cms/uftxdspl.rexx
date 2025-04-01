@@ -22,7 +22,7 @@ lc = "abcdefghijklmnopqrstuvwxyz"
 Parse Arg sid . '(' . ')' .
 
 /* does the file exist? */
-Parse Value DiagRC(08,'QUERY READER' sid) With ,
+Parse Value DiagRC(08,'QUERY READER *' sid) With ,
     1 rc 10 . 17 rs '15'x rdr '15'x .
 If rc ^= 0 Then Do
     Say rs
@@ -36,7 +36,7 @@ Parse Var rdr 1 from 9 . 15 class 16 . 17 devtype 20 . ,
 from = Translate(Strip(from),lc,uc)
 
 /* also get the "table" data */
-Parse Value DiagRC(08,'QUERY READER' sid 'TBL') With ,
+Parse Value DiagRC(08,'QUERY READER *' sid 'TBL') With ,
     1 rc 10 . 17 rs '15'x tbl '15'x .
 If rc ^= 0 Then Do
     Say rs
@@ -50,7 +50,7 @@ Parse Var tbl 1 . ,
 If Datatype(size,'W') Then size = (size * 4) || "K"
 
 /* and finally, get and parse the long form query */
-Parse Value DiagRC(08,'QUERY READER' sid 'ALL') With ,
+Parse Value DiagRC(08,'QUERY READER *' sid 'ALL') With ,
     1 rc 10 . 17 rs '15'x info '15'x .
 If rc ^= 0 Then Do
     Say rs
@@ -78,10 +78,10 @@ If rc ^= 0 Then Do
     Say rs
     Exit rc
 End /* If .. Do */
-Call Diag 08, 'SPOOL' va 'HOLD CLASS *'
+Call Diag 08, 'SPOOL' va 'KEEP CLASS *'
 
 /* order this file to top-of-queue */
-Parse Value DiagRC(08,'ORDER READER' sid) With 1 rc 10 . 17 rs '15'x .
+Parse Value DiagRC(08,'ORDER * READER' sid) With 1 rc 10 . 17 rs '15'x .
 If rc ^= 0 Then Do
     Say rs
     Call Diag 08, 'DETACH' va
@@ -90,7 +90,7 @@ End /* If .. Do */
 
 /* attach reader stage to input */
 'ADDPIPE READER' va 'FILE' sid '| *.INPUT:'
-If rc ^= 0 Then Do;  Call Diag 08, 'DETACH' va;  Exit rc;  End
+If rc ^= 0 Then Do; Call Diag 08, 'DETACH' va; Exit rc; End
 
 /* examine the TAG record (should be a NOP CCW) */
 'READTO TAG'
@@ -107,7 +107,7 @@ Parse Var record 1 _cc 2 data
 'OUTPUT' argl "SPOOLID" sid "OWNER" Userid()
 tag = Strip(tag)
 Parse Var tag tagnode taguser tagprio tagopts
-If tag ^= "" Then 'OUTPUT' "*TAG" tag
+If tag ^= "" Then 'OUTPUT' "META TAG" tag
 
 cc = ""
 Select
@@ -137,6 +137,7 @@ If msg   ^= "" Then 'OUTPUT' "META MSG" msg
 'SEVER INPUT'
 Call Diag 08, 'CLOSE' va
 Call Diag 08, 'DETACH' va
+Call Diag 08, 'PURGE * READER' sid
 
 Exit
 
@@ -152,7 +153,10 @@ Do Forever
     Parse Var record 1 _cc 2 data
     If _cc ^= '03'x Then Leave
     Parse Upper Var data verb .
-    If verb = "META" Then Parse Upper Var data . verb .
+    If verb = "META" Then Do
+        Parse Upper Var data . verb .     /* meta verb is second word */
+        Parse       Var data . data        /* and shift the rest left */
+    End /* If .. Do */
     Select /* verb */
         When Abbrev("FILE",verb,1)    Then nop
         When Abbrev("USER",verb,1)    Then nop

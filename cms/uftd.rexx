@@ -389,16 +389,18 @@ Do Forever
         When verb = "DATA" Then Do
             Parse Var line . count .
             If count = "" Then Leave
-            If Datatype(count,'W') Then Call DATA
-            Else 'CALLPIPE COMMAND XMITMSG 401' ,
+            If Datatype(count,'W') Then Do
+                Call DATA
+            End ; Else 'CALLPIPE COMMAND XMITMSG 401' ,
                 '(APPLID UFT CALLER SRV NOHEADER | *.OUTPUT:'
         End /* When .. Do */
 
         When Abbrev("AUXDATA",verb,4) Then Do
             Parse Var line . count .
             If count = "" Then Leave
-            If Datatype(count,'W') Then Call AUXDATA
-            Else 'CALLPIPE COMMAND XMITMSG 401' ,
+            If Datatype(count,'W') Then Do
+                Call AUXDATA
+            End ; Else 'CALLPIPE COMMAND XMITMSG 401' ,
                 '(APPLID UFT CALLER SRV NOHEADER | *.OUTPUT:'
         End /* When .. Do */
 
@@ -452,10 +454,16 @@ Exit rc
 DATA:
 
 If ^open Then Call OPEN
+If rc = 53 Then Do    /* if we find that the target user is bogus ... */
+    'CALLPIPE COMMAND XMITMSG 532 USER' ,
+        '(APPLID UFT CALLER SRV NOHEADER | *.OUTPUT:'
+    rc = 532 ; Return rc
+End
+If rc ^= 0 Then Return rc
+If open ^= 1 Then Do ; rc = -1 ; Return rc ; End
 
 If uft > 1 Then ,
     'CALLPIPE COMMAND XMITMSG 323 "' || count || '"' ,
-        '(APPLID UFT CALLER SRV NOHEADER | *.OUTPUT:'
 Else 'CALLPIPE COMMAND XMITMSG 123 "' || count || '"' ,
     '(APPLID UFT CALLER SRV NOHEADER | *.OUTPUT:'
 
@@ -475,7 +483,7 @@ Else If Length(buffer) > 0 Then Do
 
 Do While count > 0
 
-    'READTO';  'PEEKTO BUFFER'
+    'READTO'; 'PEEKTO BUFFER'
     If rc ^= 0 Then Do
         Call ABORT
         Exit 12
@@ -516,6 +524,13 @@ Return
 AUXDATA:
 
 If ^open Then Call OPEN
+If rc = 53 Then Do    /* if we find that the target user is bogus ... */
+    'CALLPIPE COMMAND XMITMSG 532 USER' ,
+        '(APPLID UFT CALLER SRV NOHEADER | *.OUTPUT:'
+    rc = 532 ; Return rc
+End
+If rc ^= 0 Then Return rc
+If open ^= 1 Then Do ; rc = -1 ; Return rc ; End
 
 If uft > 1 Then ,
     'CALLPIPE COMMAND XMITMSG 323 "' || count || '"' ,
@@ -596,7 +611,7 @@ line.i = "FROM" from || '@' || remote_host
 line.0 = i
 
 /*  Figure out how to SPOOL this file.  */
-Select  /*  type  */
+Select /* type */
 
     When type = "A" | type = "T" Then Do
 /*      If dev = "" Then dev = "PRT"                                  */
@@ -604,56 +619,64 @@ Select  /*  type  */
         pipe = 'MAKETEXT -LOCAL'
         If cc = 'C' Then pipe = pipe '| ASATOMC'
                     Else pipe = pipe '| SPEC .09. X2C 1 1-* NEXT'
-        End  /*  When  ..  Do  */
+    End /* When .. Do */
+
+/* notes about CC 5A: cannot be peeked, cannot be received            */
 
     When type = "E" Then Do
-        If dev = "" Then dev = "PRT"
+/*      If dev = "" Then dev = "PRT"                                  */
+        If dev = "" Then dev = "VAFP"
         pipe = 'DEBLOCK LINEND 15 | DROP LAST'
         If cc = 'C' Then pipe = pipe '| ASATOMC'
                     Else pipe = pipe '| SPEC .09. X2C 1 1-* NEXT'
-        End  /*  When  ..  Do  */
+    End /* When .. Do */
 
     When type = "V" Then Do
-        If dev = "" Then dev = "PRT"
+/*      If dev = "" Then dev = "PRT"                                  */
+        If dev = "" Then dev = "VAFP"
         pipe = 'DEBLOCK CMS'
         If cc = 'C' Then pipe = pipe '| ASATOMC'
                     Else pipe = pipe '| SPEC .09. X2C 1 1-* NEXT'
-        End  /*  When  ..  Do  */
+    End /* When .. Do */
 
     When type = 'B' | type = 'I' | type = 'U' Then Do
         dev = "PUN"
         pipe = 'FBLOCK 80 00 | SPEC .41. X2C 1 1-* NEXT'
-        End  /*  When  ..  Do  */
+    End /* When .. Do */
 
     When type = "M" Then Do
-        If dev = "" Then dev = "PRT"
+/*      If dev = "" Then dev = "PRT"                                  */
+        If dev = "" Then dev = "VAFP"
         pipe = 'MAKETEXT -LOCAL | UFTDMAIL' user from ,
             '| SPEC .09. X2C 1 1-* NEXT'
        user = mailer
-       End  /*  When  ..  Do  */
+    End /* When .. Do */
 
     Otherwise Do            /*  treat it as binary  */
         dev = "PUN"
         pipe = 'FBLOCK 80 00 | SPEC .41. X2C 1 1-* NEXT'
-        End  /*  Otherwise  Do  */
+    End /* Otherwise Do */
 
-    End  /*  Select  type  */
+End /* Select type */
 
-/*  Create a temporary virtual unit-record device.  */
-Call Diag 08, 'DEFINE' dev addr
+/* create a temporary virtual unit-record device */
+Parse Value DiagRC(08,'DEFINE' dev addr) With 1 rc 10 . 17 rs
+If rc ^= 0 Then Do ; open = 0 ; Return ; End
 
-/*  we don't do forwarding  */
+/* we don't do forwarding */
 Parse Upper Var user user '@' .
-Call Diag 08, 'SPOOL' addr 'TO' user
+Parse Value DiagRC(08,'SPOOL' addr 'TO' user) With 1 rc 10 . 17 rs
+/* "no such user" is UFT error code 532 */
+If rc ^= 0 Then Do ; open = 0 ; Return ; End
 
-/*  set a few parameters  */
+/* set a few parameters from known metadata */
 Call Diag 08, 'SPOOL' addr 'FORM' form
 Call Diag 08, 'SPOOL' addr 'DEST' dest
 Call Diag 08, 'SPOOL' addr 'DIST' dist
 Call Diag 08, 'SPOOL' addr 'COPY' copy
 Call Diag 08, 'SPOOL' addr 'CLASS' class
 
-/*  build a TAG that RDRLIST will understand  */
+/* build a TAG that RDRLIST will understand */
 Parse Upper Var from from '@' morf .
 Parse Upper Var remote_host host '.' .
 If host = "" Then host = morf
@@ -665,16 +688,25 @@ xmm5 = Right(date,8); xmm6 = Right(time,8); xmm7 = Left(tz,3)
 'CALLPIPE COMMAND XMITMSG 9001 XMM1 XMM2 XMM3 XMM4 XMM5 XMM6 XMM7' ,
 '(APPLID UFT CALLER SRV NOHEADER' ,
     '| TAKE FIRST | VAR UTAG'
+If rc ^= 0 Then Do ; open = 0 ; rs = "" ; Return ; End
 Parse Value Diagrc(08,'TAG DEV' addr utag) With 1 rc 10 . 17 rs '15'x .
+If rc ^= 0 Then Do ; open = 0 ; Return ; End
 
 /*  insert a signature (magic number) for UFT  */
 /*  'CALLPIPE COMMAND XMITMSG 0 (APPLID UFT CALLER SRV NOHEADER' ,
     '| SPEC .03. X2C 1 .*. NEXT 1-* NEXT | URO' addr                  */
 'CALLPIPE VAR VRM | SPEC .03. X2C 1 .*UFTD/. NEXT 1-* NEXT | URO' addr
+If rc ^= 0 Then Do ; open = 0 ; rs = "" ; Return ; End
+
 /*  send the "meta file" as NOP records  */
 'CALLPIPE STEM LINE. | SPEC .03. X2C 1 1-* NEXT | URO' addr
+If rc ^= 0 Then Do ; open = 0 ; rs = "" ; Return ; End
+
+/* add the "file" output stream */
 'ADDSTREAM OUTPUT FILE'
+If rc ^= 0 Then Do ; open = 0 ; rs = "" ; Return ; End
 'ADDPIPE *.OUTPUT.FILE: |' pipe '| URO' addr
+If rc ^= 0 Then Do ; open = 0 ; rs = "" ; Return ; End
 
 open = 1
 i = 0

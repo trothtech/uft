@@ -135,8 +135,6 @@
 *     SENDMAIL REXX     *  -- 19980319
 *     HOSTNAME EXEC     *  -- 19980319
 *     UFTCRSCS REXX     *  -- 19980319
-*     UFTXDSPL REXX     *  -- 19980319
-*     UFTXDSPL HELPPIPE *  -- 19980319
 *     FORWARD  EXEC     *  -- 19980319
 *     FORWARD  HELPCMS  *  -- 19980319
 *     UFTD     EXEC     *  -- 19980319
@@ -184,8 +182,6 @@
 *     UFTCMAIL REXX     *  -- 19971009
 *     SENDMAIL REXX     *  -- 19971009
 *     UFTCRSCS REXX     *  -- 19971009
-*     UFTXDSPL REXX     *  -- 19971009
-*     UFTXDSPL HELPPIPE *  -- 19971009
 *     FORWARD  EXEC     *  -- 19971009
 *     FORWARD  HELPCMS  *  -- 19971009
 *     UFTD     EXEC     *  -- 19971009
@@ -233,7 +229,6 @@
 *     UFTCMAIL REXX     *  -- 19970716
 *     SENDMAIL REXX     *  -- 19970716
 *     UFTCRSCS REXX     *  -- 19970716
-*     UFTXDSPL REXX     *  -- 19970716
 *     UFTD     EXEC     *  -- 19970716
 *     UFTD     REXX     *  -- 19970716
 *     UFTDHELP TXT      *  -- 19970716
