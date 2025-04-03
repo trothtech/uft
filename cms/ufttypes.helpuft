@@ -1,3 +1,11 @@
+.cm Copyright 1997-2025 Richard M. Troth, all rights reserved. <plaintext>
+.cm
+.cm       Name: UFTTYPES HELPUFT
+.cm       Date: 1997-Jul-22
+.cm     Author: Rick Troth, Houston, Texas, USA
+.cm
+.cs 1 on
+ UFTTYPES
 
  UFT Canonicalization Types
 
@@ -5,11 +13,11 @@
 
  A ---- ASCII, generally network plain text (see NVT).
         On VM, this is really EBCDIC, and it remains EBCDIC
-        within the context of a SIFT job,  though it is transformed
+        within the context of a SIFT job, though it is transformed
         to/from ASCII with CR/LF line interpolation when sent over TCP/IP.
 
  I ---- IMAGE, binary or "octet stream".
-        An unprocessed byte stream.   Record boundaries are discarded.
+        An unprocessed byte stream. Record boundaries are discarded.
 
  N ---- NETDATA, suitable for VM and MVS spool destinations.
         It is the responsibility of the source stage (the one attached
@@ -20,4 +28,5 @@
         are interpolated with a two-byte length field in Network Byte
         Order (which conveniently matches Pipelines' BLOCK CMS format).
 
+.cs 1 off
 

@@ -177,36 +177,30 @@ int main(int argc,char*argv[])
 
     /* open the input file, if not stdin */
     if (argv[i][0] == '-' && argv[i][1] == 0x00)
-      {
-        fd0 = dup(0); }
+      { fd0 = dup(0); }
     else
-      {
-        if (name[0] == 0x00) name = argv[i];
+      { if (name[0] == 0x00) name = argv[i];
         fd0 = open(argv[i],O_RDONLY); }
 
     /* verify that the open() worked */
     if (fd0 < 0)
-      {
-        if (*name != 0x00) (void) perror(name);
+      { if (*name != 0x00) (void) perror(name);
                 else    (void) perror("stdin");
         return fd0; }
 
     /* do we have any ideas about this file? */
     if (fstat(fd0,&uftcstat) == 0)
-      {
-        size = uftcstat.st_size;
+      { size = uftcstat.st_size;
         mtime = uftcstat.st_mtime;
         prot = uftcstat.st_mode; }
     else
-      {
-        size = 0;  mtime = 0;  prot = 0; }
+      { size = 0;  mtime = 0;  prot = 0; }
 
     /* see if we're running IDENT locally */
     (void) sprintf(temp,"%s:%d","localhost",IDENT_PORT);
     s = tcpopen(temp,0,0);
     if (s >= 0)
-      {
-        auth = "IDENT";
+      { auth = "IDENT";
         (void) close(s); }
 
     /* open a socket to the server */
@@ -218,24 +212,21 @@ int main(int argc,char*argv[])
     (void) sprintf(temp,"%s:%d",host,UFT_PORT);
     s = tcpopen(temp,0,0);
     if (s < 0)
-      {
-        (void) perror(host);
+      { (void) perror(host);
         return s; }
     r = s;
 
     /* wait for the herald from the server */
     i = tcpgets(r,temp,sizeof(temp));
     if (i < 0)
-      {
-        (void) perror(host);
+      { (void) perror(host);
         return i; }
     if (uftcflag & UFT_VERBOSE) (void) uft_putline(2,temp);
 
     /* figure out what protocol version the server likes */
     uftv = temp[0] & 0x0F;
     if (uftcflag & UFT_VERBOSE)
-      {
-        (void) sprintf(temp,"%s: UFT protocol %d",arg0,uftv);
+      { (void) sprintf(temp,"%s: UFT protocol %d",arg0,uftv);
         (void) uft_putline(2,temp); }
     /* (above is only good for UFT1 or UFT2) */
     if (uftv < 1) uftv = 1;
@@ -253,8 +244,7 @@ int main(int argc,char*argv[])
     (void) tcpputs(s,temp);
     i = uftcwack(r,temp,sizeof(temp));
     if (i < 0)
-      {
-        if (errno != 0) (void) perror(arg0);
+      { if (errno != 0) (void) perror(arg0);
         else (void) uft_putline(2,temp);
         return i; }
     if (uftcflag & UFT_VERBOSE) (void) uft_putline(2,temp);
@@ -265,48 +255,41 @@ int main(int argc,char*argv[])
     (void) tcpputs(s,temp);
     i = uftcwack(r,temp,sizeof(temp));
     if (i < 0)
-      {
-        if (errno != 0) (void) perror(arg0);
+      { if (errno != 0) (void) perror(arg0);
         else (void) uft_putline(2,temp);
         return i; }
     if (uftcflag & UFT_VERBOSE) (void) uft_putline(2,temp);
 
     /* signal the type for canonicalization */
     if (type == 0x0000 || type[0] == 0x00)
-      {
-        if (uftcflag & UFT_BINARY) type = "I";
+      { if (uftcflag & UFT_BINARY) type = "I";
                 /* "applcation/octet-stream" */
-        else type = "A";    /* "text/plain" */
-      }
+        else type = "A";    /* "text/plain" */ }
     (void) sprintf(temp,"TYPE %s",type);
     if (uftcflag & UFT_VERBOSE) (void) uft_putline(2,temp);
     (void) tcpputs(s,temp);
     i = uftcwack(r,temp,sizeof(temp));
     if (i < 0)
-      {
-        if (errno != 0) (void) perror(arg0);
+      { if (errno != 0) (void) perror(arg0);
         else (void) uft_putline(2,temp);
         return i; }
     if (uftcflag & UFT_VERBOSE) (void) uft_putline(2,temp);
 
     /* does this file have a name? */
     if (name != 0x0000 && name[0] != 0x00)
-      {
-        (void) sprintf(temp,"NAME %s",name);
+      { (void) sprintf(temp,"NAME %s",name);
         if (uftcflag & UFT_VERBOSE) (void) uft_putline(2,temp);
         i = tcpputs(s,temp);
         i = uftcwack(r,temp,sizeof(temp));
         if (i < 0)
-          {
-            if (errno != 0) (void) perror(arg0);
+          { if (errno != 0) (void) perror(arg0);
             else (void) uft_putline(2,temp);
             return i; }
         if (uftcflag & UFT_VERBOSE) (void) uft_putline(2,temp); }
 
     /* do we have a time stamp on it? */
     if (mtime != 0)
-      {
-        gmtstamp = localtime(&mtime);
+      { gmtstamp = localtime(&mtime);
         if (gmtstamp->tm_year < 1900)
             gmtstamp->tm_year += 1900;
         sprintf(temp,"DATE %04d-%02d-%02d %02d:%02d:%02d %s",
@@ -317,8 +300,7 @@ int main(int argc,char*argv[])
         i = tcpputs(s,temp);
         i = uftcwack(r,temp,sizeof(temp));
         if (i < 0 && temp[0] != '4')
-          {
-            if (errno != 0) (void) perror(arg0);
+          { if (errno != 0) (void) perror(arg0);
             else (void) uft_putline(2,temp);
             return i; }
         if (uftcflag & UFT_VERBOSE) (void) uft_putline(2,temp);
@@ -328,44 +310,38 @@ int main(int argc,char*argv[])
         i = tcpputs(s,temp);
         i = uftcwack(r,temp,sizeof(temp));
         if (i < 0 && temp[0] != '4')
-          {
-            if (errno != 0) (void) perror(arg0);
+          { if (errno != 0) (void) perror(arg0);
             else (void) uft_putline(2,temp);
             return i; }
         if (uftcflag & UFT_VERBOSE) (void) uft_putline(2,temp); }
 
     /* do we have a time stamp on it? */
     if (prot != 0)
-      {
-        (void) sprintf(temp,"META PROT %s",uftcprot(prot));
+      { (void) sprintf(temp,"META PROT %s",uftcprot(prot));
         if (uftcflag & UFT_VERBOSE) (void) uft_putline(2,temp);
         i = tcpputs(s,temp);
         i = uftcwack(r,temp,sizeof(temp));
         if (i < 0 && temp[0] != '4')
-          {
-            if (errno != 0) (void) perror(arg0);
+          { if (errno != 0) (void) perror(arg0);
             else (void) uft_putline(2,temp);
             return i; }
         if (uftcflag & UFT_VERBOSE) (void) uft_putline(2,temp); }
 
     /* does this file have a specific class? */
     if (class != 0x0000 && class[0] != 0x00)
-      {
-        (void) sprintf(temp,"CLASS %s",class);
+      { (void) sprintf(temp,"CLASS %s",class);
         if (uftcflag & UFT_VERBOSE) (void) uft_putline(2,temp);
         i = tcpputs(s,temp);
         i = uftcwack(r,temp,sizeof(temp));
         if (i < 0)
-          {
-            if (errno != 0) (void) perror(arg0);
+          { if (errno != 0) (void) perror(arg0);
             else (void) uft_putline(2,temp);
             return i; }
         if (uftcflag & UFT_VERBOSE) (void) uft_putline(2,temp); }
 
     /* now send the file down the pipe */
     while (1)
-      {
-        if (uftcflag & UFT_BINARY)
+      { if (uftcflag & UFT_BINARY)
           {
 /*
             i = read(fd0,b,BUFSIZ); if (i == 0)
@@ -373,17 +349,15 @@ int main(int argc,char*argv[])
  */
             i = uft_readspan(fd0,b,BUFSIZ); if (i < 1) break; }
         else
-          {
-            i = uftctext(fd0,b,BUFSIZ);  if (i == 0)
-            i = uftctext(fd0,b,BUFSIZ);  if (i < 1) break; }
+          { i = uftctext(fd0,b,BUFSIZ); if (i == 0)
+            i = uftctext(fd0,b,BUFSIZ); if (i < 1) break; }
         (void) sprintf(temp,"DATA %d",i);
         if (uftcflag & UFT_VERBOSE) (void) uft_putline(2,temp);
         (void) tcpputs(s,temp);
         (void) tcpwrite(s,b,i);
         i = uftcwack(r,temp,sizeof(temp));
         if (i < 0)
-          {
-            if (errno != 0) (void) perror(arg0);
+          { if (errno != 0) (void) perror(arg0);
             else (void) uft_putline(2,temp);
             return i; }
         if (uftcflag & UFT_VERBOSE) (void) uft_putline(2,temp); }
@@ -397,8 +371,7 @@ int main(int argc,char*argv[])
     (void) tcpputs(s,temp);
     i = uftcwack(r,temp,sizeof(temp));
     if (i < 0)
-      {
-        if (errno != 0) (void) perror(arg0);
+      { if (errno != 0) (void) perror(arg0);
         else (void) uft_putline(2,temp);
         return i; }
     if (uftcflag & UFT_VERBOSE) (void) uft_putline(2,temp);
@@ -409,14 +382,13 @@ int main(int argc,char*argv[])
     (void) tcpputs(s,temp);
     i = uftcwack(r,temp,sizeof(temp));
     if (i < 0)
-      {
-        if (errno != 0) (void) perror(arg0);
+      { if (errno != 0) (void) perror(arg0);
         else (void) uft_putline(2,temp);
         return i; }
     if (uftcflag & UFT_VERBOSE) (void) uft_putline(2,temp);
 
     /* arbitrary delay so the server can catch up if needed */
-    sleep(2);
+    (void) sleep(2);
 
     /* close the socket */
     (void) close(s);
@@ -425,9 +397,7 @@ int main(int argc,char*argv[])
     return 0;
  }
 
-
 /*
-
         -#  copies
         -c  class
         -ms  dist  (aka "mail stop")
@@ -435,7 +405,6 @@ int main(int argc,char*argv[])
         -f
 
         DEST
-        CLASS
         UCS
         FCB
  */

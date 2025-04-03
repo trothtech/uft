@@ -10,10 +10,12 @@
  *
  *        Note: UFTCTCP is not a user-level pipeline stage.
  *
+ *    See also: UFTCFILE, UFTCUSER, UFTCHOST
+ *
  *        Note: Unlike some other UFTCMAIN followers,
- *              this stage does not fill-in a USER command.
- *              If the source stream contains no USER command,
- *              then the transaction will fail.
+ *              this stage does not always fill-in a USER statement.
+ *              If the source stream should provide a USER statement
+ *              that is taken as-is unless overriddent by arguments.
  */
 
 /* identify this stage to itself */
@@ -23,13 +25,14 @@ argl = '*' || arg0 || ':'
 /* parse command line arguments */
 Parse Arg host port . '(' . ')' .
 If host = "" Then host = "localhost"
-If Index(host,'@') > 0 Then Parse Var host . '@' host
+If Index(host,'@') > 0 Then Parse Var host user '@' host
+                       Else user = ""
 Parse Var host host ':' port
 If port = "" Then port = 608
 temp = "UFT" || Right(Time('S'),5,'0')
 buffer = ""
 
-/* Verify REXX/Sockets Version 2 */
+/* Verify REXX/Sockets Version 2 ... realy REALLY unlikely to not be  */
 Parse Value Socket("VERSION") With rc . ver .
 If ver < 2 Then /* Exit -1 */ Exit 0
 
@@ -40,24 +43,25 @@ If rc ^= 0 Then Do
     If errno ^= "ESUBTASKALREADYACTIVE" Then Do
         tcprc = rc
         'OUTPUT' argl rs
-        /* Exit tcprc */ Exit 0
-        End /* If .. Do */
+        Exit tcprc
+    End /* If .. Do */
     Call Socket 'Terminate', temp
     Parse Value Socket('Initialize', temp) With rc rs
     If rc ^= 0 Then Do
         tcprc = rc
         'OUTPUT' argl rs
-        /* Exit tcprc */ Exit 0
-        End /* If .. Do */
+        Exit tcprc
     End /* If .. Do */
+End /* If .. Do */
 
 /* Get a socket descriptor (TCP protocol) */
-Parse Value Socket('Socket', 'AF_INET', 'Sock_Stream') With rc rs     .
+Parse Value Socket('Socket','AF_INET','Sock_Stream') With rc rs
 If rc ^= 0 Then Do
     tcprc = rc
     'OUTPUT' argl rs
-    /* Exit tcprc */ Exit 0
-    End /* If .. Do */
+    Call Socket 'Terminate', temp
+    Exit tcprc
+End /* If .. Do */
 Parse Var rs s .
 
 /* Figure out the target host address */
@@ -67,14 +71,17 @@ If hisaddr = "" Then Do
     /* address-from-name not yet known, try the resolver */
     Parse Value Socket('Resolve',host) With rc rs
     If rc ^= 0 Then Do
-        tcprc = rc ; 'OUTPUT' argl rs ; Exit tcprc ; End
+        tcprc = rc ; 'OUTPUT' argl rs
+        Call Socket 'Terminate', temp
+        Exit tcprc ; End
 
     /* if that worked then save the info for next go-round */
     Parse Var rs hisaddr hisname .
-    _var = "#" || hisname
-    Call Value _var, hisaddr, "SESSION NSLOOKUP"
     _var = "$" || hisaddr
     Call Value _var, hisname, "SESSION NSLOOKUP"
+    Upper hisname
+    _var = "#" || hisname
+    Call Value _var, hisaddr, "SESSION NSLOOKUP"
 
 End /* If .. Do */
 
@@ -85,15 +92,16 @@ If rc ^= 0 Then Do
     If errno ^= "EINPROGRESS" Then Do
         tcprc = rc
         'OUTPUT' argl rs
-        /* Exit tcprc * (tcprc ^= 61) */ Exit 0
-        End /* If .. Do */
+        Call Socket 'Terminate', temp
+        Exit tcprc * (tcprc ^= 61)
     End /* If .. Do */
+End /* If .. Do */
 
 /* Read the herald from the server. */
 line = getline(s)
 /* UFT/1 or UFT/2? */
 If Left(line,1) = '2' Then uft = 2
-                      Else uft = 1
+                      Else uft = 1        /* really REALLY not likely */
 'OUTPUT' line
 'OUTPUT' argl "UFT =" uft
 
@@ -107,12 +115,37 @@ Do Forever
     /* Echo the command from our input stage and then parse it. */
     'OUTPUT' line
     Parse Upper Var line cmnd .
+    If cmnd = "META" Then Do
+        Parse Var line . line
+        Parse Upper Var line cmnd .
+        meta = 1
+    End ; Else meta = 0
 
-    /* watch for a DATA statement, which breaks this loop */
-    If Abbrev("DATA",cmnd,4) Then Do
+    /* watch for a DATA statement, which breaks us out of this loop   */
+    If Abbrev("DATA",cmnd,4) & ^meta Then Do
         rc = 0 ; Leave ; End
 
-    If Abbrev("TYPE",cmnd,4) Then Parse Upper Var line . type cc .
+    /* snag the TYPE indicator for canonicalization (see below)       */
+    If Abbrev("TYPE",cmnd,4) & ^meta Then ,
+        Parse Upper Var line . type cc .
+
+    /* if user specified on command line then do NOT sent from stream */
+    If Abbrev("USER",cmnd,4) & ^meta & user ^= "" Then Do
+        'OUTPUT' argl "USER statement overridden"
+        'READTO'
+        Iterate
+    End /* If .. Do */
+
+    /* watch the swizzle - FILE statement might signal USER statement */
+    If Abbrev("FILE",cmnd,4) & ^meta & user ^= "" Then Do
+        Call PUTLINE s, line       /* go ahead and send FILE stmt now */
+        Parse Value uftcwack(s) With ac as       /* and expect an ACK */
+        If ac ^= 0 Then Do
+            'OUTPUT' as ; rc = ac ; Leave ; End
+        /* force next line sent to be the requisite USER statement    */
+        line = "USER" user
+        'OUTPUT' line
+    End
 
     /* Send a packet */
     Call PUTLINE s, line
@@ -121,7 +154,7 @@ Do Forever
     If Left(line,1) = '*' | Left(line,1) = '#' Then Do
         'READTO'
         Iterate
-        End /* If .. Do */
+    End /* If .. Do */
 
     /* Recover some response (ACK or NAK) */
     Parse Value uftcwack(s) With ac as
@@ -129,18 +162,18 @@ Do Forever
         'OUTPUT' as
         rc = ac
         If Left(as,1) ^= "4" Then Leave
-        End /* If .. Do */
+    End /* If .. Do */
 
     'READTO'
 
-    End /* Do  While */
+End /* Do Forever */
 
-If rc ^= 0 Then Exit rc
+If rc ^= 0 Then Exit rc /* and kill the socket */
 'READTO'
-If rc ^= 0 Then Exit rc
+If rc ^= 0 Then Exit rc /* and kill the socket */
 
-/*                                                                   *
- * OK ... now we've sent the control records (meta data).             *
+/*                                                                    *
+ * OK ... now we've sent the control records (the meta data).         *
  * If it was fully accepted (no NAKs), then send the body.            *
  *                                                                    */
 
@@ -149,39 +182,39 @@ Select
     When type = "V" & cc = "M" Then Do
         /* spool-to-spool (VM to VM) transfer */
         pipe = "BLOCK 61440 CMS"
-        End /* When .. Do */
+    End /* When .. Do */
     When type = "A" | type = "T" Then Do
-        /* text file; send as ASCII */
+        /* text file; send as ASCII with 0x0A+0x0D */
         pipe = "MAKETEXT NETWORK | FBLOCK 61440"
-        End /* When .. Do */
+    End /* When .. Do */
     When type = "E" Then Do
-        /* text file; send as EBCDIC */
+        /* text file; send as EBCDIC with 0x15 */
         pipe = "BLOCK 61440 TEXTFILE"
-        End /* When .. Do */
+    End /* When .. Do */
     When type = "I" | type = "B" | type = "U" Then Do
         /* binary file (unstructured octet stream) */
         pipe = "FBLOCK 61440"
-        End /* When .. Do */
+    End /* When .. Do */
     When type = "N" Then Do
-        /* IBM NETDATA format */
+        /* IBM NETDATA format (generated by upstream stages) */
         pipe = "FBLOCK 61440"
-        End /* When .. Do */
+    End /* When .. Do */
     When type = "V" Then Do
         /* variable-length records */
         pipe = "BLOCK 61440 CMS"
-        End /* When .. Do */
+    End /* When .. Do */
     Otherwise Do
         /* all others, treat as binary */
         pipe = "FBLOCK 61440"
-        End /* Otherwise Do */
-    End /* Select */
+    End /* Otherwise Do */
+End /* Select */
 
 /* apply canonicalization for transport */
 'ADDPIPE *.INPUT: |' pipe '| *.INPUT:'
 If rc ^= 0 Then Exit rc
 
 j = 0;  i = 0
-/* Send the body of the file  (data) */
+/* Send the body of the file (the actual data) */
 Do Forever
 
     'PEEKTO DATA'
@@ -191,21 +224,21 @@ Do Forever
     Call PUTLINE s, "DATA" Length(data)
 
     If uft = 2 Then Do
-        /* Recover some response  (ACK or NAK) */
+        /* Recover some response (ACK or NAK) */
         Parse Value uftcwack(s) With ac as
         If ac ^= 0 Then Do
             'OUTPUT' as
             rc = ac
             Leave
-            End /* If .. Do */
         End /* If .. Do */
+    End /* If .. Do */
 
     /* Send the "burst" */
-    Parse Value Socket('Write', s, data) With rc rs
+    Parse Value Socket('Write',s,data) With rc rs
     If rc ^= 0 Then Do
         Say rs
         Leave
-        End /* If .. Do */
+    End /* If .. Do */
 
     /* Recover some response (ACK or NAK) */
     Parse Value uftcwack(s) With ac as
@@ -213,14 +246,14 @@ Do Forever
         'OUTPUT' as
         rc = ac
         Leave
-        End /* If .. Do */
+    End /* If .. Do */
 
     j = j + 1
     i = i + Length(data)
 
     'READTO'
 
-    End /* Do  Forever */
+End /* Do Forever */
 
 If rc ^= 0 & rc ^= 12 Then Exit rc
 
@@ -230,12 +263,12 @@ If rc ^= 0 & rc ^= 12 Then Exit rc
 /* Send an EOF command */
 'OUTPUT' "EOF"
 Call PUTLINE s, "EOF"
-Call UFTCWACK s                 /* ignoring the response */
+Call UFTCWACK s                    /* ignoring the response condition */
 
 /* Send a QUIT command */
 'OUTPUT' "QUIT"
 Call PUTLINE s, "QUIT"
-Call UFTCWACK s                 /* ignoring the response */
+Call UFTCWACK s                    /* ignoring the response condition */
 
 /* -- EXIT ---------------------------------------------------------- */
 
@@ -244,8 +277,9 @@ Parse Value Socket("CLOSE",s) With rc rs
 If rc ^= 0 Then Do
     tcprc = rc
     'OUTPUT' argl rs
+    Call Socket 'Terminate', temp
     Exit tcprc
-    End
+End
 
 /* Tell RXSOCKET that we are done with this IUCV path */
 Parse Value Socket("TERMINATE") With rc rs
@@ -253,7 +287,7 @@ If rc ^= 0 Then Do
     tcprc = rc
     'OUTPUT' argl rs
     Exit tcprc
-    End
+End
 
 Return
 

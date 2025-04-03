@@ -1,4 +1,4 @@
-.cm Copyright 1997, Richard M. Troth, all rights reserved.   <plaintext>
+.cm Copyright 1997-2025 Richard M. Troth, all rights reserved. <plaintext>
 .cm
 .cm       Name: UFTCMAIN HELPPIPE
 .cm       Date: 1997-Jun-28
@@ -27,16 +27,16 @@
  UFTCMAIN is used by other applications to transmit files.
  It is not usually invoked from the command line.
 
- UFTCMAIN's operation differs from an  "on the wire"  UFT transaction
- in that the file content is not canonicalized.   Content canonicalization
- is handled by UFTCMAIN and the stages it invokes.   This is a  "SIFT job".
- (Sender-Initiated File Transfer,  brother to UFT)
+ UFTCMAIN's operation differs from an "on the wire" UFT transaction
+ in that the file content is not canonicalized. Content canonicalization
+ is handled by UFTCMAIN and the stages it invokes. This is a  "SIFT job".
+ (Sender-Initiated File Transfer, a bach/offline version UFT protocol)
 
  streams:
 
  PRIMARY INPUT
- The primary input stream is a SIFT job,  consisting of file attributes
- followed by file content.   The content will be canonicalized for
+ The primary input stream is a SIFT job, consisting of file attributes
+ followed by file content. The content will be canonicalized for
  transmission by UFTCMAIN according to the TYPE specified in the job.
 
  PRIMARY OUTPUT

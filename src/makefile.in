@@ -8,7 +8,7 @@
 
 APPLID          =       uft
 VERSION         =       1.10.7
-DELIVERABLES    =       uftd sf rls rcv
+DELIVERABLES    =       uftd sf rls rcv uftcndd
 SOURCEURL       =       https://raw.githubusercontent.com/trothtech/uft/refs/heads/main
 #                       https://raw.githubusercontent.com/trothtech/uft/master
 
@@ -238,7 +238,8 @@ homedir.o:	makefile homedir.c
 #		mv sf cpq cpqu tell msgcat $(PREFIX)/bin/.
 #		mv maketext msgpipe $(PREFIX)/lib/.
 #		mv uftd msgd $(PREFIX)/sbin/.
-install:	sf uftd
+#install:	sf uftd uftcndd
+install:	$(DELIVERABLES)
 		mkdir -p $(PREFIX)/bin $(PREFIX)/sbin $(PREFIX)/etc/xinetd.d \
 			$(PREFIX)/share/locale/$(LOCALE)
 		cp -p sf rls rcv uftcndd $(PREFIX)/bin/.
@@ -246,7 +247,7 @@ install:	sf uftd
 #		cp -p uftd $(PREFIX)/libexec/.
 		cp -p uft.inet $(PREFIX)/etc/xinetd.d/uft
 #
-                cp -p uft.msgs $(PREFIX)/share/locale/$(LOCALE)/.
+		cp -p uft.msgs $(PREFIX)/share/locale/$(LOCALE)/.
 
 ########################################################################
 # RPM support

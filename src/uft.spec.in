@@ -24,7 +24,10 @@ Group: Utilities/System
 Source: uft-%{version}.tar.gz
 #Source: uft-%{SPEC_VERSION}.tar.gz
 #Copyright: Casita.Net
-License: GPL
+
+License: Casita.Net
+#error: License field must be present in package: (main package)
+
 #BuildRoot: /tmp/uft
 Prefix: %SPEC_PREFIX%
 #Provides: %SPEC_APPLID%

@@ -1,14 +1,17 @@
-.cm (c) Copyright 1994, Richard M. Troth, all rights reserved <plaintext>
+.cm Copyright 1994-2025 Richard M. Troth, all rights reserved. <plaintext>
 .cm
 .cm       Name: UFT HELPTASK
-.cm     Author: Rick Troth, Houston, Texas, USA
 .cm       Date: 1997-Jul-16
+.cm     Author: Rick Troth, Houston, Texas, USA
 .cm
+.cs 1 on
  UFT Protocol
 
  The UFT protocol (Universal File Transfer or Unsolicited File Transfer)
  is suitable for sending files between unlike systems over any stream
  oriented sub-protocol,  like TCP.
+.cs 1 off
+.cs 2 on
 
 
 UFT      FILE           The FILE command starts a file
@@ -21,3 +24,6 @@ UFT      QUIT           The QUIT command terminates the session
 UFT      UFTTYPES       TYPE values (canonicalization values)
 UFT      CPQ            The CPQ command (VM servers only)
 UFT      MSG            The MSG command (VM servers only)
+
+.cs 2 off
+

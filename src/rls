@@ -2,28 +2,31 @@
 # Copyright 1995-2025 Richard M. Troth, all rights reserved. <plaintext>
 #
 #         Name: rls (shell script)
-#               'ls' files in the user's "receive pool"
+#               'ls' files in the user's UFT "receive pool"
 #       Author: Rick Troth, Houston, Texas, USA
 #         Date: 1995-Jan-14, Apr-29
 #
+#         Note: a per-UFT-file ".lf" file is created by the server
 #
 
+#
+# get basename of this script for reporting
 Z=`basename "$0"`
 
 #
 # some environments have a non-POSIX side:
 case `uname -s` in
-        VM/ESA|z/VM) # this section depends on the CMS implementation
-                cms " pipe rls | > /tmp/$$.rls "
-                cat /tmp/$$.rls ; RC="$?"
-                rm -f /tmp/$$.rls
-                exit $RC
-                ;;
-        OS/390)
-                echo "$Z: operation not supported" 1>&2
-                exit 28
-                ;;
-        esac
+    VM/ESA|z/VM) # this section depends on the CMS implementation
+        cms " pipe rls | > /tmp/$$.rls "
+        cat /tmp/$$.rls ; RC="$?"
+        rm -f /tmp/$$.rls
+        exit $RC
+        ;;
+#   OS/390)
+#       echo "$Z: operation not supported" 1>&2
+#       exit 28
+#       ;;
+esac
 
 #
 # set some variables:
@@ -35,13 +38,14 @@ if [ -n "$UFT_SPOOLDIR" ]; then D="$UFT_SPOOLDIR"; fi
 #
 # make sure we have a UFT spool directory:
 if [ ! -d "$D" ]; then
-        mkdir "$D" 2> /dev/null
-        chmod 700 "$D" 2> /dev/null
-        fi
+    mkdir "$D" 2> /dev/null
+    chmod 700 "$D" 2> /dev/null
+    fi
 if [ ! -d "$D" ]; then
-        echo "$Z: UFT configuration problem: no spool directory" 1>&2
-        exit 1
-        fi
+    echo "$Z: UFT configuration problem: no spool directory" 1>&2
+#   exit 1
+    exec ls -ld $D ; fi             # 'ls' here throws an informative error
+    fi
 
 #
 # a simple command:

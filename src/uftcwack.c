@@ -17,7 +17,6 @@ extern  int     uftcflag;
 int uftcwack(int s,char*b,int l)
   { static char _eyecatcher[] = "uftcwack()";
     int         i;
-    extern int  errno;
     char       *p;
 
     while (1)

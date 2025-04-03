@@ -47,7 +47,7 @@ Else Do
     /* If that fails, and we know SMTPD, then try sending as mail. */
     If rc ^= 0 & smtpid ^= "" Then ,
     'CALLPIPE *: | UFTCMAIL' host '| *:'
-    End  /*  If  ..  Do  */
+End /* If .. Do */
 
 Exit rc
 

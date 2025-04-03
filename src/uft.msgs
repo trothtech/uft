@@ -1,0 +1,214 @@
+* © Copyright 1993-2025 Richard M. Troth, all rights reserved. <plaintext>
+*
+*         Name: UFTUME MESSAGES
+*       Author: Rick Troth, Houston, Texas, USA
+*         Date: 1993-Apr-18, Jul-01, 1994-May-18, 1995-Mar-07
+*
+*         Note: After making changes to this file,
+*               run the following command:
+*
+*                       GENMSG UFTUME MESSAGES A UFT
+*
+*         Note: The first digit of any response code means:
+*                   0 -- implementation dependent (not part of protocol)
+*                   1 -- informational (keep waiting for ACK or NAK)
+*                   2 -- ACK, acknowledge
+*                   3 -- more info required
+*                   4 -- NAK, client error
+*                   5 -- NAK, server error
+*                   6 -- informational (bulk response from server)
+*                   7 -- reserved
+*                   8 -- reserved
+*                   9 -- reserved
+*
+*         Note: the following line is essential:
+& 3
+*
+0000      1.10.7
+0001      UFT/1.10.7 client (CMS)
+0002      UFT/1.10.7 server (z/VM)
+0004      UFT/&1
+0005      UFT/&1 client
+0006      UFT/&1 server
+0011      VMCMSUFT/&1
+0012      POSIXUFT/&1
+*
+* herald
+0100      100 &1 UFT/1 VMCMSUFT/1.2.2 ready.
+0102      102 &1 UFT/2 VMCMSUFT/&2 ready.
+0103      103 &1 UFT/&2 VMCMSUFT/&3 ready.
+0111      111 &1 UFT/1 VMCMSUFT/&3 &4 ready.
+0112      112 &1 UFT/1 POSIXUFT/&3 &4 ready.
+0120      120 &1 UFT service ready.
+*
+* help for curious telnetters
+0101  01  101
+0101  02  101 Universal File Transfer (UFT) command summary
+0101  03  101
+0101  04  101 Primary commands:
+0101  05  101    FILE   size  from
+0101  06  101    USER   user
+0101  07  101    TYPE   type  [cc]
+0101  08  101    NAME   name
+0101  09  101    DATE   date  time  tz
+0101  10  101
+0101  11  101 Commands meaningful for print jobs:
+0101  12  101    FORM   form
+0101  13  101    DEST   dest
+0101  14  101    DIST   dist
+0101  15  101    COPY   copy
+0101  16  101    CLASS  class  [devtype]
+0101  17  101
+0101  18  101 Commands meaningful for IBM print jobs:
+0101  19  101    FCB    fcb
+0101  20  101    UCS    ucs
+0101  21  101    HOLD   hold
+0101  22  101    KEEP   keep
+0101  23  101    MSG    msg
+0101  24  101
+0101  25  101 Other commands:
+0101  26  101    DATA   burst-size
+0101  27  101    EOF
+0101  28  101    QUIT
+0101  29  101    HELP
+0101  30  101
+*
+0113      113 SEND &1 bytes of data.
+*114      114 &1
+0114      114 HELP follows:
+*214  02  114-End of HELP.
+0115      115 &1 system type.
+0145      145 &1 not logged on
+* HCPLNM053E &1 not in CP directory
+0153      153 &1 not in CP directory
+0185    I Active reader class empty (Next file &1 Class &2).
+*131      131 SEND &1 bytes of data.
+0118      118 SEQ=&1 (server)
+0119      118 SEQ=&1 (user)
+*
+* 2XX range are ACKs:
+0200      200 ACK
+0201      201 Command okay.
+0202      202 Command not implemented, superfluous at this site.
+0208      208 user &1 okay
+0211      211 System status, or system help reply.
+0213      213 received &1 bytes of data.
+0214      214 End of HELP.
+0216      216 ABORT/ROLLBACK
+0225      225 Data connection already open; transfer starting.
+0226      226 ABORT/ROLLBACK
+0227      227 Entering Passive Mode (h1,h2,h3,h4,p1,p2).
+0210      210 Restart marker reply.
+0220      220 &1 UFT/2 VMCMSUFT/1.2.2 ready.
+0221      221 Service closing control connection.
+0222      222 &1 UFT/2 VMCMSUFT/&3 &4 ; ready.
+0223      223 &1 UFT/2 POSIXUFT/&3 &4 ; ready.
+0230      230 Local username okay, proceed.
+0250      250 Requested file action okay, completed.
+*
+* 3XX range are "send more" signals:
+0300      300 SEND &1 bytes of data.
+0313      313 send &1 bytes of data.
+0323      323 send &1 bytes of data.
+0350      350 Requested file action pending further information.
+0354      354 Enter mail, end with "." on a line by itself
+*
+* 4XX range are client errors:
+0400      400 client error.
+0401      401 Syntax error in parameters or arguments.
+0402      402 Command &1 not implemented.
+0403      403 Bad sequence of commands.
+0404      404 Document not found
+0407      407 Proxy Authentication Required
+*421      421 (see 521)
+0426      426 Connection closed; transfer aborted.
+*432      432 No such local user &1
+0433    E 433 Invalid option &1
+*450      450 Requested file action pending further information.
+0470    E 470 Invalid parameter &1
+0475    E 475 No (recipient) names specified
+*
+* 5XX range are server errors:
+0500      500 server error.
+*500      500 Unspecified error
+*500      500 command not understood
+0501      501 Syntax error in parameters or arguments.
+0502      502 Command not implemented.
+0503      503 Bad sequence of commands.
+0505      505 no users enrolled
+0521      521 Service not available, closing control connection.
+0522      522 spool directory unavailable.
+0523      523 workspace sequence error.
+0524      524 server temp file error.
+0526      526 Connection closed; transfer aborted.
+0527      527 user slot error
+0532      532 No such local user: &1
+0534      534 user temp file error.
+0536      536 No entries were found that matched your search criteria
+0545      545 &1 not logged on
+0550      550 &1 ... User unknown
+* HCPLNM053E &1 not in CP directory
+0553      553 &1 not in CP directory
+0557      557 &1 not receiving
+*
+* from the CMS implementation:
+0003    E Invalid option: &1
+0054    E Incomplete fileid specified
+1200    E Code level mis-match: expected &1 but found &2
+8712      File &1 sent to &2 at &3 on &4
+*
+* TAG on the file for RDRLIST and RECEIVE:
+*         FILE (*UFT) ORIGIN host from date time tz
+*001      FILE (*UFT) ORIGIN &1 &2 &3 &4 &5
+9001      FILE (&1) ORIGIN &3 &4 &5 &6 &7
+*
+* message to the receiving user:
+*         File (*UFT) spooled to user -- origin host(from) date time tz
+*002      File (*UFT) spooled to &1 -- origin &2(&3) &4 &5 &6
+9002      File (&1) spooled to &2 -- origin &3(&4) &5 &6 &7
+*
+9822  01  Sender Initiated File Transfer
+9822  02
+9822  03  If you can see this part of the message, then either
+9822  04  you're NOT using a MIME-capable mail reader or
+9822  05  you're somehow viewing part zero.
+9822  06
+9822  07  Following this part you should find two others:
+9822  08  a metafile listing attributes of the file being sent,
+9822  09  and then the file itself (likely BASE 64 encoded).
+9822  10
+*
+* values for Content-Type: MIME tag
+9821      Multipart/X-SIFT
+9823      X-SIFT/metafile
+9824      X-SIFT/datafile
+9825      X-SIFT/auxdata
+*
+* misc future thoughts:
+0511    E 511 User &1 not enrolled in the file pool
+0530    E 530 No file blocks are assigned for this user in file pool &1.
+*531    W 531 User &1 has no available file space in file pool &2
+0535    T 535 This server is not in the required VM CP environment.
+0542    E 542 This server lacks the privilege class for MSGTYPE MSGNOH.
+0547    E 547 Userid not specified for &1 in &2 &3 file
+0548    E 548 Userid &1 not found; check the &2 NAMES file
+0567    E 567 User &1 is not enrolled
+0571    E 571 User &1 not available
+0597    E 597 User validation function &1 not found
+*
+0133      133 SEND &1 bytes of data.
+0123      123 SEND &1 bytes of data.
+*411      411 protocol sequence error
+0449      449 protocol sequence error
+0531      531 server data error (user has no space)
+0541      541 server data error (user over quota)
+0559      559 server data error (physical space)
+0551      551 server data file error
+0529      529 server meta file error
+0528      528 server slot error
+0533      533 server temp file error
+0552      552 spool directory unavailable
+0549      549 workspace sequence error
+*
+9999      © Copyright 1995, 1997, 2025 Richard M. Troth, all rights reserved.
+*

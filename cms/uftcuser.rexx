@@ -16,18 +16,18 @@ Parse Arg user . '(' .
 If user = "" Then Do
     Address "COMMAND" 'XMITMSG 386'
     Exit 24
-    End  /*  If  ..  Do  */
+End /* If .. Do */
 
 Do Forever
     'PEEKTO RECORD'
     'OUTPUT' record
     If Left(record,1) ^= '*' Then Leave
-    End  /*  Do  Forever  */
+End /* Do Forever */
 
-/*  identify this stage to the job stream  */
+/* identify this stage to the job stream */
 'OUTPUT' "*UFTCUSER: sending to" user
 
-/*  strip-off any trailing  "@host.domain"  part  */
+/* strip-off any trailing "@host.domain" part */
 Parse Var user user '@' .
 
 'OUTPUT' "USER" user
@@ -36,4 +36,5 @@ If rc ^= 0 Then Exit rc * (rc ^= 12)
 'SHORT'
 
 Exit rc
+
 

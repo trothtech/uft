@@ -13,10 +13,10 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <errno.h>
-extern int errno;
 
 #include <ctype.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "uft.h"
 char           *arg0;
@@ -27,6 +27,8 @@ int             ef;             /* new aux-data (ext attr) file */
 char            effn[64];
 
 struct  UFTFILE  uftfile0;
+
+#define _UFT_DEBUG
 
 /* ------------------------------------------------------------ UFTDSTAT
  *  Writes a line to the stream indicated by sock (UFT client)
@@ -50,6 +52,10 @@ int main(int argc,char*argv[])
     int         n, uuid, i;
     char        type[16], seqs[8], from[256];
     char        wffn[64];
+
+#ifdef _UFT_DEBUG
+    fprintf(stderr,"UFTD: starting\n");
+#endif
 
     /* under what name are we running? */
     arg0 = argv[0];
@@ -82,9 +88,12 @@ int main(int argc,char*argv[])
       { (void) sprintf(temp,"522 spool directory unavailable (%d).",errno);
 /*      (void) sprintm(temp,"uft","srv",522,'E',0,NULL); */
         (void) uftdstat(1,temp);
+#ifdef _UFT_DEBUG
+    fprintf(stderr,"UFTD: 522 spool dir unavail\n");
+#endif
         return n; }
-    /* to leave control in the sysadmin's hands as much as possible,
-       DON'T create the UFT spool directory; let him do it manually   */
+    /* to leave control in the sysadmin's hands as much as possible,  *
+     * DON'T create the UFT spool directory; let him do it manually   */
 
     /* get next temp control file in sequence */
     n = uftdnext();
@@ -92,6 +101,9 @@ int main(int argc,char*argv[])
       { /* "no spoolids available" (or no permission?) */
         (void) sprintf(temp,"523 workspace sequence error. (%d)",errno);
         (void) uftdstat(1,temp);
+#ifdef _UFT_DEBUG
+    fprintf(stderr,"UFTD: 523 sequence error %d\n",n);
+#endif
         return n; }
 
     /* now open a temporary control file (meta file) */
@@ -100,6 +112,9 @@ int main(int argc,char*argv[])
     if (tf < 0)
       { (void) sprintf(temp,"524 server temp file error. (%d)",errno);
         (void) uftdstat(1,temp);
+#ifdef _UFT_DEBUG
+    fprintf(stderr,"UFTD: 524 temp file error\n");
+#endif
         return tf; }
 
     (void) sprintf(temp,"#*%s server",UFT_VERSION);
@@ -200,8 +215,7 @@ int main(int argc,char*argv[])
  */
         if (abbrev("EXIT",p,2) || abbrev("QUIT",p,3))
           { (void) seteuid(0);
-            if (df >= 0 && cf >= 0)
-                (void) unlink(tffn);
+            if (df >= 0 && cf >= 0) unlink(tffn);       /* QUIT, EXIT */
             break; }
 
 /* -------------------------------------------------------- HELP command
@@ -254,6 +268,9 @@ int main(int argc,char*argv[])
                     "532 %s %d; no such local user or queue %s.",
                         user,errno,user);
                 (void) uftdstat(1,temp);
+#ifdef _UFT_DEBUG
+    fprintf(stderr,"UFTD: 532 temp file error %d\n",uuid);
+#endif
                 return uuid; } /* should be errno */
 
             /* get the next sequence number for this user */
@@ -266,6 +283,9 @@ int main(int argc,char*argv[])
                           "527 user slot error UID=%d EUID=%d ERRNO=%d",
                                getuid(),geteuid(),errno);
                 (void) uftdstat(1,temp);
+#ifdef _UFT_DEBUG
+    fprintf(stderr,"UFTD: 527 user slot error %d\n",n);
+#endif
                 return n; } /* should be errno */
             else (void) sprintf(seqs,"%04d",n);
 
@@ -283,6 +303,9 @@ int main(int argc,char*argv[])
               { (void) sprintf(temp,"534 %d; meta file error.",
                         errno);
                 (void) uftdstat(1,temp);
+#ifdef _UFT_DEBUG
+    fprintf(stderr,"UFTD: 534 meta file error %d\n",cf);
+#endif
                 return cf; } /* should be errno */
             /* belt and suspenders: chown meta file for AIX */
 /*          (void) chown(cffn,uuid);    */
@@ -299,6 +322,9 @@ int main(int argc,char*argv[])
                         "535 %d; user data file error.",errno);
                 (void) uftdstat(1,temp);
                 (void) close(cf);       (void) close(tf);
+#ifdef _UFT_DEBUG
+    fprintf(stderr,"UFTD: 535 user data file error\n");
+#endif
                 return df; } /* should be errno */
             /* belt and suspenders: chown data file for AIX */
 /*          (void) chown(dffn,uuid);    */
@@ -314,6 +340,9 @@ int main(int argc,char*argv[])
                 (void) uftdstat(1,temp);
                 (void) close(cf);       (void) close(tf);
                 (void) close(df);
+#ifdef _UFT_DEBUG
+    fprintf(stderr,"UFTD: 535 user auxdata file error\n");
+#endif
                 return ef; } /* should be errno */
             /* belt and suspenders: chown file for AIX */
 /*          (void) chown(effn,uuid);    */
@@ -342,6 +371,9 @@ int main(int argc,char*argv[])
                 (void) uftdstat(1,temp);
                 (void) close(df);
                 (void) close(cf);
+#ifdef _UFT_DEBUG
+    fprintf(stderr,"UFTD: 513 server data error\n");
+#endif
                 return n; } /* should be errno */
             (void) sprintf(temp,"213 %d; received %d bytes of data.",i,i);
             (void) uftdstat(1,temp);
@@ -365,6 +397,9 @@ int main(int argc,char*argv[])
                 (void) close(ef);
                 (void) close(df);
                 (void) close(cf);
+#ifdef _UFT_DEBUG
+    fprintf(stderr,"UFTD: 513 server data error\n");
+#endif
                 return n; } /* should be errno */
             (void) sprintf(temp,"213 %d; received %d bytes of data.",i,i);
             (void) uftdstat(1,temp);
@@ -375,19 +410,16 @@ int main(int argc,char*argv[])
  */
         if (abbrev("EOF",p,1))
           { /* close files */
-            (void) close(ef);   ef = -1;
-            (void) close(df);   df = -1;
-            (void) close(cf);   cf = -1;
+            (void) close(ef); ef = -1;
+            (void) close(df); df = -1;
+            (void) close(cf); cf = -1;
 
             /* rename the work file as the control file */
             (void) rename(wffn,cffn);
 
-            /* belt and suspenders for AIX: chown user files */
-/*          (void) chown(cffn,uuid);    */
+            /* belt and suspenders for AIX: chown the user files      */
             (void) chown(cffn,uuid,UFT_GID);
-/*          (void) chown(dffn,uuid);    */
             (void) chown(dffn,uuid,UFT_GID);
-/*          (void) chown(effn,uuid);    */
             (void) chown(effn,uuid,UFT_GID);
 
             /* now lose the spoolid number */
@@ -400,14 +432,13 @@ int main(int argc,char*argv[])
             /* at this point, signal ACK to client */
             (void) tcpputs(1,"200 ACK EOF");
 
-            /* make notification of file's arrival */
-            (void) uftdimsg(user,seqs,from,type); /* IMSG */
-            (void) uftdlmsg(user,seqs,from,type); /* SYSLOG */
-            (void) uftdlist(atoi(seqs),from); /* ala 'ls' */
-            user[0] = 0x00;  /* now reset that value */
+            /* notify the local user that a file has arrived -------- */
+            (void) uftdimsg(user,seqs,from,type);     /* IMSG 'write' */
+            (void) uftdlmsg(user,seqs,from,type);           /* SYSLOG */
+            (void) uftdlist(atoi(seqs),from);             /* ala 'ls' */
 
-            /* go back to being root */
-            (void) seteuid(0);
+            user[0] = 0x00;           /* now reset the user value ... */
+            (void) seteuid(0);       /* ... and go back to being root */
 
             /* get back into the UFT spool directory */
             if (chdir(UFT_SPOOLDIR) < 0) break;
@@ -423,7 +454,6 @@ int main(int argc,char*argv[])
             (void) sprintf(tffn,"%s/%04d.cf",UFT_SPOOLDIR,n);
             tf = open(tffn,O_RDWR|O_CREAT,S_IREAD|S_IWRITE);
             if (tf < 0) break;
-
 #ifndef         UFT_ANONYMOUS
             (void) sprintf(temp,"118 SEQ=%04d (server)",n);
             (void) uftdstat(1,temp);
@@ -516,10 +546,18 @@ int main(int argc,char*argv[])
       }
 
     /*  better to clean-up partials here  */
+    if (cf > 0) { close(cf); /* maybe unlink dangling wffn */ }
+    if (df > 0) { close(df); /* maybe unlink dangling dffn */ }
+    if (ef > 0) { close(ef); /* maybe unlink dangling effn */ }
 
-    /*  if (rc == 0)  */
     (void) tcpputs(1,"221 goodbye.");
     (void) close(tf);
+
+#ifdef _UFT_DEBUG
+    fprintf(stderr,"UFTD: normal termination\n");
+#endif
+
+    sleep(2);
 
     return 0;
   }
