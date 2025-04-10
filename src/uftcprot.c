@@ -1,5 +1,4 @@
-/* © Copyright 1997
--2025 Richard M. Troth, all rights reserved.  <plaintext>
+/* © Copyright 1997-2025 Richard M. Troth, all rights reserved.  <plaintext>
  * 
  *        Name: uftcprot.c / uftcperm.c 
  *              converts a stat() mode value into a 

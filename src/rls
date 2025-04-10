@@ -39,13 +39,11 @@ if [ -n "$UFT_SPOOLDIR" ]; then D="$UFT_SPOOLDIR"; fi
 # make sure we have a UFT spool directory:
 if [ ! -d "$D" ]; then
     mkdir "$D" 2> /dev/null
-    chmod 700 "$D" 2> /dev/null
-    fi
+    chmod 700 "$D" 2> /dev/null ; fi
 if [ ! -d "$D" ]; then
     echo "$Z: UFT configuration problem: no spool directory" 1>&2
 #   exit 1
     exec ls -ld $D ; fi             # 'ls' here throws an informative error
-    fi
 
 #
 # a simple command:

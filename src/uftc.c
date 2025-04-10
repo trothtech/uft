@@ -28,10 +28,10 @@ int             uftcflag;
 /* ------------------------------------------------------------------ */
 int main(int argc,char*argv[])
   { static char _eyecatcher[] = "uftc.c main()";
-    int         i, fd0, s, size, r, copy;
-    char        temp[256], targ[256], b[BUFSIZ],
+    int         i, fd0, s, size, r, copy, fda;
+    char        temp[256], targ[256], b[BUFSIZ], akey[256],
                *from, *host, *name, *type, *auth, *class;
-    extern  char   *getenv(), *userid();
+    extern  char   *userid();
     struct  stat    uftcstat;
     time_t      mtime;
     mode_t      prot;
@@ -45,68 +45,68 @@ int main(int argc,char*argv[])
     auth = "-";         /* no particular authentication scheme */
     copy = 0;
 
-    /* process options */
+    /* process command-line options */
     for (i = 1; i < argc && argv[i][0] == '-' &&
                             argv[i][1] != 0x00; i++)
       {
         switch (argv[i][1])
           {
-            case 'a':   case 'A':       /* ASCII (ie: plain text) */
+            case 'a':   case 'A':       /* ASCII (ie: plain text)     */
                         uftcflag &= ~UFT_BINARY;
                         type = "A";
                         break;
 
-            case 'b':   case 'B':       /* BINARY */
-            case 'i':   case 'I':       /* aka IMAGE */
+            case 'b':   case 'B':       /* BINARY                     */
+            case 'i':   case 'I':       /* aka IMAGE                  */
                         uftcflag |= UFT_BINARY;
                         type = "I";
                         break;
 
 #ifdef  OECS
-            case 'e':   case 'E':       /* EBCDIC (IBM plain text) */
+            case 'e':   case 'E':       /* EBCDIC (IBM plain text)    */
                         uftcflag |= UFT_BINARY;
                         type = "E";
                         break;
 #endif
 
-            case 't':   case 'T':       /* TYPE */
+            case 't':   case 'T':       /* sender-specified TYPE      */
                         i++;   
                         type = argv[i];
                         break;
 
-            case 'n':   case 'N':       /* NAME */
+            case 'n':   case 'N':       /* NAME of the file           */
                         i++;
                         name = argv[i];
                         break;
 
-            case '?':
+            case '?':                   /* help                       */
                         argc = i;
-            case 'v':   case 'V':
+            case 'v':   case 'V':       /* verbose                    */
                         uftcflag |= UFT_VERBOSE;
                         break;
 
-            case 'c':   case 'C':       /* CLASS */
+            case 'c':   case 'C':       /* CLASS                      */
                         i++;   
                         class = argv[i];
                         break;
 
-            case 'm':   case 'M':       /* TYPE=M */
+            case 'm':   case 'M':       /* TYPE=M for email           */
                         uftcflag &= ~UFT_BINARY;
                         type = "M";
                         break;
 
-            case '#':   /* COPY -or- COPIES */
+            case '#':   /* COPY -or- COPIES                           */
                         i++;    
                         copy = atoi(argv[i]);
                         break;
 
 /* ------------------------------------------------------------------ */
-            case '-':   /* long format options */
+            case '-':                          /* long format options */
                 if (abbrev("--version",argv[i],6) > 0)
                   { sprintf(temp,"%s: %s Internet SENDFILE client",
                             arg0,UFT_VERSION);
                     uft_putline(2,temp);
-                    return 0; } else
+                    return 0; } else           /* exit from help okay */
                 if (abbrev("--ascii",argv[i],5) > 0 ||
                     abbrev("--text",argv[i],6) > 0)
                   { uftcflag &= ~UFT_BINARY; type = "A"; } else
@@ -137,7 +137,7 @@ int main(int argc,char*argv[])
             default:    (void) sprintf(temp,"%s: invalid option %s",
                                 arg0,argv[i]);
                         (void) uft_putline(2,temp);
-                        return 1;
+                        return 1;           /* exit on invalid option */
                         break;
           }
       }
@@ -158,8 +158,8 @@ int main(int argc,char*argv[])
         (void) sprintf(temp,
                 "          [ -n name ] [ -c class ]");
         (void) uft_putline(2,temp);
-        if (uftcflag & UFT_VERBOSE) return 0;
-                              else  return 1; }
+        if (uftcflag & UFT_VERBOSE) return 0;  /* exit from help okay */
+                              else  return 1; }       /* missing args */
 
     /* flag some known canonicalization types */
     switch (type[0])
@@ -186,7 +186,7 @@ int main(int argc,char*argv[])
     if (fd0 < 0)
       { if (*name != 0x00) (void) perror(name);
                 else    (void) perror("stdin");
-        return fd0; }
+        return fd0; }                     /* open file to send failed */
 
     /* do we have any ideas about this file? */
     if (fstat(fd0,&uftcstat) == 0)
@@ -196,12 +196,20 @@ int main(int argc,char*argv[])
     else
       { size = 0;  mtime = 0;  prot = 0; }
 
-    /* see if we're running IDENT locally */
-    (void) sprintf(temp,"%s:%d","localhost",IDENT_PORT);
-    s = tcpopen(temp,0,0);
-    if (s >= 0)
-      { auth = "IDENT";
-        (void) close(s); }
+    /* better peer authentication than IDENT is AGENT (see protocol)  */
+    fda = open("/var/run/uft/agent.key",O_RDONLY);
+    if (fda >= 0)
+      { i = read(fda,akey,sizeof(akey)-1);
+        if (i > 0) akey[i] = 0x00;
+        if (i > 0) { i--; if (akey[i] == '\n') akey[i] = 0x00; }
+        if (i > 0) { i--; if (akey[i] == '\r') akey[i] = 0x00; }
+        if (i > 0) auth = "AGENT"; else akey[i] = 0x00;
+        close(fda); } else
+
+    /* see if we're running IDENT locally (long story!)               */
+      { (void) sprintf(temp,"%s:%d","localhost",IDENT_PORT);
+        s = tcpopen(temp,0,0);      /* simple test to see if it opens */
+        if (s >= 0) { auth = "IDENT"; close(s); } }
 
     /* open a socket to the server */
     (void) strcpy(targ,argv[argc-1]);
@@ -212,24 +220,23 @@ int main(int argc,char*argv[])
     (void) sprintf(temp,"%s:%d",host,UFT_PORT);
     s = tcpopen(temp,0,0);
     if (s < 0)
-      { (void) perror(host);
-        return s; }
+      { (void) perror(host); return s; }        /* open socket failed */
     r = s;
 
     /* wait for the herald from the server */
     i = tcpgets(r,temp,sizeof(temp));
     if (i < 0)
-      { (void) perror(host);
-        return i; }
+      { (void) perror(host);              /* FIXME: remember to close */
+        return i; }              /* read of herald from server failed */
     if (uftcflag & UFT_VERBOSE) (void) uft_putline(2,temp);
 
     /* figure out what protocol version the server likes */
     uftv = temp[0] & 0x0F;
+    if (uftv < 1) uftv = 1;
     if (uftcflag & UFT_VERBOSE)
       { (void) sprintf(temp,"%s: UFT protocol %d",arg0,uftv);
         (void) uft_putline(2,temp); }
     /* (above is only good for UFT1 or UFT2) */
-    if (uftv < 1) uftv = 1;
 
     /* identify this client to the server */
     (void) sprintf(temp,"#%s client %s",UFT_PROTOCOL,UFT_VERSION);
@@ -239,15 +246,17 @@ int main(int argc,char*argv[])
 
     /* start the transaction */
     from = userid();
-    (void) sprintf(temp,"FILE %d %s %s",size,from,auth);
+/*  (void) sprintf(temp,"FILE %d %s %s",size,from,auth);              */
+    (void) sprintf(temp,"FILE %d %s %s %s",size,from,auth,akey);
     if (uftcflag & UFT_VERBOSE) (void) uft_putline(2,temp);
     (void) tcpputs(s,temp);
     i = uftcwack(r,temp,sizeof(temp));
     if (i < 0)
       { if (errno != 0) (void) perror(arg0);
         else (void) uft_putline(2,temp);
-        return i; }
-    if (uftcflag & UFT_VERBOSE) (void) uft_putline(2,temp);
+        return i; }                      /* FIXME: remember to close */
+    if (uftcflag & UFT_VERBOSE || i == 5) (void) uft_putline(2,temp);
+    if (i == 5) { return 5; }           /* a 500 NAK here is terminal */
 
     /* tell the server who it's for */
     (void) sprintf(temp,"USER %s",targ);
@@ -258,7 +267,8 @@ int main(int argc,char*argv[])
       { if (errno != 0) (void) perror(arg0);
         else (void) uft_putline(2,temp);
         return i; }
-    if (uftcflag & UFT_VERBOSE) (void) uft_putline(2,temp);
+    if (uftcflag & UFT_VERBOSE || i == 5) (void) uft_putline(2,temp);
+    if (i == 5) { return 5; }           /* a 500 NAK here is terminal */
 
     /* signal the type for canonicalization */
     if (type == 0x0000 || type[0] == 0x00)
@@ -274,6 +284,7 @@ int main(int argc,char*argv[])
         else (void) uft_putline(2,temp);
         return i; }
     if (uftcflag & UFT_VERBOSE) (void) uft_putline(2,temp);
+    if (i == 5) { return 5; }           /* a 500 NAK here is terminal */
 
     /* does this file have a name? */
     if (name != 0x0000 && name[0] != 0x00)
@@ -287,7 +298,7 @@ int main(int argc,char*argv[])
             return i; }
         if (uftcflag & UFT_VERBOSE) (void) uft_putline(2,temp); }
 
-    /* do we have a time stamp on it? */
+    /* do we have a time stamp for this file? */
     if (mtime != 0)
       { gmtstamp = localtime(&mtime);
         if (gmtstamp->tm_year < 1900)
@@ -315,7 +326,7 @@ int main(int argc,char*argv[])
             return i; }
         if (uftcflag & UFT_VERBOSE) (void) uft_putline(2,temp); }
 
-    /* do we have a time stamp on it? */
+    /* do we have a protection bit pattern on this file? */
     if (prot != 0)
       { (void) sprintf(temp,"META PROT %s",uftcprot(prot));
         if (uftcflag & UFT_VERBOSE) (void) uft_putline(2,temp);
@@ -339,15 +350,14 @@ int main(int argc,char*argv[])
             return i; }
         if (uftcflag & UFT_VERBOSE) (void) uft_putline(2,temp); }
 
+    /* -------------------------------------------------------------- */
+
     /* now send the file down the pipe */
     while (1)
       { if (uftcflag & UFT_BINARY)
-          {
-/*
-            i = read(fd0,b,BUFSIZ); if (i == 0)
-            i = read(fd0,b,BUFSIZ); if (i < 1) break;
- */
-            i = uft_readspan(fd0,b,BUFSIZ); if (i < 1) break; }
+          { i = uft_readspan(fd0,b,BUFSIZ); if (i < 1) break; }
+/*          i = read(fd0,b,BUFSIZ); if (i == 0)
+            i = read(fd0,b,BUFSIZ); if (i < 1) break;                 */
         else
           { i = uftctext(fd0,b,BUFSIZ); if (i == 0)
             i = uftctext(fd0,b,BUFSIZ); if (i < 1) break; }
@@ -360,7 +370,8 @@ int main(int argc,char*argv[])
           { if (errno != 0) (void) perror(arg0);
             else (void) uft_putline(2,temp);
             return i; }
-        if (uftcflag & UFT_VERBOSE) (void) uft_putline(2,temp); }
+        if (uftcflag & UFT_VERBOSE || i == 5) (void) uft_putline(2,temp);
+        if (i == 5) { return 5; } }     /* a 500 NAK here is terminal */
 
     /* close the file handle */
     (void) close(fd0);
@@ -398,6 +409,9 @@ int main(int argc,char*argv[])
  }
 
 /*
+        -a  ASCII (plain text)
+        -i  image (binary)
+
         -#  copies
         -c  class
         -ms  dist  (aka "mail stop")

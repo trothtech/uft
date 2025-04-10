@@ -7,17 +7,17 @@
 #
 
 APPLID          =       uft
-VERSION         =       1.10.7
+VERSION         =       1.10.8
 DELIVERABLES    =       uftd sf rls rcv uftcndd
 SOURCEURL       =       https://raw.githubusercontent.com/trothtech/uft/refs/heads/main
 #                       https://raw.githubusercontent.com/trothtech/uft/master
 
 ##### configuration #####
 
+PREFIX          =       %PREFIX%
 LDFLAGS         =       %LDFLAGS%
 LIBS            =       %LIBS%
 CFLAGS          =       %CFLAGS% -DPREFIX=\"$(PREFIX)\"
-PREFIX          =       %PREFIX%
 SHFLAGS         =       %SHFLAGS%
 # we may later use CC, CXX, CPP, CPPFLAGS, and/or CXXFLAGS
 

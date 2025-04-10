@@ -1,4 +1,4 @@
-/* © Copyright 1995, Richard M. Troth, all rights reserved.  <plaintext>
+/* Copyright 1995-2025 Richard M. Troth, all rights reserved.  <plaintext>
  *
  *        Name: uftd.c
  *              Universal File Transfer daemon
@@ -91,9 +91,9 @@ int main(int argc,char*argv[])
 #ifdef _UFT_DEBUG
     fprintf(stderr,"UFTD: 522 spool dir unavail\n");
 #endif
-        return n; }
-    /* to leave control in the sysadmin's hands as much as possible,  *
-     * DON'T create the UFT spool directory; let him do it manually   */
+        return n; }                    /* spool directory unavailable */
+    /* to leave control in the sysadmin's hands as much as possible,  */
+    /* DO NOT create the UFT spool directory; let him do it manually  */
 
     /* get next temp control file in sequence */
     n = uftdnext();
@@ -104,7 +104,7 @@ int main(int argc,char*argv[])
 #ifdef _UFT_DEBUG
     fprintf(stderr,"UFTD: 523 sequence error %d\n",n);
 #endif
-        return n; }
+        return n; }         /* workspace sequence error "no spoolids" */
 
     /* now open a temporary control file (meta file) */
     (void) sprintf(tffn,"%s/%04d.lf",UFT_SPOOLDIR,n);
@@ -115,7 +115,7 @@ int main(int argc,char*argv[])
 #ifdef _UFT_DEBUG
     fprintf(stderr,"UFTD: 524 temp file error\n");
 #endif
-        return tf; }
+        return tf; }                   /* open of control file failed */
 
     (void) sprintf(temp,"#*%s server",UFT_VERSION);
     (void) uft_putline(tf,temp);
@@ -223,8 +223,10 @@ int main(int argc,char*argv[])
         if (abbrev("HELP",p,1))
           { (void) sprintf(temp,"114 HELP: protocol: %s",UFT_PROTOCOL);
             (void) tcpputs(1,temp);
+#ifndef         UFT_ANONYMOUS
             (void) sprintf(temp,"114 HELP: server: %s",UFT_VERSION);
             (void) tcpputs(1,temp);
+#endif
             (void) tcpputs(1,"114 HELP: commands:");
             (void) tcpputs(1,"114 HELP: FILE <size> <from> <auth>");
             (void) tcpputs(1,"114 HELP: USER <recipient>");

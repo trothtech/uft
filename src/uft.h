@@ -1,5 +1,4 @@
-/* © Copyright 1995, 2005, Richard M. Troth, all rights reserved.
- *                                                           <plaintext>
+/* © Copyright 1995, 2005, 2025 Richard M. Troth, all rights reserved. <plaintext>
  *
  *        Name: uft.h
  *              Unsolicited File Transfer general C code header
@@ -15,9 +14,9 @@
 
 /* the version number and copyright */
 #define         UFT_PROTOCOL    "UFT/2"
-#define         UFT_VERSION     "POSIXUFT/1.10.7"
+#define         UFT_VERSION     "POSIXUFT/1.10.8"
 #define         UFT_COPYRIGHT   "© Copyright 1995-2025 Richard M. Troth"
-#define         UFT_VRM         "1.10.7"
+#define         UFT_VRM         "1.10.8"
 
 /* server constants */
 /* the SPOOLDIR has a sub-directory for each recipient */

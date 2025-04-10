@@ -1,4 +1,4 @@
-/* © Copyright 1995, Richard M. Troth, all rights reserved.  <plaintext>
+/* Copyright 1995-2025 Richard M. Troth, all rights reserved.  <plaintext>
  *
  *        Name: uftcwack.c
  *              UFT Client "Wait for ACK" function
@@ -29,28 +29,24 @@ int uftcwack(int s,char*b,int l)
             return i; }
         switch (b[0])
           {
-            case 0x00:
-                /* NULL ACK */
+            case 0x00:                       /* NULL ACK (deprecated) */
                 (void) strncpy(b,"2XX ACK (NULL)",l);
                 return 0;
-            case '6':
-                /* write to stdout, then loop */
+            case '6':                   /* write to stdout, then loop */
                 p = b;
                 while (*p != ' ' && *p != 0x00) p++;
-                if (*p != 0x00)
-                        (void) uft_putline(1,++p);
-            case '1':   case '#':   case '*':
-                /* discard and loop */
+                if (*p != 0x00) (void) uft_putline(1,++p);
+            case '1':   case '#':   case '*':   /* discard, then loop */
                 break;
-            case '2':   case '3':
-                /* simple ACK or "more required", either is okay */
-                return 0;
-            case '4':   case '5':
-                /*  "4" means client is confused anyway,
-                    and "5" means a hard error, so ...  */
-                return -1;
-            default:
-                /* protocol error */
+            case '2':                          /* simple ACK, is okay */
+                return 2;
+            case '3':                /* or "more required", also okay */
+                return 3;
+            case '4':                       /* "4" means client error */
+                return 4;
+            case '5':                   /* and "5" means server error */
+                return 5;
+            default:                                /* protocol error */
                 return -1;
           }
         if (uftcflag & UFT_VERBOSE)

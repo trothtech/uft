@@ -20,6 +20,17 @@ where
 is the peer verifier, a sort of "key", which is confirmed or denied
 by the UFT server.
 
+## Command Response
+
+The AGENT command responds with either an ACK (200 series)
+or NAK (either 400 series or 500 series). If the server responds with
+200 ACK, then the client has successfully proven itself as an agent.
+
+If the server responds with a 400 series NAK, it means that the client
+has failed to provide the right verifier string. If the server responds
+with a 500 series NAK, it means that the server does not have a
+verifier string available.
+
 ## Security
 
 The agent string (the verifier string) is arbitrary
