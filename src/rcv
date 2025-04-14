@@ -36,7 +36,7 @@ S=`echo "0000$S" | awk '{print substr($0,length($0)-3,4)}'`
 # extract the metadata and load it into this shell
 grep -v '^#' $D/$S.cf | awk '{print "UFT_" $0}' | grep -v '=$' \
     | grep -v '`' | grep -v ';' | grep -v '(' | grep -v ')' \
-    | grep -v '$' > /tmp/$$.set
+    | grep -v '^$' > /tmp/$$.set
 RC=$? ; if [ $RC -ne 0 ] ; then rm -f /tmp/$$.set ; exit $RC ; fi
 . /tmp/$$.set
 rm /tmp/$$.set
