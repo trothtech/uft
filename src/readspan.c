@@ -8,6 +8,7 @@
 
 #include <unistd.h>
 
+
 int uft_readspan(int s,char*b,int c)
   { static char _eyecatcher[] = "uft_readspan()";
     int         i,  j;

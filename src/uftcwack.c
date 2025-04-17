@@ -20,16 +20,13 @@ int uftcwack(int s,char*b,int l)
     char       *p;
 
     while (1)
-      {
-        errno = 0;
+      { errno = 0;
         i = tcpgets(s,b,l);
         if (i < 0)
           { /* broken pipe or network error */
-            b[0] = 0x00;
-            return i; }
+            b[0] = 0x00; return i; }
         switch (b[0])
-          {
-            case 0x00:                       /* NULL ACK (deprecated) */
+          { case 0x00:                       /* NULL ACK (deprecated) */
                 (void) strncpy(b,"2XX ACK (NULL)",l);
                 return 0;
             case '6':                   /* write to stdout, then loop */
@@ -49,9 +46,7 @@ int uftcwack(int s,char*b,int l)
             default:                                /* protocol error */
                 return -1;
           }
-        if (uftcflag & UFT_VERBOSE)
-                if (b[0] != 0x00)
-                        (void) uft_putline(2,b);
+        if (uftcflag & UFT_VERBOSE) if (b[0] != 0x00) uft_putline(2,b);
       }
   }
 
