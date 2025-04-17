@@ -24,9 +24,9 @@
 *         Note: the following line is essential:
 & 3
 *
-0000      1.10.7
-0001      UFT/1.10.7 client (CMS)
-0002      UFT/1.10.7 server (z/VM)
+0000      1.10.8
+0001      UFT/1.10.8 client (CMS)
+0002      UFT/1.10.8 server (z/VM)
 0004      UFT/&1
 0005      UFT/&1 client
 0006      UFT/&1 server

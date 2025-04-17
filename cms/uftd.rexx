@@ -538,22 +538,16 @@ If uft > 1 Then ,
 Else 'CALLPIPE COMMAND XMITMSG 123 "' || count || '"' ,
     '(APPLID UFT CALLER SRV NOHEADER | *.OUTPUT:'
 
-/*
-'SELECT OUTPUT AUXD'
- */
+/* 'SELECT OUTPUT AUXD'  */
 
 If Length(buffer) > count Then Do
-/*
-    'OUTPUT' Left(buffer,count)
- */
+/*  'OUTPUT' Left(buffer,count)  */
     buffer = Substr(buffer,count+1)
     count = 0
     End  /*  If  ..  Do  */
 
 Else If Length(buffer) > 0 Then Do
-/*
-    'OUTPUT' buffer
- */
+/*  'OUTPUT' buffer  */
     count = count - Length(buffer)
     buffer = ""
     End  /*  Else If .. Do  */
@@ -564,7 +558,7 @@ Do While count > 0
     If rc ^= 0 Then Do
         Call ABORT
         Exit 12
-        End  /*  If  ..  Do  */
+    End  /*  If  ..  Do  */
 
     If Length(buffer) = 0 Then Do 'READTO'; 'PEEKTO BUFFER'; End
     If Length(buffer) = 0 Then Do 'READTO'; 'PEEKTO BUFFER'; End
@@ -572,29 +566,23 @@ Do While count > 0
     If rc ^= 0 Then Do
         Call ABORT
         Exit 12
-        End  /*  If  ..  Do  */
+    End  /*  If  ..  Do  */
 
     If Length(buffer) > count Then Do
-/*
-        'OUTPUT' Left(buffer,count)
- */
+/*      'OUTPUT' Left(buffer,count)      */
         buffer = Substr(buffer,count+1)
         count = 0
-        End  /*  If  ..  Do  */
+    End  /*  If  ..  Do  */
 
     Else If Length(buffer) > 0 Then Do
-/*
-        'OUTPUT' buffer
- */
+/*      'OUTPUT' buffer   */
         count = count - Length(buffer)
         buffer = ""
-        End  /*  Else  If  ..  Do  */
+    End  /*  Else  If  ..  Do  */
 
-    End  /*  Do  While  */
+End  /*  Do  While  */
 
-/*
-'SELECT OUTPUT 0'
- */
+/* 'SELECT OUTPUT 0' */
 
 'CALLPIPE COMMAND XMITMSG 200 (APPLID UFT' ,
     'CALLER SRV NOHEADER | *.OUTPUT:'
@@ -667,7 +655,8 @@ If rc ^= 0 Then Do ; open = 0 ; Return ; End
 Parse Upper Var user user '@' .
 Parse Value DiagRC(08,'SPOOL' addr 'TO' user) With 1 rc 10 . 17 rs
 /* "no such user" is UFT error code 532 */
-If rc ^= 0 Then Do ; open = 0 ; Return ; End
+If rc ^= 0 Then Do
+  Call Diag 08, 'DETACH' addr; open = 0; Return rc; End
 
 /* set a few parameters from known metadata */
 Call Diag 08, 'SPOOL' addr 'FORM' form

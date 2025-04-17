@@ -357,6 +357,8 @@ Address "COMMAND" 'PIPE VAR H | hostbyname | VAR VAL'
 If rc /= 0 Then val = ""
 If val = "VAL" Then val = ""
 
+If val = "" Then val = h
+
 /* if we got an address then stash it for later reference */
 If val ^= "" Then Call Value var, val, "SESSION NSLOOKUP"
 
