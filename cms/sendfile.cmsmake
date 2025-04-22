@@ -93,6 +93,13 @@ sendfile.license:
 sendfile.cmsmake:
         wget http://ltroth1.casita.net/pub/uft/$@
 
+uftume.text:    uftume.messages
+        cms ' pipe < uftume messages \
+                | pad 80 | > uftume msgtmp a f 80 '
+        cms ' genmsg uftume msgtmp a uft '
+        @cms ' erase uftume msgtmp '
+#       @cms ' erase uftume listing '
+
 ### package files ###
 
 archives:       sendfile.vmarc sendfile.tar

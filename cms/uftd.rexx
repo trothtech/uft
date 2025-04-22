@@ -24,7 +24,7 @@
  */
 
 /*  set some initial values  */
-vrm0 = "1.10.7"                 /* to coincide with the POSIX version */
+vrm0 = "1.10.8"                 /* to coincide with the POSIX version */
 
 /*  identify this stage  */
 Parse Source . . arg0 .
