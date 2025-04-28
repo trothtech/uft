@@ -14,9 +14,10 @@
 
 /* the version number and copyright */
 #define         UFT_PROTOCOL    "UFT/2"
-#define         UFT_VERSION     "POSIXUFT/1.10.8"
+#define         UFT_VERSION     "POSIXUFT/1.11"
 #define         UFT_COPYRIGHT   "© Copyright 1995-2025 Richard M. Troth"
-#define         UFT_VRM         "1.10.8"
+#define         UFT_VRM         "1.11"
+#define   UFT_VERINT   (((1) << 24) + ((11) << 16) + ((0) << 8) + (0))
 
 /* server constants */
 /* the SPOOLDIR has a sub-directory for each recipient */
@@ -29,7 +30,7 @@
 #endif
 
 #ifndef         UFT_PIPESDIR
-#define         UFT_PIPESDIR    "/usr/lib/uft"
+#define         UFT_PIPESDIR    "/usr/libexec/uft"
 #endif
 
 /* the SEQuence file name may be platform dependent */
@@ -56,10 +57,6 @@
 #define         BUFSIZ          64512
 #endif
 
-#ifndef         NULL
-#define         NULL            0x0000
-#endif
-
 #define         UFT_SYSLOG_FACILITY     LOG_UUCP
 
 typedef struct  UFTFILE {
@@ -79,10 +76,10 @@ typedef struct  UFTFILE {
 
                 char    from[64],
                         name[64],
-                        type[8],
-                        cc[8],
+                        type[8],                /* should be one byte */
+                        cc[8],                  /* should be one byte */
                         hold[8],
-                        class[8],
+                        class[8],               /* should be one byte */
                         devtype[8], keep[4], msg[4],
                         form[16], dist[16], dest[16];
                 int     size, copies;
@@ -104,7 +101,7 @@ typedef struct  UFTFILE {
 #define         UFT_TYPE_V_EXPANSION    "VAR" /* or "V16" */
 /*
 RDR FILE $FILE SENT FROM $RSCS RDR WAS #### ####
-xxx FILE nnnn  SEND FROM u@h
+xxx FILE nnnn  SENT FROM u@h
  */
 
 /* constants in support of IBM NETDATA encoding */
@@ -112,13 +109,14 @@ xxx FILE nnnn  SEND FROM u@h
 #define   UFT_ND_LAST     0x40
 #define   UFT_ND_CTRL     0x20
 #define   UFT_ND_NEXT     0x10
-#define   UFT_ND_INMR01   "\xc9\xd5\xd4\xd9\xf0\xf1"  /* first record of transmission */
+#define   UFT_ND_INMR01   "\xc9\xd5\xd4\xd9\xf0\xf1"   /* first record of transmission */
 #define   UFT_ND_INMR02   "\xc9\xd5\xd4\xd9\xf0\xf2"
 #define   UFT_ND_INMR03   "\xc9\xd5\xd4\xd9\xf0\xf3"
 #define   UFT_ND_INMR04   "\xc9\xd5\xd4\xd9\xf0\xf4"
-#define   UFT_ND_INMR06   "\xc9\xd5\xd4\xd9\xf0\xf6"  /* last record in transmission */
+#define   UFT_ND_INMR06   "\xc9\xd5\xd4\xd9\xf0\xf6"   /* last record in transmission */
 #define   UFT_ND_INMR07   "\xc9\xd5\xd4\xd9\xf0\xf7"
 
+/* a struct for NETDATA processing */
 typedef struct  UFTNDIO {
             void *buffer;
             int   bufmax;
@@ -149,10 +147,8 @@ UFT_ND_FIRST|UFT_ND_LAST|UFT_ND_CTRL is a single control record
 
 https://www.ibm.com/docs/en/zvm/7.2?topic=reference-netdata-format
 
-
 66E0C9D5D4D9F0F1 always the first record of a transmission
  " " I N M R 0 1
-
                   if (memcmp("\311\325\324\331\360\361",line+4,6)==0)
                     is_netdata = 1; // INMR01 at start of record
 
@@ -166,7 +162,6 @@ https://www.ibm.com/docs/en/zvm/7.2?topic=reference-netdata-format
  " " I N M R 0 6
 
 time
-
     year (4)
     month (2)
     day (2)
@@ -197,12 +192,6 @@ static char *uft_copyright = UFT_COPYRIGHT;
 
 #define         MSG_UFT_HOST            "localhost"
 #define         MSG_UFT_PORT            608
-
-
-
-#include <unistd.h>
-#include <time.h>
-#include <fcntl.h>
 
 typedef struct  UFTSTAT {
     int         uft_ino;        /* UFT spoolid */
@@ -283,8 +272,8 @@ ssize_t getuftentries(int,char*,size_t,off_t*);
 int uftopen(const char *,int,mode_t);
 /* int uftopen(const char *pathname, int flags, mode_t mode); */
 
-int uft_getline(int,char*);
-int uft_putline(int,char*);
+int uft_getline(int,char*,int);
+int uft_putline(int,char*,int);
 int uft_readspan(int,char*,int);
 
 int uftddata(int,int,int);
@@ -302,7 +291,30 @@ char*uftcprot(mode_t);
 
 int abbrev(char*,char*,int);
 
+/* functions from the library */
+int uftx_message(char*,int,int,char*,int,char*[]);
+int uftd_message(char*,char*);          /* FKA msglocal(user,text)    */
+char*uftx_home(char*);
+int msgd_umsg(char*,char*,char*);                 /* user, text, from */
+int uftx_getline(int,char*,int);           /* sock/fd, buffer, buflen */
+int uftx_putline(int,char*,int);           /* sock/fd, buffer, buflen */
+
+char*uftx_user();
+
+int msgc_uft(char*,char*);
+int msgc_rdm(char*,char*);
+int msgc_msp(char*,char*);
+
 #define         _UFT_HEADER_
 #endif
+
+/*
+
+int msgwrite(user,text)                                               *
+int msgsmtps(user,text)                                               *
+int msgsmtpm(user,text)                                               *
+int msgmail(user,text)                                                *
+
+ */
 
 

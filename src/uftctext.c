@@ -10,9 +10,9 @@
  */
 
 #include <unistd.h>
+#include <fcntl.h>
 
-#include	"uft.h"
-#include        "tcpio.h"
+#include "uft.h"
 
 /* ------------------------------------------------------------ UFTCTEXT
  */

@@ -21,12 +21,15 @@
 
 #include "uft.h"
 
+int     uftcflag;
+
 /* ------------------------------------------------------------------ */
 int main(int argc,char*argv[])
   { static char _eyecatcher[] = "msgc.c main()";
     int     rc, i, j, k;
     char    msgbuf[4096], *arg0;
 
+    uftcflag = 0x00000000;      /* default */
     arg0 = argv[0];
 
     /*  process options  */

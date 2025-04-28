@@ -65,12 +65,12 @@ uftd.o: 	makefile uft.h uftd.c
 
 sf:		makefile uftc.o \
 			uftcwack.o uftctext.o uftcprot.o \
-			tcpio.o getline.o putline.o \
-			userid.o aecs.o readspan.o abbrev.o
+			uftlib.o tcpio.o xmitmsgx.o \
+			aecs.o readspan.o abbrev.o
 		$(CC) $(CFLAGS) -o sf uftc.o \
 			uftcwack.o uftctext.o uftcprot.o \
-			tcpio.o getline.o putline.o \
-			userid.o aecs.o readspan.o abbrev.o $(LIBS)
+			uftlib.o tcpio.o xmitmsgx.o \
+			aecs.o readspan.o abbrev.o $(LIBS)
 
 uftc.o: 	makefile uft.h uftc.c
 		$(CC) $(CFLAGS) -c uftc.c
@@ -168,9 +168,15 @@ cpqu.o:		makefile cpqu.c
 aecs.o: 	makefile aecs.c aecs.h
 		$(CC) $(CFLAGS) -c aecs.c
 
-readspan.o: 	makefile readspan.c
+readspan.o:	makefile readspan.c
 		$(CC) $(CFLAGS) -c readspan.c
 
+xmitmsgx.o:
+	sh -c ' cd xmitmsgx ; exec $(MAKE) xmitmsgx.o '
+	cp -p xmitmsgx/xmitmsgx.o .
+
+uftlib.o:	makefile uft.h uftlib.c
+		$(CC) $(CFLAGS) -o uftlib.o -c uftlib.c
 
 #
 #	  Name: makefile.in (make file source)
@@ -197,11 +203,11 @@ msgd:		makefile msgd.o msgdlmsg.o \
 			putline.o tcpio.o aecs.o homedir.o
 		strip msgd
 
-tell:		makefile msgc.o msgcmsp.o msgcuftd.o msglocal.o \
-			getline.o tcpio.o userid.o putline.o aecs.o homedir.o
-		$(CC) -o tell msgc.o msgcmsp.o msgcuftd.o msglocal.o \
-			getline.o tcpio.o userid.o putline.o aecs.o homedir.o
-		strip tell
+tell:		makefile msgc.o uftlib.o tcpio.o xmitmsgx.o uftcwack.o
+	$(CC) -o tell msgc.o uftlib.o tcpio.o xmitmsgx.o uftcwack.o
+	strip tell
+# msgcmsp.o msgcuftd.o msglocal.o \
+#   getline.o tcpio.o userid.o putline.o aecs.o homedir.o
 
 imsg:		makefile imsg.o putline.o getline.o aecs.o
 		$(CC) -o imsg imsg.o putline.o getline.o aecs.o

@@ -1,9 +1,9 @@
-/* © Copyright 1995, Richard M. Troth, all rights reserved.  <plaintext>
+/* Copyright 1995-2025 Richard M. Troth, all rights reserved. <plaintext>
  *
  *        Name: tcpiolib.c
  *              various TCP utility functions
  *      Author: Rick Troth, Houston, Texas, USA
- *        Date: 1995-Apr-19
+ *        Date: 1995-Apr-19 and following
  *
  *   Functions:
  *              character set conversion:

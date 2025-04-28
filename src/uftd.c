@@ -38,8 +38,8 @@ int uftdstat(int sock,char*zlda)
 
     (void) tcpputs(sock,zlda);
     (void) sprintf(buff,"#>%s",zlda);
-    if (tf >= 0) (void) uft_putline(tf,buff);
-/*  if (cf >= 0) (void) uft_putline(cf,buff);  */
+    if (tf >= 0) (void) uft_putline(tf,buff,0);
+/*  if (cf >= 0) (void) uft_putline(cf,buff,0);  */
   }
 
 
@@ -119,7 +119,7 @@ int main(int argc,char*argv[])
         return tf; }                   /* open of control file failed */
 
     (void) sprintf(temp,"#*%s server",UFT_VERSION);
-    (void) uft_putline(tf,temp);
+    (void) uft_putline(tf,temp,0);
 
     /* all okay thus far, now send the herald (informative, but ACK)  */
 
@@ -138,7 +138,7 @@ int main(int argc,char*argv[])
     (void) tcpident(0,from,256);      /* IDENT got a bad rap and died */
     (void) sprintf(line,"REMOTE=%s",from);
     (void) strncpy(uftfile0.from,from,sizeof(uftfile0.from));
-    (void) uft_putline(tf,line);
+    (void) uft_putline(tf,line,0);
 
     /* where exactly does this item fit? */
 #ifndef         UFT_ANONYMOUS
@@ -149,7 +149,7 @@ int main(int argc,char*argv[])
     /* loop forever on commands from client */
     while (1)
       { /*  read a line  */
-        if (uft_getline(0,line) < 0)
+        if (uft_getline(0,line,0) < 0)
           { (void) sprintf(temp,"#*socket closed w/o QUIT.");
 /*          (void) uftdstat(1,temp);                                  */
             /* the following should be handled outside of the loop    */
@@ -166,8 +166,8 @@ int main(int argc,char*argv[])
 
         /* log everything as comments in the control file(s) */
         (void) sprintf(temp,"#<%s",p);
-        if (tf >= 0) (void) uft_putline(tf,temp);
-/*      if (cf >= 0) (void) uft_putline(cf,temp);                     */
+        if (tf >= 0) (void) uft_putline(tf,temp,0);
+/*      if (cf >= 0) (void) uft_putline(cf,temp,0);                   */
 
         /* don't process comments any further, just log them */
         if (*p == '*') continue;
@@ -198,8 +198,8 @@ int main(int argc,char*argv[])
 
             /*  put this variable into the control file  */
             (void) sprintf(temp,"%s='%s'",p2,q2);
-            if (tf >= 0) (void) uft_putline(tf,temp);
-            if (cf >= 0) (void) uft_putline(cf,temp);
+            if (tf >= 0) (void) uft_putline(tf,temp,0);
+            if (cf >= 0) (void) uft_putline(cf,temp,0);
 
             /* ACK to the client */
             (void) sprintf(temp,"200 %s; %s okay",p,p);
@@ -213,23 +213,23 @@ int main(int argc,char*argv[])
             for (p = q; *q > ' '; q++);
             if (*q != 0x00) *q++ = 0x00;
             (void) sprintf(temp,"SIZE='%s'",p);
-            if (tf >= 0) (void) uft_putline(tf,temp);
-            if (cf >= 0) (void) uft_putline(cf,temp);
+            if (tf >= 0) (void) uft_putline(tf,temp,0);
+            if (cf >= 0) (void) uft_putline(cf,temp,0);
             /* parse another (FROM) */
             for (p = q; *q > ' '; q++);
             if (*q != 0x00) *q++ = 0x00;
             if (*p != 0x00)
               { (void) sprintf(temp,"FROM='%s'",p);
-                if (tf >= 0) (void) uft_putline(tf,temp);
-                if (cf >= 0) (void) uft_putline(cf,temp); }
+                if (tf >= 0) (void) uft_putline(tf,temp,0);
+                if (cf >= 0) (void) uft_putline(cf,temp,0); }
             /* parse another (AUTH) */
             for (p = q; *q > ' '; q++);
             if (*q != 0x00) *q++ = 0x00;
             if (*p != 0x00)
               { (void) strncpy(auth,p,256);
                 (void) sprintf(temp,"AUTH='%s'",auth);
-                if (tf >= 0) (void) uft_putline(tf,temp);
-                if (cf >= 0) (void) uft_putline(cf,temp); }
+                if (tf >= 0) (void) uft_putline(tf,temp,0);
+                if (cf >= 0) (void) uft_putline(cf,temp,0); }
             else (void) strncpy(auth,"N/A",256);
 
             /* ACK to the client */
@@ -284,8 +284,8 @@ int main(int argc,char*argv[])
 
             /* now log it */
             (void) sprintf(temp,"USER='%s'",user);
-            if (tf >= 0) (void) uft_putline(tf,temp);
-            if (cf >= 0) (void) uft_putline(cf,temp);
+            if (tf >= 0) (void) uft_putline(tf,temp,0);
+            if (cf >= 0) (void) uft_putline(cf,temp,0);
 
             /* now try to run with it */
             uuid = uftduser(user);
@@ -505,8 +505,8 @@ int main(int argc,char*argv[])
         if (abbrev("TYPE",p,1))
           { /*  put this variable into the control file  */
             (void) sprintf(temp,"%s='%s'",p,q);
-            if (tf >= 0) (void) uft_putline(tf,temp);
-            if (cf >= 0) (void) uft_putline(cf,temp);
+            if (tf >= 0) (void) uft_putline(tf,temp,0);
+            if (cf >= 0) (void) uft_putline(cf,temp,0);
             type[0] = q[0];             type[1] = 0x00;
             uftfile0.type[0] = q[0];    uftfile0.type[1] = 0x00;
 
@@ -520,8 +520,8 @@ int main(int argc,char*argv[])
         if (abbrev("NAME",p,2))
           { /*  put this variable into the control file  */
             (void) sprintf(temp,"%s='%s'",p,q);
-            if (tf >= 0) (void) uft_putline(tf,temp);
-            if (cf >= 0) (void) uft_putline(cf,temp);
+            if (tf >= 0) (void) uft_putline(tf,temp,0);
+            if (cf >= 0) (void) uft_putline(cf,temp,0);
 
             /*  copy filename into member in structure  */
             (void) strncpy(uftfile0.name,q,sizeof(uftfile0.name));
@@ -547,8 +547,8 @@ int main(int argc,char*argv[])
             abbrev("TITLE",p,2))
           { /*  put this variable into the control file  */
             (void) sprintf(temp,"%s='%s'",p,q);
-            if (tf >= 0) (void) uft_putline(tf,temp);
-            if (cf >= 0) (void) uft_putline(cf,temp);
+            if (tf >= 0) (void) uft_putline(tf,temp,0);
+            if (cf >= 0) (void) uft_putline(cf,temp,0);
 
             /*  ACK to the client  */
             (void) sprintf(temp,"200 %s; %s okay",p,p);

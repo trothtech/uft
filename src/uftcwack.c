@@ -7,10 +7,12 @@
  *
  */
 
-#include        <string.h>
-#include        <errno.h>
-#include        "uft.h"
-extern  int     uftcflag;
+#include <string.h>
+#include <errno.h>
+#include <fcntl.h>
+
+#include "uft.h"
+extern  int  uftcflag;
 
 /* ------------------------------------------------------------ UFTCWACK
  */
@@ -32,7 +34,7 @@ int uftcwack(int s,char*b,int l)
             case '6':                   /* write to stdout, then loop */
                 p = b;
                 while (*p != ' ' && *p != 0x00) p++;
-                if (*p != 0x00) (void) uft_putline(1,++p);
+                if (*p != 0x00) (void) uftx_putline(1,++p,0);
             case '1':   case '#':   case '*':   /* discard, then loop */
                 break;
             case '2':                          /* simple ACK, is okay */
@@ -46,7 +48,7 @@ int uftcwack(int s,char*b,int l)
             default:                                /* protocol error */
                 return -1;
           }
-        if (uftcflag & UFT_VERBOSE) if (b[0] != 0x00) uft_putline(2,b);
+        if (uftcflag & UFT_VERBOSE) if (b[0] != 0x00) uftx_putline(2,b,0);
       }
   }
 

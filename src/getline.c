@@ -22,7 +22,7 @@
 #endif
 
 /* ------------------------------------------------------------------ */
-int uft_getline(int s,char*b)
+int uft_getline(int s,char*b,int l)
   { static char _eyecatcher[] = "uft_getline()";
     char       *p;
     int         i;

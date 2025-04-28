@@ -399,7 +399,7 @@ char *uftx_user()
     extern  char       *getenv();
 
 #ifndef _OE_SOCKETS
-    struct  passwd     *pwdent;
+    struct passwd *pwdent;
 
     /*  first try effective uid key into passwd  */
     pwdent = getpwuid(geteuid());
@@ -430,7 +430,7 @@ char *useridg()
   {
     char       *g;
     extern  char       *getenv();
-    struct  passwd     *pwdent;
+    struct passwd *pwdent;
 
     /*  if the user set one, take that  */
     g = getenv("NAME");
@@ -691,7 +691,7 @@ int uftx_putline(int s,char*b,int l)
 
 #include "uft.h"
 
-int             uftcflag;
+//int             uftcflag;
 
 /* ------------------------------------------------------------ MSGC_UFT
  *    Try sending the message via UFT "user message hack".

@@ -12,7 +12,7 @@
 
 #include <unistd.h>
 
-int uft_putline(int s,char*b)
+int uft_putline(int s,char*b,int l)
   { static char _eyecatcher[] = "uft_putline()";
     int 	i,  j;
     char	temp[4096];
