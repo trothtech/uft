@@ -220,8 +220,7 @@ int main(int argc,char*argv[])
 
     (void) sprintf(temp,"%s:%d",host,UFT_PORT);
     s = tcpopen(temp,0,0);
-    if (s < 0)
-      { (void) perror(host); return 1; }        /* open socket failed */
+    if (s < 0) { (void) perror(host); return 1; }      /* open failed */
     r = s;
 
     /* wait for the herald from the server */
@@ -365,14 +364,14 @@ int main(int argc,char*argv[])
  if (i < 1) break; }
         (void) sprintf(temp,"DATA %d",i);
         if (uftcflag & UFT_VERBOSE) (void) uftx_putline(2,temp,0);
-fprintf(stderr,"%s\n",temp);
+//fprintf(stderr,"%s\n",temp);
         (void) tcpputs(s,temp);
         rc = uftcwack(r,temp,sizeof(temp));           /* expect 3 here */
-fprintf(stderr,"uftcwack() returned %d\n",rc);
-fprintf(stderr,"%s\n",temp);
+//fprintf(stderr,"uftcwack() returned %d\n",rc);
+//fprintf(stderr,"%s\n",temp);
         (void) tcpwrite(s,b,i);   /* send the data - we live for this */
         i = uftcwack(r,temp,sizeof(temp));           /* expect 2 here */
-fprintf(stderr,"uftcwack() returned %d\n",i);
+//fprintf(stderr,"uftcwack() returned %d\n",i);
         if (i < 0)
           { if (errno != 0) (void) perror(arg0);
             else (void) uftx_putline(2,temp,0);

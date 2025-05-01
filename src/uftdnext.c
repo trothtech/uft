@@ -78,7 +78,7 @@ int uftdnext()
 
     /* write the new sequence number */
     (void) sprintf(temp,"%04d",n);
-    i = uft_putline(sf,temp,0);
+    i = uftx_putline(sf,temp,0);
     if (i < 0)
       { (void) close(sf); return i; }     /* write of seq file failed */
 

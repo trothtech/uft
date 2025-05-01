@@ -155,7 +155,10 @@
 0003    E Invalid option: &1
 0054    E Incomplete fileid specified
 1200    E Code level mis-match: expected &1 but found &2
+8416      From &1(&2): &3
+0716      From &1(&2): &3
 8712      File &1 sent to &2 at &3 on &4
+1004      File &1 spooled to &2 origin &3
 *
 * TAG on the file for RDRLIST and RECEIVE:
 *         FILE (*UFT) ORIGIN host from date time tz

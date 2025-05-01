@@ -8,6 +8,9 @@
 
 #ifndef         _UFT_HEADER_
 
+#include <time.h>
+#include <sys/types.h>
+
 #include "tcpio.h"
 
 /*       define UFT_ANONYMOUS to use 'uftd' via Tor                   */
@@ -150,7 +153,7 @@ https://www.ibm.com/docs/en/zvm/7.2?topic=reference-netdata-format
 66E0C9D5D4D9F0F1 always the first record of a transmission
  " " I N M R 0 1
                   if (memcmp("\311\325\324\331\360\361",line+4,6)==0)
-                    is_netdata = 1; // INMR01 at start of record
+                    is_netdata = 1;      ** INMR01 at start of record **
 
 75E0C9D5D4D9F0F2
  " " I N M R 0 2
@@ -175,7 +178,6 @@ time
 static char *uft_copyright = UFT_COPYRIGHT;
 
 /* © Copyright 1996, Richard M. Troth, all rights reserved.  <plaintext>
- *              (casita sourced)
  *
  *        Name: msghndlr.h
  *              header file for  msgd.c  and  msgcat.c
@@ -272,8 +274,6 @@ ssize_t getuftentries(int,char*,size_t,off_t*);
 int uftopen(const char *,int,mode_t);
 /* int uftopen(const char *pathname, int flags, mode_t mode); */
 
-int uft_getline(int,char*,int);
-int uft_putline(int,char*,int);
 int uft_readspan(int,char*,int);
 
 int uftddata(int,int,int);
@@ -296,8 +296,8 @@ int uftx_message(char*,int,int,char*,int,char*[]);
 int uftd_message(char*,char*);          /* FKA msglocal(user,text)    */
 char*uftx_home(char*);
 int msgd_umsg(char*,char*,char*);                 /* user, text, from */
-int uftx_getline(int,char*,int);           /* sock/fd, buffer, buflen */
-int uftx_putline(int,char*,int);           /* sock/fd, buffer, buflen */
+int uftx_getline(int,char*,int);        /* sock or fd, buffer, buflen */
+int uftx_putline(int,char*,int);        /* sock or fd, buffer, buflen */
 
 char*uftx_user();
 
@@ -305,15 +305,17 @@ int msgc_uft(char*,char*);
 int msgc_rdm(char*,char*);
 int msgc_msp(char*,char*);
 
+int uftd_fann(char*,char*,char*);
+
 #define         _UFT_HEADER_
 #endif
 
 /*
 
-int msgwrite(user,text)                                               *
-int msgsmtps(user,text)                                               *
-int msgsmtpm(user,text)                                               *
-int msgmail(user,text)                                                *
+int msgwrite(char*,char*);                                            *
+int msgsmtps(char*,char*);                                            *
+int msgsmtpm(char*,char*);                                            *
+int msgmail(char*,chat*);                                             *
 
  */
 

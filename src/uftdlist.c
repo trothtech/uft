@@ -85,7 +85,7 @@ int uftdlist(int seqn,char*from)
                 seqn, uftfile0.name);
 
     /*  write the record  */
-    (void) uft_putline(fd,string,0);
+    (void) uftx_putline(fd,string,0);
 
     (void) close(fd);
 

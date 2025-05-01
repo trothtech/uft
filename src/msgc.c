@@ -48,7 +48,7 @@ int main(int argc,char*argv[])
                                 "%s: invalid option %s",
                                 arg0,argv[i]);
                         (void) uftx_putline(2,msgbuf,0);
-                        return 20;
+                        return 1;
                         break;
           }
       }
@@ -57,7 +57,7 @@ int main(int argc,char*argv[])
     if (argc < 2)
       { /* (void) system("xmitmsg -2 386"); */
         fprintf(stderr,"Missing operand(s).\n");
-        return 24; }
+        return 1; }
 
     /*  parse them  */
     if (argc > 2)
@@ -72,7 +72,8 @@ int main(int argc,char*argv[])
       { (void) uftx_getline(0,msgbuf,sizeof(msgbuf)-1);
         if (msgbuf[0] == '.' && msgbuf[1] == 0x00) break;
         rc = msgc_uft(argv[1],msgbuf); }
-    return 0;
+    if (rc < 0) return 1;
+           else return 0;
   }
 
 

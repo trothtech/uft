@@ -120,7 +120,7 @@ int msgd_xmsg_sock(char*user,char*buff,int bl)
     rc = sd = socket(AF_UNIX,SOCK_STREAM,0); if (rc < 0) return rc;
 
     snprintf(fn,sizeof(fn),"%s/%s/.msgsock",UFT_SPOOLDIR,user);
-fprintf(stderr,"sock %s\n",fn);
+//fprintf(stderr,"sock %s\n",fn);
 
     /* the server should be listening on this named socket */
     msgsockst.sun_family = AF_UNIX;
@@ -159,7 +159,7 @@ int msgd_xmsg_fifo(char*user,char*buff,int bl)
     char fn[256];
 
     snprintf(fn,sizeof(fn),"%s/%s/.msgpipe",UFT_SPOOLDIR,user);
-fprintf(stderr,"pipe %s\n",fn);
+//fprintf(stderr,"pipe %s\n",fn);
     rc = fd = open(fn,O_WRONLY|O_NDELAY);
 
 #ifdef _MSG_TRY_HOMEDIR
@@ -228,63 +228,55 @@ int msgd_umsg(char*user,char*text,char*from)
     if (i < l) { *q++ = 0x00; i++; }
 
     /* at this point we have a buffer and we know its length          */
-fprintf(stderr,"%s\n",buffer);
+//fprintf(stderr,"'%s'\n",buffer);
     /* try: socket, home socket, FIFO, home FIFO, 'write'             */
 
     /* -------- try socket ------------------------------------------ */
-fprintf(stderr,"trying socket ...\n");
     rc = msgd_xmsg_sock(un,buffer,i);
     if (rc >= 0) return rc;            /* zero or positive is success */
-fprintf(stderr,"msgd_xmsg_sock() returned %d\n",rc);
 
     /* -------- try FIFO -------------------------------------------- */
-fprintf(stderr,"trying FIFO ...\n");
     rc = msgd_xmsg_fifo(un,buffer,i);
     if (rc >= 0) return rc;            /* zero or positive is success */
-fprintf(stderr,"msgd_xmsg_fifo() returned %d\n",rc);
 
     /* -------- try brute force ------------------------------------- */
-fprintf(stderr,"trying brute force ...\n");
       { char bff[256], *bfh, *mv[8];
         int topts;
 
-        /* reusing i */
-        for (i = 0; i < sizeof(bff) && from[i] != 0x00; i++)
-          { bff[i] = from[i];
-            if (bff[i] == '@') { bfh = &bff[i]; *bfh++ = 0x00; } }
-        bff[i] = 0x00;
+        strncpy(bff,from,sizeof(bff)-1);
+        bfh = bff;
+        while (*bfh != 0x00 && *bfh != '@') bfh++;
+        if (*bfh == '@') *bfh++ = 0x00;
 
-//      snprintf(buffer,sizeof(buffer),"From %s(%s): %s",bfh,bff,text);
-
-        topts = uftmsgs.msgopts;
-        uftmsgs.msgopts |= MSGFLAG_NOCODE;
-        mv[1] = bfh; mv[2] = bff; mv[3] = text;
+//      topts = uftmsgs.msgopts;
+//      uftmsgs.msgopts |= MSGFLAG_NOCODE;
+        mv[1] = bfh; mv[2] = bff; mv[3] = text;    /* From &1(&2): &3 */
         rc = uftx_message(buffer,sizeof(buffer)-1,8416,"SRV",4,mv);
-        uftmsgs.msgopts = topts;
-/* reusing p ... and this needs to be fixed in XMM package */
-p = buffer; while (*p != ' ' && *p != 0x00) p++;
-            while (*p == ' ') p++;
+//fprintf(stderr,"%s\n",buffer);
+//      uftmsgs.msgopts = topts;
+
+/* reusing p ... and this needs to be fixed in the XMM package */
+        p = buffer; while (*p != ' ' && *p != 0x00) p++;
+                    while (*p == ' ') p++;
 
 //fprintf(stderr,"%s\n",buffer);
-fprintf(stderr,"%s\n",p);
+//fprintf(stderr,"%s\n",p);
 //      rc = uftd_message(user,buffer);
         rc = uftd_message(user,p);
-fprintf(stderr,"uftd_message() returned %d\n",rc);
+//fprintf(stderr,"uftd_message() returned %d\n",rc);
       }
 
     return rc;
   }
 
-
 /* -------------------------------------------------- File Announce FANN
  *    This routine announces the arrival of a file.
  *       Calls: msgd_xmsg_sock(), msgd_xmsg_fifo(), uftd_message()
  */
-int uftd_fann(char*user,char*text,char*from)
-/*                 user      spid      from                           */
+int uftd_fann(char*user,char*spid,char*from)
   { static char _eyecatcher[] = "uftd_fann()";
-    int rc, i, l, fd, topts;
-    char *p, *q, buffer[4096], fn[256], un[64];
+    int rc, i, l, fd;
+    char *p, *q, buffer[4096], fn[256], un[64], *mv[8];
 
     /* parse the supplied user name */
     p = user; i = 0;
@@ -296,17 +288,16 @@ int uftd_fann(char*user,char*text,char*from)
     q = buffer;
     l = sizeof(buffer) - 2;
 
-    topts = uftmsgs.msgopts;
-    uftmsgs.msgopts |= MSGFLAG_NOCODE;
-//  mv[1] = spid; mv[2] = from; mv[3] = text;
-//  rc = i = uftx_message(buffer,sizeof(buffer)-1,8416,"SRV",4,mv);
-    uftmsgs.msgopts = topts;
+//  topts = uftmsgs.msgopts;
+//  uftmsgs.msgopts |= MSGFLAG_NOCODE;
+    mv[1] = spid; mv[2] = user; mv[3] = from;
+    rc = i = uftx_message(q,l,1004,"SRV",4,mv);
+//  uftmsgs.msgopts = topts;
     if (rc < 0) return rc;
 
-//  i = i + 1;          ** we expect uftx_message() to NULL terminate */
-//  q = & q[i];
-//  l = l - i;
-//  if (i < l) { *q++ = 0x00; i++; }        **
+    i = i + 1;          /* we expect uftx_message() to NULL terminate */
+    q = & q[i]; l = l - i;
+    if (i < l) { *q++ = 0x00; i++; }     /* but terminate here anyway */
 
     /* we don't always care about the message type but we always say  */
 /*  p = "MSGTYPE=UMSG";         ** 1 - MSG       */
@@ -321,60 +312,35 @@ int uftd_fann(char*user,char*text,char*from)
     if (i < l) { *q++ = 0x00; i++; }
 
     /* this is obvious to the receiving user but we include it anyway */
-    p = "MSGUSER=";              /* who is this message to? (obvious) */
+    p = "MSGUSER=";                 /* who is this file to? (obvious) */
     while (*p != 0x00 && i < l) { *q++ = *p++; i++; }
     p = user;
+    while (*p != 0x00 && i < l) { *q++ = *p++; i++; }
+    if (i < l) { *q++ = 0x00; i++; }
+
+    /* this is in the message but here too (varies from VM IMSG)      */
+    p = "MSGFROM=";                          /* who is the file from? */
+    while (*p != 0x00 && i < l) { *q++ = *p++; i++; }
+    p = from;
     while (*p != 0x00 && i < l) { *q++ = *p++; i++; }
     if (i < l) { *q++ = 0x00; i++; }
 
     /* double NULL marks end of environment variables                 */
     if (i < l) { *q++ = 0x00; i++; }
 
-
     /* at this point we have a buffer and we know its length          */
-fprintf(stderr,"%s\n",buffer);
     /* try: socket, home socket, FIFO, home FIFO, 'write'             */
 
     /* -------- try socket ------------------------------------------ */
-fprintf(stderr,"trying socket ...\n");
     rc = msgd_xmsg_sock(un,buffer,i);
     if (rc >= 0) return rc;            /* zero or positive is success */
-fprintf(stderr,"msgd_xmsg_sock() returned %d\n",rc);
 
     /* -------- try FIFO -------------------------------------------- */
-fprintf(stderr,"trying FIFO ...\n");
     rc = msgd_xmsg_fifo(un,buffer,i);
     if (rc >= 0) return rc;            /* zero or positive is success */
-fprintf(stderr,"msgd_xmsg_fifo() returned %d\n",rc);
 
     /* -------- try brute force ------------------------------------- */
-fprintf(stderr,"trying brute force ...\n");
-      { char bff[256], *bfh, *mv[8];
-
-        /* reusing i */
-        for (i = 0; i < sizeof(bff) && from[i] != 0x00; i++)
-          { bff[i] = from[i];
-            if (bff[i] == '@') { bfh = &bff[i]; *bfh++ = 0x00; } }
-        bff[i] = 0x00;
-
-//      snprintf(buffer,sizeof(buffer),"From %s(%s): %s",bfh,bff,text);
-
-        topts = uftmsgs.msgopts;
-        uftmsgs.msgopts |= MSGFLAG_NOCODE;
-        mv[1] = bfh; mv[2] = bff; mv[3] = text;
-//      rc = uftx_message(buffer,sizeof(buffer)-1,8712,"SRV",4,mv);
-        rc = uftx_message(buffer,sizeof(buffer)-1,8416,"SRV",4,mv);
-        uftmsgs.msgopts = topts;
-/* reusing p ... and this needs to be fixed in XMM package */
-p = buffer; while (*p != ' ' && *p != 0x00) p++;
-            while (*p == ' ') p++;
-
-//fprintf(stderr,"%s\n",buffer);
-fprintf(stderr,"%s\n",p);
-//      rc = uftd_message(user,buffer);
-        rc = uftd_message(user,p);
-fprintf(stderr,"uftd_message() returned %d\n",rc);
-      }
+    rc = uftd_message(un,buffer);
 
     return rc;
   }
@@ -469,13 +435,11 @@ char *useridg()
  *
  */
   
-char *from;
-
 /* ------------------------------------------------------------ SENDIMSG
  */
 int sendimsg ( char *user , char *text )
   {
-    char        buffer[4096], *p;
+    char        buffer[4096], *p, *from;
     int         fd, i;
 
     errno = 0;
@@ -532,11 +496,7 @@ int msglocal(char*user,char*text)
         /*  ... or NOT ...  */
       }
     if (fd < 0) return fd;
-
-
   }
-
-
 
 /* ----------------------------------------------------------- UFTX_HOME
  *    Return a pointer to a string with the home directory of this user.
@@ -611,11 +571,9 @@ int uftx_getline(int s,char*b,int l)
       }
     *p = 0x00;                        /* NULL terminate, even if NULL */
 
-/*  i = p - b;                                  ** compute the length */
     if (i > 0 && b[i-1] == '\r')           /* is there a trailing CR? */
-      { i = i - 1;                           /* shorten length by one */
-        p--;                                             /* backspace */
-        *p = 0x00; }                            /* remove trailing CR */
+      { i = i - 1; p--;           /* shorten the length and backspace */
+        *p = 0x00; }                    /* and remove the trailing CR */
 
     return i;
   }
@@ -689,9 +647,6 @@ int uftx_putline(int s,char*b,int l)
 
 #include <unistd.h>
 
-#include "uft.h"
-
-//int             uftcflag;
 
 /* ------------------------------------------------------------ MSGC_UFT
  *    Try sending the message via UFT "user message hack".
@@ -701,11 +656,10 @@ int uftx_putline(int s,char*b,int l)
  */
 int msgc_uft(char*user,char*text)
   { static char _eyecatcher[] = "msgc_uft()";
-
     int rc, mysock, i;
-    char buffer[4096], agentkey[256], un[256], *p;
+    char buffer[4096], agentkey[256], un[256], *p, hn[256];
 
-    /* open /var/run/uft/agent.key for the magical AGENT string */
+    /* open /var/run/uft/agent.key for the magical AGENT string       */
     rc = mysock = open("/var/run/uft/agent.key",O_RDONLY);
     if (rc >= 0)
       { rc = read(mysock,agentkey,sizeof(agentkey)-1);
@@ -714,15 +668,20 @@ int msgc_uft(char*user,char*text)
         close(mysock);
       } else agentkey[0] = 0x00;
 
-    /* parse the supplied user name */
+    /* parse the supplied user name separating the host part          */
     p = user; i = 0;
     while (i < sizeof(un) - 1 && *p != 0x00 && *p != '@')
       { un[i++] = *p++; }
     un[i] = 0x00;
+
+    /* parse the host part looking for an optional port number        */
     if (*p == '@') p++;
+    if (*p == 0x00) p = "localhost"; 
+    snprintf(hn,sizeof(hn),"%s:%d",p,UFT_PORT);
 
     /* connect to the UFT server */
-    rc = mysock = tcpopen(p,0,0);
+    rc = mysock = tcpopen(hn,0,0);
+    if (rc < 0) { perror("tcpopen()"); return rc; }
 
     /* send a "FILE 0 from auth" command */
     if (*agentkey == 0x00)
@@ -787,45 +746,16 @@ int msgwrite(user,text)
 /* ------------------------------------------------------------ MSGSMTPS
  *  Try SMTP "send" command. (not always implemented)
  */
-int msgsmtps(user,text)
-  char   *user, *text;
-  {
-    return -1;
-  }
+int msgsmtps(char*user,char*text) { return -1; }
 
 /* ------------------------------------------------------------ MSGSMTPM
  *  Try SMTP mail. (advantage is direct -vs- queued)
  */
-int msgsmtpm(user,text)
-  char   *user, *text;
-  {
-    return -1;
-  }
+int msgsmtpm(char*user,char*text) { return -1; }
 
 /* ------------------------------------------------------------- MSGMAIL
  *  Try queued mail (sendmail) as a last resort.
  */
-int msgmail(user,text)
-  char   *user, *text;
-  {
-    return -1;
-  }
-
-/* -------------------------------------------------------------- DOTELL
- */
-int dotell(user,text)
-  char   *user, *text;
-  {
-    if (msgc_uft(user,text)
-//      msgc_rdm(user,text) &&
-//      msgc_msp(user,text) &&
-//      msglocal(user,text) &&
-//      msgwrite(user,text) &&
-//      msgsmtps(user,text) &&
-//      msgsmtpm(user,text) &&
-//      msgmail(user,text)
-                           ) return -1;
-    else return 0;
-  }
+int msgmail(char*user,char*text) { return -1; }
 
 
