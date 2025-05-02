@@ -337,7 +337,7 @@ int main(int argc,char*argv[])
                         user,errno,user);
                 (void) uftdstat(1,temp);  /* signal 5xx NAK to client */
 #ifdef _UFT_DEBUG
-    fprintf(stderr,"UFTD: 532 temp file error %d\n",uuid);
+    fprintf(stderr,"UFTD: 532 no such local user %d\n",uuid);
 #endif
                 user[0] = 0x00;
                 continue; }        /* return uuid; ** should be errno */
@@ -391,6 +391,7 @@ int main(int argc,char*argv[])
             if (df < 0)
               { (void) sprintf(temp,
                         "535 %d; user data file error.",errno);
+/*                          FIXME: register this in the messages file */
                 (void) uftdstat(1,temp);  /* signal 5xx NAK to client */
                 (void) close(cf);       (void) close(tf);
 #ifdef _UFT_DEBUG
@@ -408,6 +409,7 @@ int main(int argc,char*argv[])
             if (ef < 0)
               { (void) sprintf(temp,
                         "535 %d; user auxdata file error.",errno);
+/*                          FIXME: register this in the messages file */
                 (void) uftdstat(1,temp);  /* signal 5xx NAK to client */
                 (void) close(cf);       (void) close(tf);
                 (void) close(df);
@@ -590,7 +592,8 @@ int main(int argc,char*argv[])
             char *u, *m;
 
             u = m = q;                        /* q points to the args */
-            while (*m != ' ' && *m != 0x00) m++;
+//          while (*m != ' ' && *m != 0x00) m++;
+            while (*m != ' ' && *m != 0x00) *m = tolower(*m++);
             if (*m == ' ') *m++ = 0x00;
 
             rc = msgd_umsg(u,m,from);
