@@ -45,6 +45,10 @@ static struct MSGSTRUCT uftmsgs;
 
 #include "uft.h"
 
+extern  int  uftcflag;
+
+static char agstring[256] = { 0x00, 0x00, 0x00, 0x00, 0x00 };
+
 /* ---------------------------------------------------------------------
  *  This routine handles message formatting (not message delivery).
  *  It's a different way of doing gettext() type processing.
@@ -637,13 +641,10 @@ int uftx_putline(int s,char*b,int l)
  */
 
 #include <stdio.h>
-#include <fcntl.h>
-#include <errno.h>
 #include <stdlib.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <fcntl.h>
 
 #include <unistd.h>
 
@@ -691,7 +692,7 @@ int msgc_uft(char*user,char*text)
     if (rc < 0) { perror("tcpputs()"); close(mysock); return rc; }
 
     /* wait for ACK */
-    rc = uftcwack(mysock,buffer,sizeof(buffer)-1);
+    rc = uftc_wack(mysock,buffer,sizeof(buffer)-1);
     if (rc < 0) { perror("tcpputs()"); close(mysock); return rc; }
     if (rc != 2) { fprintf(stderr,"%s\n",buffer); close(mysock); return rc; }
 
@@ -701,7 +702,7 @@ int msgc_uft(char*user,char*text)
     if (rc < 0) { perror("tcpputs()"); close(mysock); return rc; }
 
     /* wait for ACK */
-    rc = uftcwack(mysock,buffer,sizeof(buffer)-1);
+    rc = uftc_wack(mysock,buffer,sizeof(buffer)-1);
     if (rc < 0) { perror("tcpputs()"); close(mysock); return rc; }
     if (rc != 2) { fprintf(stderr,"%s\n",buffer); close(mysock); return rc; }
 
@@ -710,7 +711,7 @@ int msgc_uft(char*user,char*text)
     if (rc < 0) { perror("tcpputs()"); close(mysock); return rc; }
 
     /* wait for ACK */
-    rc = uftcwack(mysock,buffer,sizeof(buffer)-1);
+    rc = uftc_wack(mysock,buffer,sizeof(buffer)-1);
     if (rc < 0) { perror("tcpputs()"); close(mysock); return rc; }
     if (rc != 2) { fprintf(stderr,"%s\n",buffer); close(mysock); return rc; }
 
@@ -719,7 +720,7 @@ int msgc_uft(char*user,char*text)
     if (rc < 0) { perror("tcpputs()"); close(mysock); return rc; }
 
     /* wait for ACK */
-    rc = uftcwack(mysock,buffer,sizeof(buffer)-1);
+    rc = uftc_wack(mysock,buffer,sizeof(buffer)-1);
     if (rc < 0) { perror("tcpputs()"); close(mysock); return rc; }
     if (rc != 2) { fprintf(stderr,"%s\n",buffer); close(mysock); return rc; }
 
@@ -730,6 +731,78 @@ int msgc_uft(char*user,char*text)
     close(mysock);
 
     return 0;
+  }
+
+/* ----------------------------------------------------------- UFTC_WACK
+ *        Name: uftcwack.c
+ *              UFT Client "Wait for ACK" function
+ *      Author: Rick Troth, Houston, Texas, USA
+ *        Date: 1995-Mar-09, Nov-21 (Decatur)
+ * Copyright 1995-2025 Richard M. Troth, all rights reserved.
+ */
+int uftc_wack(int s,char*b,int l)
+  { static char _eyecatcher[] = "uftc_wack()";
+    int         i;
+    char       *p;
+
+    while (1)
+      { errno = 0;
+        i = tcpgets(s,b,l);
+        if (i < 0)
+          { /* broken pipe or network error */
+            b[0] = 0x00; return i; }
+        switch (b[0])
+          { case 0x00:                       /* NULL ACK (deprecated) */
+                (void) strncpy(b,"2XX ACK (NULL)",l);
+                return 0;
+            case '6':                   /* write to stdout, then loop */
+                p = b;
+                while (*p != ' ' && *p != 0x00) p++;
+                if (*p != 0x00) (void) uftx_putline(1,++p,0);
+            case '1':   case '#':   case '*':   /* discard, then loop */
+                break;
+            case '2':                          /* simple ACK, is okay */
+                return 2;
+            case '3':                /* or "more required", also okay */
+                return 3;
+            case '4':                       /* "4" means client error */
+                return 4;
+            case '5':                   /* and "5" means server error */
+                return 5;
+            default:                                /* protocol error */
+                return -1;
+          }
+        if (uftcflag & UFT_VERBOSE) if (b[0] != 0x00) uftx_putline(2,b,0);
+      }
+  }
+
+/* ----------------------------------------------------------- UFTD_AGCK
+ *    This routine handles an AGENT inquiry commant.
+ *    Return values: 2 ACK, 4 NAK client, 5 NAK server
+ */
+int uftd_agck(char*k)
+  { static char _eyecatcher[] = "uftd_agck()";
+    int rc, fd;
+    char *p;
+
+    /* clean-up arguments of the AGENT command */
+    while (*k <= ' ' && *k != 0x00) k++;
+    if (*k == 0x00) return 4;   /* client did not supply agent string */
+    p = k; while (*p > ' ') p++; *p = 0x00;    /* discard excess args */
+
+    /* load the AGENT string from file if not previously loaded       */
+    if (agstring[0] == 0x00)
+      { rc = fd = open("/var/run/uft/agent.key",O_RDONLY);
+        if (rc < 0) { perror("uftd_agck(): open()"); return 5; }
+        rc = read(fd,agstring,sizeof(agstring)-1);
+        if (rc < 0) { perror("uftd_agck(): read()");
+                      close(fd); agstring[0] = 0x00; return 5; } }
+    p = agstring; while (*p > ' ') p++; *p = 0x00;     /* trim string */
+
+    /* do the strings match? */
+    if (strcmp(k,agstring) == 0) return 2;
+
+    return 5;
   }
 
 /* ------------------------------------------------------------ MSGWRITE

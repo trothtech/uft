@@ -19,6 +19,8 @@
 
 #include <unistd.h>
 
+#include <libgen.h>
+
 #include "uft.h"
 
 int     uftcflag;
@@ -30,22 +32,37 @@ int main(int argc,char*argv[])
     char    msgbuf[4096], *arg0;
 
     uftcflag = 0x00000000;      /* default */
-    arg0 = argv[0];
+    arg0 = basename(argv[0]);
 
-    /*  process options  */
+    /* process command-line options                                   */
     for (i = 1; i < argc && argv[i][0] == '-' &&
                             argv[i][1] != 0x00; i++)
       {
         switch (argv[i][1])
           {
+//          case '?':                   /* help                       */
             case 'v':   (void) sprintf(msgbuf,
-                                "%s: %s Internet TELL/MSP client",
+                                "%s: %s Internet TELL client",
                                 arg0,UFT_VERSION);
                         (void) uftx_putline(2,msgbuf,0);
                         return 0;
                         break;
-            default:    (void) sprintf(msgbuf,
-                                "%s: invalid option %s",
+
+/* ------------------------------------------------------------------ */
+            case '-':                          /* long format options */
+                if (abbrev("--version",argv[i],5) > 0)
+                  { sprintf(msgbuf,"%s: %s Internet TELL client",
+                                arg0,UFT_VERSION);
+                    uftx_putline(2,msgbuf,0);
+                    return 0; } else           /* exit from help okay */
+                  { sprintf(msgbuf,"%s: invalid option %s",
+                                arg0,argv[i]);
+                    uftx_putline(2,msgbuf,0);
+                    return 1; }             /* exit on invalid option */
+                    break;
+/* ------------------------------------------------------------------ */
+
+            default:    (void) sprintf(msgbuf,"%s: invalid option %s",
                                 arg0,argv[i]);
                         (void) uftx_putline(2,msgbuf,0);
                         return 1;

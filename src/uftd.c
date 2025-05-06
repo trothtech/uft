@@ -507,12 +507,13 @@ int main(int argc,char*argv[])
             (void) uftdimsg(user,seqs,from,type);     /* IMSG 'write' */
             (void) uftdlmsg(user,seqs,from,type);           /* SYSLOG */
             (void) uftdlist(atoi(seqs),from);             /* ala 'ls' */
+
+            seteuid(0);                      /* go back to being root */
             uftd_fann(user,seqs,from);       /* this is a better IMSG */
 
-            /* now lose the spoolid number, clear user, reset eUID    */
-            n = -1;                    /* now lose the spoolid number */
+            /* now lose the spoolid number and clear username         */
             user[0] = 0x00;           /* now reset the user value ... */
-            (void) seteuid(0);       /* ... and go back to being root */
+            n = -1;                /* ... and lose the spoolid number */
 
             /* get back into the UFT spool directory */
             if (chdir(UFT_SPOOLDIR) < 0) break;   /* FIXME: should be 5xx */
@@ -579,6 +580,19 @@ int main(int argc,char*argv[])
             continue;           /* ACK */
           }
 
+        /* -------------------------------------------- AGENT command */
+        if (abbrev("AGENT",p,4))
+          { int rc;             /* we might should have RC everywhere */
+            rc = uftd_agck(q);
+            switch (rc)
+              {
+                case 2: sprintf(temp,"200 ACK AGENT"); break;
+                case 4: sprintf(temp,"400 NAK AGENT"); break;
+                case 5: sprintf(temp,"500 NAK AGENT"); break;
+                default: sprintf(temp,"500 NAK AGENT");
+              }
+            uftdstat(1,temp);            /* send ACK or NAK to client */
+            continue; }                  /* continue after ACK or NAK */
 
         /* ---------------------------------------------- CPQ command */
         if (abbrev("CPQ",p,3))
@@ -592,7 +606,6 @@ int main(int argc,char*argv[])
             char *u, *m;
 
             u = m = q;                        /* q points to the args */
-//          while (*m != ' ' && *m != 0x00) m++;
             while (*m != ' ' && *m != 0x00) *m = tolower(*m++);
             if (*m == ' ') *m++ = 0x00;
 

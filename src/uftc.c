@@ -18,7 +18,6 @@
 #include <unistd.h>
 #include <errno.h>
 
-
 #include "uft.h"
 
 char   *arg0;
@@ -30,16 +29,13 @@ int main(int argc,char*argv[])
   { static char _eyecatcher[] = "uftc.c main()";
     int         i, fd0, s, size, r, copy, fda, rc;
     char        temp[256], targ[256], b[BUFSIZ], akey[256],
-//             *from,
                *host, *name, *type, *auth, *class;
-//  extern  char   *userid();
     struct  stat    uftcstat;
     time_t      mtime;
     mode_t      prot;
     struct tm *gmtstamp;
 
     /* note command name and set defaults */
-/*  arg0 = argv[0];  */
     arg0 = basename(argv[0]);
     uftcflag = UFT_BINARY;      /* default */
     name = type = class = "";
@@ -186,7 +182,7 @@ int main(int argc,char*argv[])
     /* verify that the open() worked */
     if (fd0 < 0)
       { if (*name != 0x00) (void) perror(name);
-                else    (void) perror("stdin");
+                   else    (void) perror("stdin");
         return 1; }                       /* open file to send failed */
 
     /* do we have any ideas about this file? */
@@ -245,7 +241,6 @@ int main(int argc,char*argv[])
     if (uftcflag & UFT_VERBOSE) (void) uftx_putline(2,temp,0);
 
     /* start the transaction */
-//  from = userid();
 /*  (void) sprintf(temp,"FILE %d %s %s",size,uftx_user(),auth);       */
     (void) sprintf(temp,"FILE %d %s %s %s",size,uftx_user(),auth,akey);
     if (uftcflag & UFT_VERBOSE) (void) uftx_putline(2,temp,0);

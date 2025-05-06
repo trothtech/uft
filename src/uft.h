@@ -306,6 +306,8 @@ int msgc_rdm(char*,char*);
 int msgc_msp(char*,char*);
 
 int uftd_fann(char*,char*,char*);
+int uftc_wack(int,char*,int);
+int uftd_agck(char*);
 
 #define         _UFT_HEADER_
 #endif
