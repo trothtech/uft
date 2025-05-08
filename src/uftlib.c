@@ -50,8 +50,8 @@ extern  int  uftcflag;
 static char agstring[256] = { 0x00, 0x00, 0x00, 0x00, 0x00 };
 
 /* ---------------------------------------------------------------------
- *  This routine handles message formatting (not message delivery).
- *  It's a different way of doing gettext() type processing.
+ *    This routine handles message FORMATTING (not message delivery).
+ *    It's a different way of doing gettext() type processing.
  */
 int uftx_message(char*mo,int ml,                    /* buffer, buflen */
                  int mn,                            /* message number */
@@ -179,13 +179,13 @@ int msgd_xmsg_fifo(char*user,char*buff,int bl)
   }
 
 /* -------------------------------------------------------- User Message
- *  This routine attempts to deliver a message to a local user.
+ *    This routine attempts to deliver a message to a local user.
  *       Calls: msgd_xmsg_sock(), msgd_xmsg_fifo(), uftd_message()
  */
 int msgd_umsg(char*user,char*text,char*from)
   { static char _eyecatcher[] = "msgd_umsg()";
     int rc, i, l, fd;
-    char *p, *q, buffer[4096], fn[256], un[64];
+    char *p, *q, buffer[4096], fn[256], un[64], *mv[8];
 
     /* parse the supplied user name */
     p = user; i = 0;
@@ -214,13 +214,6 @@ int msgd_umsg(char*user,char*text,char*from)
     while (*p != 0x00 && i < l) { *q++ = *p++; i++; }
     if (i < l) { *q++ = 0x00; i++; }
 
-    /* helps to know the sender of this message (user@host style)     */
-    p = "MSGFROM=";                      /* who is this message from? */
-    while (*p != 0x00 && i < l) { *q++ = *p++; i++; }
-    p = from;
-    while (*p != 0x00 && i < l) { *q++ = *p++; i++; }
-    if (i < l) { *q++ = 0x00; i++; }
-
     /* this is obvious to the receiving user but we include it anyway */
     p = "MSGUSER=";              /* who is this message to? (obvious) */
     while (*p != 0x00 && i < l) { *q++ = *p++; i++; }
@@ -228,11 +221,17 @@ int msgd_umsg(char*user,char*text,char*from)
     while (*p != 0x00 && i < l) { *q++ = *p++; i++; }
     if (i < l) { *q++ = 0x00; i++; }
 
+    /* helps to know the sender of this message (user@host style)     */
+    p = "MSGFROM=";                      /* who is this message from? */
+    while (*p != 0x00 && i < l) { *q++ = *p++; i++; }
+    p = from;
+    while (*p != 0x00 && i < l) { *q++ = *p++; i++; }
+    if (i < l) { *q++ = 0x00; i++; }
+
     /* double NULL marks end of environment variables                 */
     if (i < l) { *q++ = 0x00; i++; }
 
     /* at this point we have a buffer and we know its length          */
-//fprintf(stderr,"'%s'\n",buffer);
     /* try: socket, home socket, FIFO, home FIFO, 'write'             */
 
     /* -------- try socket ------------------------------------------ */
@@ -244,7 +243,7 @@ int msgd_umsg(char*user,char*text,char*from)
     if (rc >= 0) return rc;            /* zero or positive is success */
 
     /* -------- try brute force ------------------------------------- */
-      { char bff[256], *bfh, *mv[8];
+      { char bff[256], *bfh;
         int topts;
 
         strncpy(bff,from,sizeof(bff)-1);
@@ -629,7 +628,6 @@ int uftx_putline(int s,char*b,int l)
 
 /**********************************************************************/
 
-
 /* Copyright 1994, 1996, 2025 Richard M. Troth, all rights reserved. <plaintext>
  *
  *        Name: msgc.c (tell.c)
@@ -637,20 +635,10 @@ int uftx_putline(int s,char*b,int l)
  *      Author: Rick Troth, Rice University, Houston, Texas, USA
  *              Rick Troth, rogue programmer, Cedarville, Ohio, USA
  *        Date: 1994-Jul-25 and prior ... and following
- *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-
-#include <sys/types.h>
-#include <sys/stat.h>
-
-#include <unistd.h>
-
-
 /* ------------------------------------------------------------ MSGC_UFT
- *    Try sending the message via UFT "user message hack".
+ *    Try sending a message to a user via UFT "user message hack".
  *    The FILE command provides two things we need for this:
  *      the name of the sender, and
  *      an authentication token (if available)
@@ -660,14 +648,21 @@ int msgc_uft(char*user,char*text)
     int rc, mysock, i;
     char buffer[4096], agentkey[256], un[256], *p, hn[256];
 
+//fprintf(stderr,"msgc_uft(): starting\n");                    // MSGC_UFT
+
     /* open /var/run/uft/agent.key for the magical AGENT string       */
     rc = mysock = open("/var/run/uft/agent.key",O_RDONLY);
+//fprintf(stderr,"msgc_uft(): open() returned %d\n",rc);       // MSGC_UFT
     if (rc >= 0)
       { rc = read(mysock,agentkey,sizeof(agentkey)-1);
+//fprintf(stderr,"msgc_uft(): read() returned %d\n",rc);       // MSGC_UFT
         if (rc > 0) agentkey[rc] = 0x00;
         else agentkey[0] = 0x00;
         close(mysock);
       } else agentkey[0] = 0x00;
+    p = agentkey; while (*p > ' ') p++; *p = 0x00;     /* trim string */
+//if (agentkey[0] != 0x00)
+//fprintf(stderr,"msgc_uft(): agent string %s\n",agentkey);    // MSGC_UFT
 
     /* parse the supplied user name separating the host part          */
     p = user; i = 0;
@@ -684,44 +679,57 @@ int msgc_uft(char*user,char*text)
     rc = mysock = tcpopen(hn,0,0);
     if (rc < 0) { perror("tcpopen()"); return rc; }
 
+    /* look for the herald */
+    rc = tcpgets(mysock,buffer,sizeof(buffer)-1);
+//fprintf(stderr,"msgc_uft(): tcpgets() returned %d\n",rc);    // MSGC_UFT
+//fprintf(stderr,"%s\n",buffer);                               // MSGC_UFT
+
     /* send a "FILE 0 from auth" command */
     if (*agentkey == 0x00)
          snprintf(buffer,sizeof(buffer)-1,"FILE 0 %s -",uftx_user());
     else snprintf(buffer,sizeof(buffer)-1,"FILE 0 %s AGENT %s",uftx_user(),agentkey);
     rc = tcpputs(mysock,buffer);
     if (rc < 0) { perror("tcpputs()"); close(mysock); return rc; }
+//fprintf(stderr,"msgc_uft(): sent FILE command\n");           // MSGC_UFT
 
     /* wait for ACK */
     rc = uftc_wack(mysock,buffer,sizeof(buffer)-1);
-    if (rc < 0) { perror("tcpputs()"); close(mysock); return rc; }
+//fprintf(stderr,"msgc_uft(): uftc_wack() returned %d\n",rc);  // MSGC_UFT
+    if (rc < 0) { perror("uftc_wack()"); close(mysock); return rc; }
     if (rc != 2) { fprintf(stderr,"%s\n",buffer); close(mysock); return rc; }
 
     /* send a "MSG user text" command */
     snprintf(buffer,sizeof(buffer)-1,"MSG %s %s",un,text);
     rc = tcpputs(mysock,buffer);
     if (rc < 0) { perror("tcpputs()"); close(mysock); return rc; }
+//fprintf(stderr,"msgc_uft(): sent MSG command\n");            // MSGC_UFT
 
     /* wait for ACK */
     rc = uftc_wack(mysock,buffer,sizeof(buffer)-1);
-    if (rc < 0) { perror("tcpputs()"); close(mysock); return rc; }
+//fprintf(stderr,"msgc_uft(): uftc_wack() returned %d\n",rc);  // MSGC_UFT
+    if (rc < 0) { perror("uftc_wack()"); close(mysock); return rc; }
     if (rc != 2) { fprintf(stderr,"%s\n",buffer); close(mysock); return rc; }
 
     /* send an "ABORT" command (because we're not sending a file */
     rc = tcpputs(mysock,"ABORT");
     if (rc < 0) { perror("tcpputs()"); close(mysock); return rc; }
+//fprintf(stderr,"msgc_uft(): sent ABORT command\n");          // MSGC_UFT
 
     /* wait for ACK */
     rc = uftc_wack(mysock,buffer,sizeof(buffer)-1);
-    if (rc < 0) { perror("tcpputs()"); close(mysock); return rc; }
+//fprintf(stderr,"msgc_uft(): uftc_wack() returned %d\n",rc);  // MSGC_UFT
+    if (rc < 0) { perror("uftc_wack()"); close(mysock); return rc; }
     if (rc != 2) { fprintf(stderr,"%s\n",buffer); close(mysock); return rc; }
 
     /* send a "QUIT" command to close the session */
     rc = tcpputs(mysock,"QUIT");
     if (rc < 0) { perror("tcpputs()"); close(mysock); return rc; }
+//fprintf(stderr,"msgc_uft(): sent QUIT command\n");           // MSGC_UFT
 
     /* wait for ACK */
     rc = uftc_wack(mysock,buffer,sizeof(buffer)-1);
-    if (rc < 0) { perror("tcpputs()"); close(mysock); return rc; }
+//fprintf(stderr,"msgc_uft(): uftc_wack() returned %d\n",rc);  // MSGC_UFT
+    if (rc < 0) { perror("uftc_wack()"); close(mysock); return rc; }
     if (rc != 2) { fprintf(stderr,"%s\n",buffer); close(mysock); return rc; }
 
     /* give a little lag time ... just in case */

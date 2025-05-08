@@ -604,15 +604,21 @@ int main(int argc,char*argv[])
         if (abbrev("MSG",p,1))                /* p points to the verb */
           { int rc;             /* we might should have RC everywhere */
             char *u, *m;
+//fprintf(stderr,"*MSG command received\n");
 
+            /* parse args of MSG command for user and message text    */
             u = m = q;                        /* q points to the args */
-            while (*m != ' ' && *m != 0x00) *m = tolower(*m++);
+            while (*m != ' ' && *m != 0x00) { *m = tolower(*m); m++; }
             if (*m == ' ') *m++ = 0x00;
+//fprintf(stderr,"*MSG to %s\n",u);
 
+            /* now try to deliver the message                         */
             rc = msgd_umsg(u,m,from);
+//rc = 0;
             if (rc < 0) sprintf(temp,"500 MSG RC=%d",rc);
-                   else sprintf(temp,"200 ACK MSG");
+                   else sprintf(temp,"200 %s; %s okay",p,p);
             uftdstat(1,temp);          /* signal ACK or NAK to client */
+//fprintf(stderr,"*MSG %s\n",temp);
             continue;                    /* continue after ACK or NAK */
           }
 
