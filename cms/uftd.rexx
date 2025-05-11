@@ -24,7 +24,7 @@
  */
 
 /*  set some initial values  */
-vrm0 = "1.10.8"                 /* to coincide with the POSIX version */
+vrm0 = "1.11"                   /* to coincide with the POSIX version */
 
 /*  identify this stage  */
 Parse Source . . arg0 .
@@ -464,8 +464,9 @@ If open ^= 1 Then Do ; rc = -1 ; Return rc ; End
 
 If uft > 1 Then ,
     'CALLPIPE COMMAND XMITMSG 323 "' || count || '"' ,
+        '(APPLID UFT CALLER SRV NOHEADER | *.OUTPUT:'
 Else 'CALLPIPE COMMAND XMITMSG 123 "' || count || '"' ,
-    '(APPLID UFT CALLER SRV NOHEADER | *.OUTPUT:'
+        '(APPLID UFT CALLER SRV NOHEADER | *.OUTPUT:'
 
 'SELECT OUTPUT FILE'
 
@@ -716,6 +717,7 @@ CLOSE:
 'SELECT OUTPUT 0'
 
 Parse Value Reverse(name) With _name '/' . ':' .
+Parse Var _name _name '\' .
 Parse Upper Value Reverse(_name) with fn '.' ft '.' .
 If fn = "" & ft ^= "" Then fn = from
 If fn ^= "" Then ,
@@ -731,12 +733,11 @@ Call Diag 08, 'DETACH' addr
 'CALLPIPE COMMAND XMITMSG 9002 SEQ USER HOST FROM DATE TIME TZ' ,
     '(APPLID UFT CALLER SRV NOHEADER | TAKE FIRST | VAR UMSG' ,
         '| SPEC /199 / 1 1-* NEXT | *.OUTPUT:'
-/*  '(APPLID UFT CALLER SRV NOHEADER | TAKE FIRST | VAR UMSG | CONSOLE'  */
 Parse Value Diagrc(08,'MSGNOH' user umsg) With 1 rc 10 . 17 rs '15'x .
 If rc ^= 0 Then ,
 Parse Value Diagrc(08,'MSG' user umsg) With 1 rc 10 . 17 rs '15'x .
-/*  Say "* File (" || seq || ") spooled to" user ,
-    "-- origin" host || '(' || from || ')' Date('U') Time() tz        */
+/*    "* File (" || seq || ") spooled to" user ,                      *
+ *    "-- origin" host || '(' || from || ')' Date('U') Time() tz      */
 
 /*  mark the file as closed  */
 open = 0

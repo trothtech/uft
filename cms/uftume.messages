@@ -20,28 +20,55 @@
 *                   7 -- reserved
 *                   8 -- reserved
 *                   9 -- reserved
+*         Codes less than 100 an beyond 699 have been abused, stolen,
+*         borrowed, used for experimentation, or otherwise hacked.
 *
 *         Note: the following line is essential:
 & 3
 *
-0000      1.10.8
-0001      UFT/1.10.8 client (CMS)
-0002      UFT/1.10.8 server (z/VM)
+0000      1.11
+0001      UFT/1.11 client (CMS)
+0002      UFT/1.11 server (z/VM)
+0003    E Invalid option: &1
 0004      UFT/&1
 0005      UFT/&1 client
 0006      UFT/&1 server
+*007    X ........
+*008    X ........
+*009    X ........
+*010    X ........
 0011      VMCMSUFT/&1
 0012      POSIXUFT/&1
+*013    X ........
+*014    X ........
+  15    E Unknown &1 command
+  54    E Incomplete fileid specified
 *
-* herald
+* spontaneous info messages (including deprecated UFT/1 herald)
 0100      100 &1 UFT/1 VMCMSUFT/1.2.2 ready.
+*101      (see below)
 0102      102 &1 UFT/2 VMCMSUFT/&2 ready.
 0103      103 &1 UFT/&2 VMCMSUFT/&3 ready.
 0111      111 &1 UFT/1 VMCMSUFT/&3 &4 ready.
 0112      112 &1 UFT/1 POSIXUFT/&3 &4 ready.
+0113      113 SEND &1 bytes of data.
+*         (for SEND, recommend 313 below)
+0114      114 HELP follows:
+*214  02  114-End of HELP.
+0115      115 &1 system type.
+0118      118 SEQ=&1 (server)
+0119      119 SEQ=&1 (user)
 0120      120 &1 UFT service ready.
+*123      123 SEND &1 bytes of data.
+*131      131 SEND &1 bytes of data.
+*         (for SEND, recommend 331 below)
+*133      133 SEND &1 bytes of data.
+0145      145 &1 not logged on
+* HCPLNM053E &1 not in CP directory
+0153      153 &1 not in CP directory
+0185    I Active reader class empty (Next file &1 Class &2).
 *
-* help for curious telnetters
+* help for curious telnetters and netcatters
 0101  01  101
 0101  02  101 Universal File Transfer (UFT) command summary
 0101  03  101
@@ -73,19 +100,6 @@
 0101  29  101    HELP
 0101  30  101
 *
-0113      113 SEND &1 bytes of data.
-*114      114 &1
-0114      114 HELP follows:
-*214  02  114-End of HELP.
-0115      115 &1 system type.
-0145      145 &1 not logged on
-* HCPLNM053E &1 not in CP directory
-0153      153 &1 not in CP directory
-0185    I Active reader class empty (Next file &1 Class &2).
-*131      131 SEND &1 bytes of data.
-0118      118 SEQ=&1 (server)
-0119      118 SEQ=&1 (user)
-*
 * 2XX range are ACKs:
 0200      200 ACK
 0201      201 Command okay.
@@ -112,49 +126,69 @@
 0323      323 send &1 bytes of data.
 0350      350 Requested file action pending further information.
 0354      354 Enter mail, end with "." on a line by itself
+* POSIX server sends 313 after "DATA"
+* VM/CMS server sends 323 after "DATA"
 *
 * 4XX range are client errors:
-0400      400 client error.
+0400      400 NAK client error.
 0401      401 Syntax error in parameters or arguments.
-0402      402 Command &1 not implemented.
+0402      402 &1; Command &1 not implemented.
 0403      403 Bad sequence of commands.
 0404      404 Document not found
 0407      407 Proxy Authentication Required
+*411      411 protocol sequence error
 *421      421 (see 521)
 0426      426 Connection closed; transfer aborted.
 *432      432 No such local user &1
 0433    E 433 Invalid option &1
+0449      449 protocol sequence error
 *450      450 Requested file action pending further information.
 0470    E 470 Invalid parameter &1
 0475    E 475 No (recipient) names specified
 *
 * 5XX range are server errors:
-0500      500 server error.
-*500      500 Unspecified error
-*500      500 command not understood
+0500      500 NAK server error.
 0501      501 Syntax error in parameters or arguments.
 0502      502 Command not implemented.
 0503      503 Bad sequence of commands.
 0505      505 no users enrolled
+0511    E 511 User &1 not enrolled in the file pool
+0513      513 server data error
 0521      521 Service not available, closing control connection.
 0522      522 spool directory unavailable.
 0523      523 workspace sequence error.
 0524      524 server temp file error.
 0526      526 Connection closed; transfer aborted.
 0527      527 user slot error
+0528      528 server slot error
+0529      529 server meta file error
+0530    E 530 No file blocks are assigned for this user in file pool &1.
+0531      531 server data error (user has no space)
 0532      532 No such local user: &1
-0534      534 user temp file error.
+0533      533 server temp file error
+0534      534 user meta file error.
+0535    T 535 This server is not in the required VM CP environment.
 0536      536 No entries were found that matched your search criteria
+0541      541 server data error (user over quota)
+0542    E 542 This server lacks the privilege class for MSGTYPE MSGNOH.
 0545      545 &1 not logged on
+0547    E 547 Userid not specified for &1 in &2 &3 file
+0548    E 548 Userid &1 not found; check the &2 NAMES file
+0549      549 workspace sequence error
 0550      550 &1 ... User unknown
+0551      551 server data file error
+0552      552 spool directory unavailable
 * HCPLNM053E &1 not in CP directory
 0553      553 &1 not in CP directory
 0557      557 &1 not receiving
+0559      559 server data error (physical space)
+0567    E 567 User &1 is not enrolled
+0571    E 571 User &1 not available
+0597    E 597 User validation function &1 not found
 *
 * from the CMS implementation:
-0003    E Invalid option: &1
-0054    E Incomplete fileid specified
 1200    E Code level mis-match: expected &1 but found &2
+8416      From &1(&2): &3
 8712      File &1 sent to &2 at &3 on &4
 *
 * TAG on the file for RDRLIST and RECEIVE:
@@ -166,7 +200,9 @@
 *         File (*UFT) spooled to user -- origin host(from) date time tz
 *002      File (*UFT) spooled to &1 -- origin &2(&3) &4 &5 &6
 9002      File (&1) spooled to &2 -- origin &3(&4) &5 &6 &7
+1004      File &1 spooled to &2 origin &3
 *
+* the following is for SIFT-via-MIME and should be renumbered lower
 9822  01  Sender Initiated File Transfer
 9822  02
 9822  03  If you can see this part of the message, then either
@@ -184,31 +220,25 @@
 9824      X-SIFT/datafile
 9825      X-SIFT/auxdata
 *
-* misc future thoughts:
-0511    E 511 User &1 not enrolled in the file pool
-0530    E 530 No file blocks are assigned for this user in file pool &1.
-*531    W 531 User &1 has no available file space in file pool &2
-0535    T 535 This server is not in the required VM CP environment.
-0542    E 542 This server lacks the privilege class for MSGTYPE MSGNOH.
-0547    E 547 Userid not specified for &1 in &2 &3 file
-0548    E 548 Userid &1 not found; check the &2 NAMES file
-0567    E 567 User &1 is not enrolled
-0571    E 571 User &1 not available
-0597    E 597 User validation function &1 not found
-*
-0133      133 SEND &1 bytes of data.
-0123      123 SEND &1 bytes of data.
-*411      411 protocol sequence error
-0449      449 protocol sequence error
-0531      531 server data error (user has no space)
-0541      541 server data error (user over quota)
-0559      559 server data error (physical space)
-0551      551 server data file error
-0529      529 server meta file error
-0528      528 server slot error
-0533      533 server temp file error
-0552      552 spool directory unavailable
-0549      549 workspace sequence error
-*
 9999      © Copyright 1995, 1997, 2025 Richard M. Troth, all rights reserved.
 *
+*  3    E Invalid option: &1                                        1003
+* 15    E Unknown &1 command                                        1015
+* 70    E Invalid parameter &1                                      1070
+ 385    E Invalid modifier keyword: &1                              1385
+ 386    E Missing operand(s)                                        1386
+ 650    E Invalid spoolid &1                                        1650
+ 740    I Execution begins...                                       1740
+1440    E RXSOCKET requires TCPIP Version 2 or higher               1440
+1606    E No primary input specified                                1606
+2323    I Restarting &1 at &2.                                      1323
+2324    I Shutting down &1 at &2.                                   1324
+2687    E no host or host not specified                             1687
+2914    E no input stream                                           1914
+3958    E Required resources not available                          1958
+8201    I &1 has been started                                       1201
+8205    E Non-numeric value specified                               1205
+*
+*   fprintf(stderr,"UFTD: 535 user data file error\n");
+*   fprintf(stderr,"UFTD: 535 user auxdata file error\n");
+
