@@ -31,6 +31,8 @@ Parse Var host host ':' port
 If port = "" Then port = 608
 temp = "UFT" || Right(Time('S'),5,'0')
 buffer = ""
+seq = "*"
+u = "-"
 
 /* Verify REXX/Sockets Version 2 ... realy REALLY unlikely to not be  */
 Parse Value Socket("VERSION") With rc . ver .
@@ -103,7 +105,7 @@ line = getline(s)
 If Left(line,1) = '2' Then uft = 2
                       Else uft = 1        /* really REALLY not likely */
 'OUTPUT' line
-'OUTPUT' argl "UFT =" uft
+'OUTPUT' argl "UFT level" uft
 
 type = "";  cc = ""
 /* Send the commands (parmeters; ie: the "meta" file) */
@@ -135,6 +137,9 @@ Do Forever
         'READTO'
         Iterate
     End /* If .. Do */
+
+    /* but do collect USER commands if none specified on command line */
+    If Abbrev("USER",cmnd,4) & ^meta Then Parse Var line . u .
 
     /* watch the swizzle - FILE statement might signal USER statement */
     If Abbrev("FILE",cmnd,4) & ^meta & user ^= "" Then Do
@@ -259,6 +264,13 @@ If rc ^= 0 & rc ^= 12 Then Exit rc
 
 /* log this completion */
 'OUTPUT' argl j "records sent;" i "bytes sent"
+
+/* provide an explicit 8712 for clarity saying "the file got through" */
+date = Date("S") || "-" || Time()
+If user = "" Then user = u
+Address "COMMAND" 'XMITMSG 8712 SEQ USER HOST DATE' ,
+                        '(APPLID UFT CALLER TCP VAR'
+If rc = 0 Then 'OUTPUT' argl message.1
 
 /* Send an EOF command */
 'OUTPUT' "EOF"

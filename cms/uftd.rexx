@@ -200,9 +200,16 @@ Do Forever
 
         When verb = "USER" Then Do
             Parse Upper Var line . user .
+            Parse Value _chkuser(user) With rc rs
+            If rc = 0 Then ,
             'CALLPIPE COMMAND XMITMSG 200 (APPLID UFT' ,
                 'CALLER SRV NOHEADER | *.OUTPUT:'
-            End  /*  When .. Do  */
+                      Else Do
+            'CALLPIPE COMMAND XMITMSG 553 USER (APPLID UFT' ,
+                'CALLER SRV NOHEADER | *.OUTPUT:'    /* or 532 or 550 */
+                          user = ""
+                      End /* When .. Do */
+            End /* When .. Do */
 
         When verb = "TYPE" Then Do
             Parse Upper Var line . type cc .
@@ -938,5 +945,33 @@ Select /* a */
 End /* Select a */
 
 Return rc rs
+
+/* ------------------------------------------------------------ _CHKUSER
+ *    check user
+ *    Verify the target user exists on this system.
+ */
+_chkuser: Procedure
+Parse Upper Arg user . , .
+
+/* find an available virtual address for a disposable virtual punch   */
+Address "COMMAND" 'MAKEBUF'
+Address "COMMAND" 'GETFMADR'
+If rc ^= 0 Then Do ; 'DROPBUF' ; Return rc ; End
+Parse Pull . fm va zd .
+Address "COMMAND" 'DROPBUF'
+
+/* define that temporary virtual punch */
+Parse Value DiagRC(08, 'DEFINE PUNCH' va) With 1 rc 10 . 17 rs
+If Right(rs,1) = '15'x Then rs = Left(rs,Length(rs)-1)
+If rc ^= 0 Then Return rc rs
+
+/* sense the existence of the target user by trying to spool to him */
+Parse Value DiagRC(08, 'SPOOL' va 'TO' user) With 1 rc 10 . 17 rs
+If Right(rs,1) = '15'x Then rs = Left(rs,Length(rs)-1)
+xrc = rc ; xrs = rs
+
+Call Diag 08, 'DETACH' va
+
+Return xrc xrs
 
 

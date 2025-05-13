@@ -32,7 +32,7 @@ If rc ^= 0 Then Exit rc
 If rc ^= 0 Then Exit rc
 
 /* check VRM of message repository - it should match */
-'PIPE COMMAND XMITMSG 000 (APPLID UFT NOHEADER | VAR _VRM'
+'PIPE COMMAND XMITMSG 007 (APPLID UFT NOHEADER | VAR _VRM'
 If _vrm ^= vrm Then 'XMITMSG 1200 _VRM VRM (APPLID UFT CALLER SRV'
 
 /* begin announcements ... */
