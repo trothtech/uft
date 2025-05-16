@@ -15,6 +15,22 @@
 
 #include "uft.h"
 
+/* the following must persist until we can figure out IBM USS pre-processing */
+#ifdef OECS
+ #ifndef LOG_PID
+  #define LOG_PID    0x01
+ #endif
+ #ifndef LOG_CONS
+  #define LOG_CONS   0x02
+ #endif
+ #ifndef LOG_UUCP
+  #define LOG_UUCP (8<<3)
+ #endif
+ #ifndef LOG_INFO
+  #define LOG_INFO      6
+ #endif
+#endif
+
 /* ------------------------------------------------------------------ */
 int uftdlmsg(char*user,char*file,char*from,char*type)
   { static char _eyecatcher[] = "uftdlmsg()";

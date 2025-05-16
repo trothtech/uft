@@ -139,7 +139,7 @@ int main(int argc,char*argv[])
 
     /* now open a temporary control file (meta file) */
     (void) sprintf(tffn,"%s/%04d.lf",UFT_SPOOLDIR,n);
-    tf = open(tffn,O_RDWR|O_CREAT,S_IREAD);
+    tf = open(tffn,O_RDWR|O_CREAT,S_IRUSR);
     if (tf < 0)
       { (void) sprintf(temp,"524 server temp file error. (%d)",errno);
         (void) uftdstat(1,temp);
@@ -192,7 +192,7 @@ int main(int argc,char*argv[])
         /* skip leading white space */
         for (p = line; *p <= ' ' && *p != 0x00; p++);
 
-        /* don't even log empty lines */
+        /* don't even log empty lines - skip the next few statements  */
         if (*p == 0x00) continue;
 
         /* log everything as comments in the control file(s) */
@@ -253,8 +253,9 @@ int main(int argc,char*argv[])
               { (void) sprintf(temp,"FROM='%s'",p);
                 if (tf >= 0) (void) uftx_putline(tf,temp,0);
                 if (cf >= 0) (void) uftx_putline(cf,temp,0);
-                if (*from == '@') uftd_pref(p,from,sizeof(from));
- }
+                if (*from == '@') { uftd_pref(p,from,sizeof(from));
+                    strncpy(uftfile0.from,from,sizeof(uftfile0.from)); }
+              }
             /* parse another (AUTH) */
             for (p = q; *q > ' '; q++);
             if (*q != 0x00) *q++ = 0x00;
@@ -368,7 +369,7 @@ int main(int argc,char*argv[])
             /* now open the *real* control file (meta file) */
             (void) sprintf(cffn,"%04d.cf",n);
             (void) sprintf(wffn,"%04d.wf",n);
-            cf = open(wffn,O_WRONLY|O_CREAT,S_IREAD);
+            cf = open(wffn,O_WRONLY|O_CREAT,S_IRUSR);
             if (cf < 0)
               { (void) sprintf(temp,"534 %d; meta file error.",
                         errno);
@@ -387,7 +388,7 @@ int main(int argc,char*argv[])
 
             /* and open the data file */
             (void) sprintf(dffn,"%04d.df",n);
-            df = open(dffn,O_WRONLY|O_CREAT,S_IREAD);
+            df = open(dffn,O_WRONLY|O_CREAT,S_IRUSR);
             if (df < 0)
               { (void) sprintf(temp,
                         "535 %d; user data file error.",errno);
@@ -405,7 +406,7 @@ int main(int argc,char*argv[])
 
             /* open AUX data file (extended attr or "resource fork")  */
             (void) sprintf(effn,"%04d.ef",n);
-            ef = open(effn,O_WRONLY|O_CREAT,S_IREAD);
+            ef = open(effn,O_WRONLY|O_CREAT,S_IRUSR);
             if (ef < 0)
               { (void) sprintf(temp,
                         "535 %d; user auxdata file error.",errno);
@@ -527,7 +528,7 @@ int main(int argc,char*argv[])
             /* and get another server sequence number */
             n = uftdnext();  if (n < 0) break;
             (void) sprintf(tffn,"%s/%04d.cf",UFT_SPOOLDIR,n);
-            tf = open(tffn,O_RDWR|O_CREAT,S_IREAD|S_IWRITE);
+            tf = open(tffn,O_RDWR|O_CREAT,S_IRUSR|S_IWUSR);
             if (tf < 0) break;
 #ifndef         UFT_ANONYMOUS
             (void) sprintf(temp,"118 SEQ=%04d (server)",n);
@@ -570,7 +571,7 @@ int main(int argc,char*argv[])
             /* and get another server sequence number */
             n = uftdnext();  if (n < 0) break;
             (void) sprintf(tffn,"%s/%04d.cf",UFT_SPOOLDIR,n);
-            tf = open(tffn,O_RDWR|O_CREAT,S_IREAD|S_IWRITE);
+            tf = open(tffn,O_RDWR|O_CREAT,S_IRUSR|S_IWUSR);
             if (tf < 0) break;
 #ifndef         UFT_ANONYMOUS
             (void) sprintf(temp,"118 SEQ=%04d (server)",n);
@@ -604,21 +605,17 @@ int main(int argc,char*argv[])
         if (abbrev("MSG",p,1))                /* p points to the verb */
           { int rc;             /* we might should have RC everywhere */
             char *u, *m;
-//fprintf(stderr,"*MSG command received\n");
 
             /* parse args of MSG command for user and message text    */
             u = m = q;                        /* q points to the args */
             while (*m != ' ' && *m != 0x00) { *m = tolower(*m); m++; }
             if (*m == ' ') *m++ = 0x00;
-//fprintf(stderr,"*MSG to %s\n",u);
 
             /* now try to deliver the message                         */
             rc = msgd_umsg(u,m,from);
-//rc = 0;
             if (rc < 0) sprintf(temp,"500 MSG RC=%d",rc);
                    else sprintf(temp,"200 %s; %s okay",p,p);
             uftdstat(1,temp);          /* signal ACK or NAK to client */
-//fprintf(stderr,"*MSG %s\n",temp);
             continue;                    /* continue after ACK or NAK */
           }
 

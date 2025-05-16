@@ -74,6 +74,10 @@ esac
 if [ $RC -ne 0 ] ; then exit $RC ; fi
 
 #
+# conditionally stamp the original time on the file
+if [ ! -z "$UFT_DATE" ] ; then touch -d "$UFT_DATE" $T 2> /dev/null ; fi
+
+#
 # if that worked then discard the spool file (all components)
 yes | rm $D/$S.*
 

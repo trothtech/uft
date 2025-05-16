@@ -46,7 +46,7 @@ int uftdlist(int seqn,char*from)
 
     /*  open a listing file for this UFT object  */
     (void) sprintf(string,"%04d.lf",seqn);
-    fd = open(string,O_RDWR|O_CREAT,S_IREAD);
+    fd = open(string,O_RDWR|O_CREAT,S_IRUSR);
     if (fd < 0) return fd;
 
     /*  truncate excesses  */
@@ -55,21 +55,17 @@ int uftdlist(int seqn,char*from)
 
     p = uftfile0.from;
     for (i = 0 ; i < 8 ; i++)
-      {
-        if (*p == 0x00) break;
+      { if (*p == 0x00) break;
         if (*p == '@') break;
-        user[i] = *p++;
-      }
+        user[i] = *p++; }
     user[i] = 0x00;
     if (user[0] == 0x00) { user[0] = '-'; user[1] = 0x00; }
 
     if (*p == '@') p++;
     for (i = 0 ; i < 8 ; i++)
-      {
-        if (*p == 0x00) break;
+      { if (*p == 0x00) break;
         /*  if (*p == '.') break;  */
-        host[i] = *p++;
-      }
+        host[i] = *p++; }
     host[i] = 0x00;
     if (host[0] == 0x00) { host[0] = '-'; host[1] = 0x00; }
 

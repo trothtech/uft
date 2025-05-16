@@ -33,7 +33,7 @@ uftd:		makefile uftd.o \
 			uftdnext.o uftddata.o uftduser.o uftcwack.o \
 			uftdmove.o uftdimsg.o uftdlmsg.o uftdlist.o \
 			abbrev.o tcpio.o aecs.o uftlib.o xmitmsgx.o
-		$(CC) $(CFLAGS) -o uftd uftd.o \
+		$(CC) $(LDFLAGS) -o uftd uftd.o \
 			uftdnext.o uftddata.o uftduser.o uftcwack.o \
 			uftdmove.o uftdimsg.o uftdlmsg.o uftdlist.o \
 			abbrev.o tcpio.o aecs.o uftlib.o xmitmsgx.o $(LIBS)
@@ -66,7 +66,7 @@ sf:		makefile uftc.o \
 			uftcwack.o uftctext.o uftcprot.o \
 			uftlib.o tcpio.o xmitmsgx.o \
 			aecs.o readspan.o abbrev.o
-		$(CC) $(CFLAGS) -o sf uftc.o \
+		$(CC) $(LDFLAGS) -o sf uftc.o \
 			uftcwack.o uftctext.o uftcprot.o \
 			uftlib.o tcpio.o xmitmsgx.o \
 			aecs.o readspan.o abbrev.o $(LIBS)
@@ -105,12 +105,12 @@ maketext:	makefile maketext.o tcpio.o aecs.o
 
 cpq:		makefile cpq.o uftcwack.o \
 			tcpio.o aecs.o
-		$(CC) $(CFLAGS) -o cpq cpq.o uftcwack.o \
+		$(CC) $(LDFLAGS) -o cpq cpq.o uftcwack.o \
 			tcpio.o aecs.o $(LIBS)
 
 cpqu:		makefile cpqu.o uftcwack.o \
 			tcpio.o aecs.o
-		$(CC) $(CFLAGS) -o cpqu cpqu.o uftcwack.o \
+		$(CC) $(LDFLAGS) -o cpqu cpqu.o uftcwack.o \
 			tcpio.o aecs.o $(LIBS)
 
 clean:
@@ -197,7 +197,7 @@ msgd:		makefile msgd.o msgdlmsg.o \
 
 tell:		makefile msgc.o uftlib.o tcpio.o xmitmsgx.o uftcwack.o \
 		  uftctext.o uftcprot.o aecs.o readspan.o abbrev.o
-	$(CC) -o tell msgc.o uftlib.o tcpio.o xmitmsgx.o uftcwack.o \
+	$(CC) $(LDFLAGS) -o tell msgc.o uftlib.o tcpio.o xmitmsgx.o uftcwack.o \
 		  uftctext.o uftcprot.o aecs.o readspan.o abbrev.o $(LIBS)
 	strip tell
 # msgcmsp.o msgcuftd.o msglocal.o homedir.o
