@@ -11,7 +11,7 @@
 #VERSION                # taken from makefile, supplied as argument $2
 #RELEASE                # replaces RPMSEQ
 #UNAMEM                 # derived from `uname -m`
-#STAGING                # from the makefile
+#STAGING                # (see below)
 
 # run from the resident directory
 cd `dirname "$0"`
@@ -40,6 +40,7 @@ export UNAMEM RELEASE STAGING
 #
 # we're moving more settings into the config artifacts
 . ./configure.sh
+# CFLAGS, PREFIX, SYSTEM, LDFLAGS, SHFLAGS, LOCDIR, LOCALE
 
 #
 # process the skeletal spec file into a usable spec file
@@ -55,14 +56,15 @@ rm -rf $STAGING
 
 #
 # configure the package normally
-./configure
+./configure --prefix=/usr
 RC=$? ; if [ $RC -ne 0 ] ; then exit $RC ; fi
 
 #
 # 'just make'
 #make
 #make all # just short of doing 'make install'
-make sf uftd
+#make sf uftd
+make
 RC=$? ; if [ $RC -ne 0 ] ; then exit $RC ; fi
 
 #
@@ -73,7 +75,7 @@ RC=$? ; if [ $RC -ne 0 ] ; then exit $RC ; fi
 #
 # make it "properly rooted"
 mkdir $STAGING/usr
-mv $STAGING/bin $STAGING/sbin $STAGING/usr/.
+mv $STAGING/*bin $STAGING/lib* $STAGING/share $STAGING/usr/.
 RC=$? ; if [ $RC -ne 0 ] ; then exit $RC ; fi
 
 #

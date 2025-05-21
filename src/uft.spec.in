@@ -55,15 +55,19 @@ true
 %build
 #CFLAGS="$RPM_OPT_FLAGS" ./configure --prefix=/usr
 #make
-mkdir -p $HOME/rpmbuild/BUILDROOT/%SPEC_APPLID%-%SPEC_VERSION%-%SPEC_RELEASE%.%SPEC_UNAMEM%/%SPEC_PREFIX%
-rsync -a -u -x -H -O -S -v %SPEC_STAGING%/. $HOME/rpmbuild/BUILDROOT/%SPEC_APPLID%-%SPEC_VERSION%-%SPEC_RELEASE%.%SPEC_UNAMEM%/%SPEC_PREFIX%/.
+#mkdir -p $HOME/rpmbuild/BUILDROOT/%SPEC_APPLID%-%SPEC_VERSION%-%SPEC_RELEASE%.%SPEC_UNAMEM%/%SPEC_PREFIX%
+mkdir -p $HOME/rpmbuild/BUILDROOT/%SPEC_APPLID%-%SPEC_VERSION%-%SPEC_RELEASE%.%SPEC_UNAMEM%
+#rsync -a -u -x -H -O -S -v %SPEC_STAGING%/. $HOME/rpmbuild/BUILDROOT/%SPEC_APPLID%-%SPEC_VERSION%-%SPEC_RELEASE%.%SPEC_UNAMEM%/%SPEC_PREFIX%/.
+rsync -a -u -x -H -O -S -v %SPEC_STAGING%/. $HOME/rpmbuild/BUILDROOT/%SPEC_APPLID%-%SPEC_VERSION%-%SPEC_RELEASE%.%SPEC_UNAMEM%/.
 
 # we should have done a 'make install' before this step
 %install
 #rm -rf $RPM_BUILD_ROOT
 #mkdir -p $RPM_BUILD_ROOT/usr/lib
-mkdir -p $HOME/rpmbuild/BUILDROOT/%SPEC_APPLID%-%SPEC_VERSION%-%SPEC_RELEASE%.%SPEC_UNAMEM%/%SPEC_PREFIX%
-rsync -a -u -x -H -O -S -v %SPEC_STAGING%/. $HOME/rpmbuild/BUILDROOT/%SPEC_APPLID%-%SPEC_VERSION%-%SPEC_RELEASE%.%SPEC_UNAMEM%/%SPEC_PREFIX%/.
+#mkdir -p $HOME/rpmbuild/BUILDROOT/%SPEC_APPLID%-%SPEC_VERSION%-%SPEC_RELEASE%.%SPEC_UNAMEM%/%SPEC_PREFIX%
+mkdir -p $HOME/rpmbuild/BUILDROOT/%SPEC_APPLID%-%SPEC_VERSION%-%SPEC_RELEASE%.%SPEC_UNAMEM%
+#rsync -a -u -x -H -O -S -v %SPEC_STAGING%/. $HOME/rpmbuild/BUILDROOT/%SPEC_APPLID%-%SPEC_VERSION%-%SPEC_RELEASE%.%SPEC_UNAMEM%/%SPEC_PREFIX%/.
+rsync -a -u -x -H -O -S -v %SPEC_STAGING%/. $HOME/rpmbuild/BUILDROOT/%SPEC_APPLID%-%SPEC_VERSION%-%SPEC_RELEASE%.%SPEC_UNAMEM%/.
 
 ##mkdir -p $RPM_BUILD_ROOT/usr/src/redhat/SOURCES
 ##mkdir -p $RPM_BUILD_ROOT/usr/src/redhat/RPMS/${RPM_ARCH}
@@ -77,14 +81,16 @@ rsync -a -u -x -H -O -S -v %SPEC_STAGING%/. $HOME/rpmbuild/BUILDROOT/%SPEC_APPLI
 #%defattr(-,root,root)
 #%doc README
 #%doc docs/*
-%SPEC_PREFIX%/usr/bin/sf
-%SPEC_PREFIX%/usr/bin/rls
-%SPEC_PREFIX%/usr/bin/rcv
-%SPEC_PREFIX%/usr/bin/uftcndd
-%SPEC_PREFIX%/usr/libexec/uftd
+%SPEC_PREFIX%/bin/sf
+%SPEC_PREFIX%/bin/rls
+%SPEC_PREFIX%/bin/rcv
+%SPEC_PREFIX%/bin/uftcndd
+%SPEC_PREFIX%/bin/tell 
+%SPEC_PREFIX%/libexec/uftd
 #%dir /usr/spool/uft
 #/usr/src/redhat/RPMS/*
-%SPEC_PREFIX%/etc/xinetd.d/uft
+#%SPEC_PREFIX%/etc/xinetd.d/uft
+/etc/xinetd.d/uft
 %SPEC_PREFIX%/share/locale/%SPEC_LOCALE%/uft.msgs
 
 %clean
