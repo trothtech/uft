@@ -484,7 +484,7 @@ int sendimsg ( char *user , char *text )
 /* ------------------------------------------------------------ MSGLOCAL
  */
 int msglocal(char*user,char*text)
-  { static char *eyecatch = "msglocal()";
+  { static char _eyecatcher[] = "msglocal()";
 
     int         fd, i, j;
     char        temp[BUFSIZ], *from;
@@ -785,7 +785,7 @@ int uftc_wack(int s,char*b,int l)
   }
 
 /* ----------------------------------------------------------- UFTD_AGCK
- *    This routine handles an AGENT inquiry commant.
+ *    This routine handles an AGENT inquiry commant. (agent check)
  *    Return values: 2 ACK, 4 NAK client, 5 NAK server
  */
 int uftd_agck(char*k)
@@ -813,8 +813,118 @@ int uftd_agck(char*k)
     return 5;
   }
 
+/* -------------------------------------------------------------- GETENV
+ *    Returns a pointer to the value of the requested variable,
+ *    or points to the end of the environment buffer.
+ */
+char*uftx_getenv(char*var,char*env)
+  {
+    char   *p, *q;
+
+    if (env == NULL) return env;
+    if (*env == 0x00) return env;
+
+    p = env;    q = var;
+    while (*p)
+      { while (*p == *q && *p != 0x00 &&
+                           *q != 0x00 && *p != '=') { p++; q++; }
+        if (*p == '=' && *q == 0x00) { p++; return p; }
+        while (*p != 0x00) p++;   q = var; }
+
+    return p;
+  }
+
+/* ------------------------------------------------------------ BASENAME
+ *    Returns a pointer to the filename at the enf of a path.
+ */
+char*uftx_basename(char*s)
+  { static char _eyecatcher[] = "uftx_basename()";
+    char *p;
+    p = s;
+    while (*s != 0x00) switch (*s)
+      { case '/': case '\\': p = s; p++;
+                 s++; break;
+        default: s++; break; }
+    return p;
+  }
+
+/* -------------------------------------------------------------- PARSE1
+ *    Terminates a string AFTER the first blank-delimited token.
+ */
+char*uftx_parse1(char*s)
+  { static char _eyecatcher[] = "uftx_parse1()";
+    char *p;
+    p = s;
+    while (*p > ' ') p++;        /* skip past all blanks and controls */
+    *p = 0x00;
+    return s;
+  }
+
+/* --------------------------------------------------------------- PROXY
+ *    Launch a proxy program with its stdin and stdout connected,
+ *    something like ... ProxyCommand='netcat -x 127.0.0.1:9050 %h %p'
+ */
+int uftx_proxy(char*host,char*prox,int*fd)
+  { static char _eyecatcher[] = "uftx_proxy()";
+    int rc, us[2], ds[2], argc;
+    char myhost[256], *port, myprox[256], *p, *argv[32];
+
+    /* copy hostname (with port) into private storage for parsing     */
+    strncpy(myhost,host,sizeof(myhost)-1);
+    host = port = myhost;
+    while (*port != ':' && *port > ' ') port++;
+    if (*port == ':') *port++ = 0x00;
+    p = port; while (*p != ':' && *p > ' ') p++; if (*p == ':') *p = 0x00;
+    if (*port == 0x00) port = "608";
+
+    /* parse the proxy command into a traditional argc/argv pair      */
+    strncpy(myprox,prox,sizeof(myprox)-1);
+    argc = 0; p = myprox;
+    while (*p != 0x00 && argc < 30)
+      { argv[argc] = p;
+        while (*p > ' ') p++; if (*p == ' ') *p++ = 0x00;
+        if (strcmp(argv[argc],"%h") == 0) argv[argc] = host;
+        if (strcmp(argv[argc],"%p") == 0) argv[argc] = port;
+        argc++; }
+    argv[argc] = NULL;
+
+// { int i;
+//    for (i = 0; i < argc; i++) fprintf(stderr,"%s\n",argv[i]);
+// }
+
+    rc = pipe(ds);                   /* establish the downstream pipe */
+    /* proxy reads from ds[0] so application writes to ds[1]          */
+    /* ds[0] must be duplicated to FD0 after fork() but before exec() */
+    if (rc < 0) { rc = errno; if (rc == 0) rc = -1; return rc; }
+
+    rc = pipe(us);                     /* establish the upstream pipe */
+    /* proxy writes to us[1] so application reads from us[0]          */
+    /* us[1] must be duplicated to FD1 after fork() but before exec() */
+    if (rc < 0) { rc = errno; if (rc == 0) rc = -1;
+                        close(ds[0]); close(ds[1]); return rc; }
+
+    rc = fork();          /* fork the execution between two processes */
+    if (rc < 0) { rc = errno; if (rc == 0) rc = -1;
+                        close(ds[0]); close(ds[1]);
+                        close(us[0]); close(us[1]); return rc; }
+    if (rc > 0) { close(ds[0]); close(us[1]);
+                      fd[0] = us[0]; fd[1] = ds[1]; return 0; }
+
+    /* we are the child process */
+                  close(ds[1]); close(us[0]);
+      close(0); dup(ds[0]); close(ds[0]);
+      close(1); dup(us[1]); close(us[1]);
+
+    /* now replace this executable with the proxy program             */
+    rc = execvp(argv[0],argv);
+//  rc = execvp(*file  ,argv[]);
+
+    if (rc < 0) { rc = errno; if (rc == 0) rc = -1; return rc; }
+    return -1;
+  }
+
 /* ------------------------------------------------------------ MSGWRITE
- *  Try stock UNIX 'write' command if local user.
+ *  Try stock UNIX 'write' command if local user.                DEFUNCT
  */
 int msgwrite(user,text)
   char   *user, *text;
@@ -825,17 +935,17 @@ int msgwrite(user,text)
   }
 
 /* ------------------------------------------------------------ MSGSMTPS
- *  Try SMTP "send" command. (not always implemented)
+ *  Try SMTP "send" command. (not always implemented)            DEFUNCT
  */
 int msgsmtps(char*user,char*text) { return -1; }
 
 /* ------------------------------------------------------------ MSGSMTPM
- *  Try SMTP mail. (advantage is direct -vs- queued)
+ *  Try SMTP mail. (advantage is direct -vs- queued)             DEFUNCT
  */
 int msgsmtpm(char*user,char*text) { return -1; }
 
 /* ------------------------------------------------------------- MSGMAIL
- *  Try queued mail (sendmail) as a last resort.
+ *  Try queued mail (sendmail) as a last resort.                 DEFUNCT
  */
 int msgmail(char*user,char*text) { return -1; }
 

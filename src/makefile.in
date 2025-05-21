@@ -30,11 +30,11 @@ all:		$(DELIVERABLES)
 #		maketext cpq cpqu msgpipe msgcat msgd
 
 uftd:		makefile uftd.o \
-			uftdnext.o uftddata.o uftduser.o uftcwack.o \
+			uftdnext.o uftddata.o uftduser.o \
 			uftdmove.o uftdimsg.o uftdlmsg.o uftdlist.o \
 			abbrev.o tcpio.o aecs.o uftlib.o xmitmsgx.o
 		$(CC) $(LDFLAGS) -o uftd uftd.o \
-			uftdnext.o uftddata.o uftduser.o uftcwack.o \
+			uftdnext.o uftddata.o uftduser.o \
 			uftdmove.o uftdimsg.o uftdlmsg.o uftdlist.o \
 			abbrev.o tcpio.o aecs.o uftlib.o xmitmsgx.o $(LIBS)
 
@@ -63,19 +63,16 @@ uftd.o: 	makefile uft.h uftd.c
 		$(CC) $(CFLAGS) -c uftd.c
 
 sf:		makefile uftc.o \
-			uftcwack.o uftctext.o uftcprot.o \
+			uftctext.o uftcprot.o \
 			uftlib.o tcpio.o xmitmsgx.o \
 			aecs.o readspan.o abbrev.o
 		$(CC) $(LDFLAGS) -o sf uftc.o \
-			uftcwack.o uftctext.o uftcprot.o \
+			uftctext.o uftcprot.o \
 			uftlib.o tcpio.o xmitmsgx.o \
 			aecs.o readspan.o abbrev.o $(LIBS)
 
 uftc.o: 	makefile uft.h uftc.c
 		$(CC) $(CFLAGS) -c uftc.c
-
-uftcwack.o:	makefile uft.h uftcwack.c
-		$(CC) $(CFLAGS) -c uftcwack.c
 
 uftctext.o:	makefile uft.h uftctext.c
 		$(CC) $(CFLAGS) -c uftctext.c
@@ -103,14 +100,14 @@ maketext:	makefile maketext.o tcpio.o aecs.o
 		$(CC) $(CFLAGS) -o maketext \
 			maketext.o tcpio.o aecs.o $(LIBS)
 
-cpq:		makefile cpq.o uftcwack.o \
+cpq:		makefile cpq.o \
 			tcpio.o aecs.o
-		$(CC) $(LDFLAGS) -o cpq cpq.o uftcwack.o \
+		$(CC) $(LDFLAGS) -o cpq cpq.o \
 			tcpio.o aecs.o $(LIBS)
 
-cpqu:		makefile cpqu.o uftcwack.o \
+cpqu:		makefile cpqu.o \
 			tcpio.o aecs.o
-		$(CC) $(LDFLAGS) -o cpqu cpqu.o uftcwack.o \
+		$(CC) $(LDFLAGS) -o cpqu cpqu.o \
 			tcpio.o aecs.o $(LIBS)
 
 clean:
@@ -195,9 +192,9 @@ msgd:		makefile msgd.o msgdlmsg.o \
 			tcpio.o aecs.o homedir.o
 		strip msgd
 
-tell:		makefile msgc.o uftlib.o tcpio.o xmitmsgx.o uftcwack.o \
+tell:		makefile msgc.o uftlib.o tcpio.o xmitmsgx.o \
 		  uftctext.o uftcprot.o aecs.o readspan.o abbrev.o
-	$(CC) $(LDFLAGS) -o tell msgc.o uftlib.o tcpio.o xmitmsgx.o uftcwack.o \
+	$(CC) $(LDFLAGS) -o tell msgc.o uftlib.o tcpio.o xmitmsgx.o \
 		  uftctext.o uftcprot.o aecs.o readspan.o abbrev.o $(LIBS)
 	strip tell
 # msgcmsp.o msgcuftd.o msglocal.o homedir.o

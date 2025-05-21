@@ -284,7 +284,6 @@ int uftdimsg(char*,char*,char*,char*);
 int uftdlmsg(char*,char*,char*,char*);
 int uftdlist(int,char*);
 
-int uftcwack(int,char*,int);
 int uftctext(int,char*,int);
 
 char*uftcprot(mode_t);
@@ -300,6 +299,9 @@ int uftx_getline(int,char*,int);        /* sock or fd, buffer, buflen */
 int uftx_putline(int,char*,int);        /* sock or fd, buffer, buflen */
 
 char*uftx_user();
+char*uftx_getenv(char*,char*);
+char*uftx_basename(char*);
+char*uftx_parse1(char*);
 
 int msgc_uft(char*,char*);
 int msgc_rdm(char*,char*);
@@ -308,6 +310,8 @@ int msgc_msp(char*,char*);
 int uftd_fann(char*,char*,char*);
 int uftc_wack(int,char*,int);
 int uftd_agck(char*);
+
+int uftx_proxy(char*,char*,int*);
 
 #define         _UFT_HEADER_
 #endif

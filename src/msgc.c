@@ -32,7 +32,7 @@ int main(int argc,char*argv[])
     char    msgbuf[4096], *arg0;
 
     uftcflag = 0x00000000;      /* default */
-    arg0 = basename(argv[0]);
+    arg0 = uftx_basename(argv[0]);
 
     /* process command-line options                                   */
     for (i = 1; i < argc && argv[i][0] == '-' &&

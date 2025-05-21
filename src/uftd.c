@@ -636,8 +636,11 @@ int main(int argc,char*argv[])
 
         /* --------------------------------------------- NAME command */
         if (abbrev("NAME",p,2))
-          { /*  put this variable into the control file  */
-            (void) sprintf(temp,"%s='%s'",p,q);
+          {
+            /* put this variable SAFELY into the control file         */
+            q = uftx_basename(q);
+            uftx_parse1(q);
+            sprintf(temp,"%s='%s'",p,q);
             if (tf >= 0) (void) uftx_putline(tf,temp,0);
             if (cf >= 0) (void) uftx_putline(cf,temp,0);
 

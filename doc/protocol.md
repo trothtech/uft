@@ -3,6 +3,14 @@
 This is an overview of Unsolicited File Transfer (UFT) protocol
 in markdown format.
 
+UFT follows a client/server model.
+The UFT client connects on TCP port 608 to the UFT server.
+As soon as the connection is accepted, the UFT server sends a herald.
+The UFT client then sends commands, ending with `QUIT`.
+The UFT server responds to each command with a numeric code indicating
+acknowledgement (success) or negative acknowledgement (error or failure).
+
+
 ## UFT Primary Control Verbs
 
 * FILE
@@ -16,7 +24,7 @@ in markdown format.
 * META
 * QUIT
 
-`FILE` (or `PIPE`), `USER`, `TYPE`, and `DATA` are mandatory.
+`FILE` (or `PIPE`), `USER`, `TYPE`, and `DATA` are essential.
 
 Note that `TYPE` might seem to be a meta command,
 but it remains a primary command because canonicalization is a
@@ -70,7 +78,7 @@ These are optional and not widely implemented.
 * META XPERM
 * META VERSION
 * META RECFMT
-* META RECLEN (or LRECL)
+* META RECLEN (or META LRECL)
 * META CLASS
 * META FORM
 * META HOLD
