@@ -29,7 +29,6 @@ int uft_getndr(int fd,struct UFTNDIO*uftndio,int*flag,char**output,int*outlen)
     char *p;
     if (uftndio->buflen == 0)
       { uftndio->bufdex = 0;
-// DEV printf("uft_getndr(): reading\n");
         rc = read(fd,uftndio->buffer,uftndio->bufmax-1);
         if (rc < 0) return rc;
         uftndio->buflen = rc; }
@@ -44,7 +43,6 @@ int uft_getndr(int fd,struct UFTNDIO*uftndio,int*flag,char**output,int*outlen)
     m = p[uftndio->bufdex+1];
     m = 0xff & m;
     *flag = m;
-// DEV printf("uft_getndr(): seglen %d control %02x\n",l,m);
 
     *output = &p[uftndio->bufdex+2];
     uftndio->bufdex += l;
@@ -62,7 +60,6 @@ int uftcnddp(char*p,int l)
     int i;
     char temp[256];
 
-//  for (i = 0; i < l; i++) temp[i] = chretoa(p[i]);
     for (i = 0; i < l; i++) temp[i] = p[i];
     temp[i] = 0x00;
     stretoa(temp);
@@ -92,25 +89,17 @@ int main(int argc,char*argv[])
         char *b;
 
         rc = uft_getndr(fd,&ndio,&type,&part,&plen);
-//printf("RC %d\n",rc);
         if (rc < 0) break;
-//      sleep(1);
 
         b = part;
         if (type & UFT_ND_CTRL)
           {
-// DEV      printf("uftcndd: %02x control %02x%02x%02x%02x%02x%02x\n",
-//              type,b[0]&0xff,b[1]&0xff,b[2]&0xff,
-//                   b[3]&0xff,b[4]&0xff,b[5]&0xff);
-//          if (memcmp(b,"\xc9\xd5\xd4\xd9\xf0\xf6",6) == 0) break;
             if (memcmp(b,UFT_ND_INMR06,6) == 0) break;
           } else {
-//          printf("uftcndd: %02x data %d\n",type,plen);
             uftcnddp(b,plen);
             if (type & UFT_ND_LAST) printf("\n");
           }
 
-//      i = i + n + 1;
       }
 
     close(fd);

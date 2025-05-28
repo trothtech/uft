@@ -1,4 +1,4 @@
-* Â© Copyright 1993-2025 Richard M. Troth, all rights reserved. <plaintext>
+* © Copyright 1993-2025 Richard M. Troth, all rights reserved. <plaintext>
 *
 *         Name: UFTUME MESSAGES
 *       Author: Rick Troth, Houston, Texas, USA
@@ -33,7 +33,7 @@
 0004      UFT/&1
 0005      UFT/&1 client
 0006      UFT/&1 server
-*007    X ........
+0007      1.11
 *008    X ........
 *009    X ........
 *010    X ........
@@ -41,8 +41,17 @@
 0012      POSIXUFT/&1
 *013    X ........
 *014    X ........
+*
   15    E Unknown &1 command
+  16    E Missing operand(s)
+  42    E User &1 spoolid &2 does not exist
+  50    E Invalid spoolid &1
+  53    E &1 not in CP directory
   54    E Incomplete fileid specified
+  70    E Invalid parameter &1
+  92    I File (&1) spooled to &2 -- origin &3(&4) &5 &6 &7
+  94    I File &1 spooled to &2 origin &3
+  96    I From &1(&2): &3
 *
 * spontaneous info messages (including deprecated UFT/1 herald)
 0100      100 &1 UFT/1 VMCMSUFT/1.2.2 ready.
@@ -64,7 +73,6 @@
 *         (for SEND, recommend 331 below)
 *133      133 SEND &1 bytes of data.
 0145      145 &1 not logged on
-* HCPLNM053E &1 not in CP directory
 0153      153 &1 not in CP directory
 0185    I Active reader class empty (Next file &1 Class &2).
 *
@@ -164,10 +172,12 @@
 0529      529 server meta file error
 0530    E 530 No file blocks are assigned for this user in file pool &1.
 0531      531 server data error (user has no space)
-0532      532 No such local user: &1
+0532    E 532 &1 ; No such local user &1
 0533      533 server temp file error
 0534      534 user meta file error.
 0535    T 535 This server is not in the required VM CP environment.
+*   fprintf(stderr,"UFTD: 535 user data file error\n");
+*   fprintf(stderr,"UFTD: 535 user auxdata file error\n");
 0536      536 No entries were found that matched your search criteria
 0541      541 server data error (user over quota)
 0542    E 542 This server lacks the privilege class for MSGTYPE MSGNOH.
@@ -175,21 +185,23 @@
 0547    E 547 Userid not specified for &1 in &2 &3 file
 0548    E 548 Userid &1 not found; check the &2 NAMES file
 0549      549 workspace sequence error
-0550      550 &1 ... User unknown
+0550    E 550 &1 ; &1 ... User unknown
 0551      551 server data file error
 0552      552 spool directory unavailable
-* HCPLNM053E &1 not in CP directory
-0553      553 &1 not in CP directory
+0553    E 553 &1 ; &1 not in CP directory
 0557      557 &1 not receiving
 0559      559 server data error (physical space)
 0567    E 567 User &1 is not enrolled
 0571    E 571 User &1 not available
 0597    E 597 User validation function &1 not found
 *
+ 999      © Copyright 1995, 1997, 2025 Richard M. Troth, all rights reserved.
+*
 * from the CMS implementation:
 1200    E Code level mis-match: expected &1 but found &2
 8416      From &1(&2): &3
 8712      File &1 sent to &2 at &3 on &4
+*DMTNTR147I Sent file 0716 (1995) on link NYNJGATE to NEWYORK(MATTHEW)
 *
 * TAG on the file for RDRLIST and RECEIVE:
 *         FILE (*UFT) ORIGIN host from date time tz
@@ -201,6 +213,7 @@
 *002      File (*UFT) spooled to &1 -- origin &2(&3) &4 &5 &6
 9002      File (&1) spooled to &2 -- origin &3(&4) &5 &6 &7
 1004      File &1 spooled to &2 origin &3
+*DMTNTR147I Sent file 0716 (1995) on link NYNJGATE to NEWYORK(MATTHEW)
 *
 * the following is for SIFT-via-MIME and should be renumbered lower
 9822  01  Sender Initiated File Transfer
@@ -222,23 +235,17 @@
 *
 9999      © Copyright 1995, 1997, 2025 Richard M. Troth, all rights reserved.
 *
-*  3    E Invalid option: &1                                        1003
-* 15    E Unknown &1 command                                        1015
-* 70    E Invalid parameter &1                                      1070
- 385    E Invalid modifier keyword: &1                              1385
- 386    E Missing operand(s)                                        1386
- 650    E Invalid spoolid &1                                        1650
- 740    I Execution begins...                                       1740
-1440    E RXSOCKET requires TCPIP Version 2 or higher               1440
-1606    E No primary input specified                                1606
-2323    I Restarting &1 at &2.                                      1323
-2324    I Shutting down &1 at &2.                                   1324
-2687    E no host or host not specified                             1687
-2914    E no input stream                                           1914
-3958    E Required resources not available                          1958
-8201    I &1 has been started                                       1201
-8205    E Non-numeric value specified                               1205
+* for 386 go to 16
+*385    E Invalid modifier keyword: &1
+*740    I Execution begins...
+*440    E RXSOCKET requires TCPIP Version 2 or higher               1440
+*606    E No primary input specified                                1606
+*323    I Restarting &1 at &2.                                      2323
+*324    I Shutting down &1 at &2.                                   2324
+*687    E no host or host not specified                             2687
+*914    E no input stream                                           2914
+*958    E Required resources not available                          3958
+*201    I &1 has been started                                       8201
+*205    E Non-numeric value specified                               8205
 *
-*   fprintf(stderr,"UFTD: 535 user data file error\n");
-*   fprintf(stderr,"UFTD: 535 user auxdata file error\n");
- 
+*

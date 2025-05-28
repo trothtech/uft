@@ -45,7 +45,7 @@ static struct MSGSTRUCT uftmsgs;
 
 #include "uft.h"
 
-extern  int  uftcflag;
+int uftcflag;
 
 static char agstring[256] = { 0x00, 0x00, 0x00, 0x00, 0x00 };
 
@@ -124,7 +124,6 @@ int msgd_xmsg_sock(char*user,char*buff,int bl)
     rc = sd = socket(AF_UNIX,SOCK_STREAM,0); if (rc < 0) return rc;
 
     snprintf(fn,sizeof(fn),"%s/%s/.msgsock",UFT_SPOOLDIR,user);
-//fprintf(stderr,"sock %s\n",fn);
 
     /* the server should be listening on this named socket */
     msgsockst.sun_family = AF_UNIX;
@@ -163,7 +162,6 @@ int msgd_xmsg_fifo(char*user,char*buff,int bl)
     char fn[256];
 
     snprintf(fn,sizeof(fn),"%s/%s/.msgpipe",UFT_SPOOLDIR,user);
-//fprintf(stderr,"pipe %s\n",fn);
     rc = fd = open(fn,O_WRONLY|O_NDELAY);
 
 #ifdef _MSG_TRY_HOMEDIR
@@ -194,15 +192,15 @@ int msgd_umsg(char*user,char*text,char*from)
     un[i] = 0x00;
 
     /* start at the start of the buffer and note its size for limit   */
-    q = buffer;
+    q = buffer; i = 0;
     l = sizeof(buffer) - 2;
 
     /* first thing in the batch is the message text (no tag or var)   */
     p = text;
     while (*p != 0x00 && i < l) { *q++ = *p++; i++; }
-    if (i < l) { *q++ = 0x00; i++; }
+    if (i < l) { *q++ = 0x00; i++; }       /* terminate copied string */
 
-    /* we don't always care about the message type but we always say  */
+    /* we don't always care about the message type but we always tell */
     p = "MSGTYPE=UMSG";         /* 1 - MSG       */
 /*  p = "MSGTYPE=WMSG";         ** 2 - WNG, WMSG */
 /*  p = "MSGTYPE=CMSG";         ** 3 - CPCONIO   */
@@ -244,29 +242,21 @@ int msgd_umsg(char*user,char*text,char*from)
 
     /* -------- try brute force ------------------------------------- */
       { char bff[256], *bfh;
-        int topts;
 
         strncpy(bff,from,sizeof(bff)-1);
         bfh = bff;
         while (*bfh != 0x00 && *bfh != '@') bfh++;
         if (*bfh == '@') *bfh++ = 0x00;
 
-//      topts = uftmsgs.msgopts;
-//      uftmsgs.msgopts |= MSGFLAG_NOCODE;
         mv[1] = bfh; mv[2] = bff; mv[3] = text;    /* From &1(&2): &3 */
         rc = uftx_message(buffer,sizeof(buffer)-1,8416,"SRV",4,mv);
-//fprintf(stderr,"%s\n",buffer);
-//      uftmsgs.msgopts = topts;
+                                                      /* change to 96 */
 
 /* reusing p ... and this needs to be fixed in the XMM package */
         p = buffer; while (*p != ' ' && *p != 0x00) p++;
                     while (*p == ' ') p++;
 
-//fprintf(stderr,"%s\n",buffer);
-//fprintf(stderr,"%s\n",p);
-//      rc = uftd_message(user,buffer);
         rc = uftd_message(user,p);
-//fprintf(stderr,"uftd_message() returned %d\n",rc);
       }
 
     return rc;
@@ -288,21 +278,17 @@ int uftd_fann(char*user,char*spid,char*from)
     un[i] = 0x00;
 
     /* start at the start of the buffer and note its size for limit   */
-    q = buffer;
+    q = buffer; i = 0;
     l = sizeof(buffer) - 2;
 
-//  topts = uftmsgs.msgopts;
-//  uftmsgs.msgopts |= MSGFLAG_NOCODE;
     mv[1] = spid; mv[2] = user; mv[3] = from;
-    rc = i = uftx_message(q,l,1004,"SRV",4,mv);
-//  uftmsgs.msgopts = topts;
+    rc = uftx_message(q,l,1004,"SRV",4,mv);           /* change to 94 */
     if (rc < 0) return rc;
 
-    i = i + 1;          /* we expect uftx_message() to NULL terminate */
-    q = & q[i]; l = l - i;
+    while (*q != 0x00 && i < l) { *q++; i++; }
     if (i < l) { *q++ = 0x00; i++; }     /* but terminate here anyway */
 
-    /* we don't always care about the message type but we always say  */
+    /* we don't always care about the message type but we always tell */
 /*  p = "MSGTYPE=UMSG";         ** 1 - MSG       */
 /*  p = "MSGTYPE=WMSG";         ** 2 - WNG, WMSG */
 /*  p = "MSGTYPE=CMSG";         ** 3 - CPCONIO   */
@@ -648,21 +634,16 @@ int msgc_uft(char*user,char*text)
     int rc, mysock, i;
     char buffer[4096], agentkey[256], un[256], *p, hn[256];
 
-//fprintf(stderr,"msgc_uft(): starting\n");                    // MSGC_UFT
 
     /* open /var/run/uft/agent.key for the magical AGENT string       */
     rc = mysock = open("/var/run/uft/agent.key",O_RDONLY);
-//fprintf(stderr,"msgc_uft(): open() returned %d\n",rc);       // MSGC_UFT
     if (rc >= 0)
       { rc = read(mysock,agentkey,sizeof(agentkey)-1);
-//fprintf(stderr,"msgc_uft(): read() returned %d\n",rc);       // MSGC_UFT
         if (rc > 0) agentkey[rc] = 0x00;
         else agentkey[0] = 0x00;
         close(mysock);
       } else agentkey[0] = 0x00;
     p = agentkey; while (*p > ' ') p++; *p = 0x00;     /* trim string */
-//if (agentkey[0] != 0x00)
-//fprintf(stderr,"msgc_uft(): agent string %s\n",agentkey);    // MSGC_UFT
 
     /* parse the supplied user name separating the host part          */
     p = user; i = 0;
@@ -681,8 +662,6 @@ int msgc_uft(char*user,char*text)
 
     /* look for the herald */
     rc = tcpgets(mysock,buffer,sizeof(buffer)-1);
-//fprintf(stderr,"msgc_uft(): tcpgets() returned %d\n",rc);    // MSGC_UFT
-//fprintf(stderr,"%s\n",buffer);                               // MSGC_UFT
 
     /* send a "FILE 0 from auth" command */
     if (*agentkey == 0x00)
@@ -690,11 +669,9 @@ int msgc_uft(char*user,char*text)
     else snprintf(buffer,sizeof(buffer)-1,"FILE 0 %s AGENT %s",uftx_user(),agentkey);
     rc = tcpputs(mysock,buffer);
     if (rc < 0) { perror("tcpputs()"); close(mysock); return rc; }
-//fprintf(stderr,"msgc_uft(): sent FILE command\n");           // MSGC_UFT
 
     /* wait for ACK */
     rc = uftc_wack(mysock,buffer,sizeof(buffer)-1);
-//fprintf(stderr,"msgc_uft(): uftc_wack() returned %d\n",rc);  // MSGC_UFT
     if (rc < 0) { perror("uftc_wack()"); close(mysock); return rc; }
     if (rc != 2) { fprintf(stderr,"%s\n",buffer); close(mysock); return rc; }
 
@@ -702,33 +679,27 @@ int msgc_uft(char*user,char*text)
     snprintf(buffer,sizeof(buffer)-1,"MSG %s %s",un,text);
     rc = tcpputs(mysock,buffer);
     if (rc < 0) { perror("tcpputs()"); close(mysock); return rc; }
-//fprintf(stderr,"msgc_uft(): sent MSG command\n");            // MSGC_UFT
 
     /* wait for ACK */
     rc = uftc_wack(mysock,buffer,sizeof(buffer)-1);
-//fprintf(stderr,"msgc_uft(): uftc_wack() returned %d\n",rc);  // MSGC_UFT
     if (rc < 0) { perror("uftc_wack()"); close(mysock); return rc; }
     if (rc != 2) { fprintf(stderr,"%s\n",buffer); close(mysock); return rc; }
 
     /* send an "ABORT" command (because we're not sending a file */
     rc = tcpputs(mysock,"ABORT");
     if (rc < 0) { perror("tcpputs()"); close(mysock); return rc; }
-//fprintf(stderr,"msgc_uft(): sent ABORT command\n");          // MSGC_UFT
 
     /* wait for ACK */
     rc = uftc_wack(mysock,buffer,sizeof(buffer)-1);
-//fprintf(stderr,"msgc_uft(): uftc_wack() returned %d\n",rc);  // MSGC_UFT
     if (rc < 0) { perror("uftc_wack()"); close(mysock); return rc; }
     if (rc != 2) { fprintf(stderr,"%s\n",buffer); close(mysock); return rc; }
 
     /* send a "QUIT" command to close the session */
     rc = tcpputs(mysock,"QUIT");
     if (rc < 0) { perror("tcpputs()"); close(mysock); return rc; }
-//fprintf(stderr,"msgc_uft(): sent QUIT command\n");           // MSGC_UFT
 
     /* wait for ACK */
     rc = uftc_wack(mysock,buffer,sizeof(buffer)-1);
-//fprintf(stderr,"msgc_uft(): uftc_wack() returned %d\n",rc);  // MSGC_UFT
     if (rc < 0) { perror("uftc_wack()"); close(mysock); return rc; }
     if (rc != 2) { fprintf(stderr,"%s\n",buffer); close(mysock); return rc; }
 
@@ -818,18 +789,23 @@ int uftd_agck(char*k)
  *    or points to the end of the environment buffer.
  */
 char*uftx_getenv(char*var,char*env)
-  {
+  { static char _eyecatcher[] = "uftx_getenv()";
     char   *p, *q;
 
+    /* confirm sane function arguments                                */
+    if (var == NULL) return var;
+    if (*var == 0x00) return var;
     if (env == NULL) return env;
     if (*env == 0x00) return env;
 
-    p = env;    q = var;
-    while (*p)
-      { while (*p == *q && *p != 0x00 &&
+    /* scan the "environment" looking for variables                   */
+    p = env; while (*p)
+      { q = var;
+        while (*p == *q && *p != 0x00 &&
                            *q != 0x00 && *p != '=') { p++; q++; }
         if (*p == '=' && *q == 0x00) { p++; return p; }
-        while (*p != 0x00) p++;   q = var; }
+        while (*p != 0x00) p++; p++;
+        if (*p == 0x00) break; }
 
     return p;
   }
@@ -888,9 +864,6 @@ int uftx_proxy(char*host,char*prox,int*fd)
         argc++; }
     argv[argc] = NULL;
 
-// { int i;
-//    for (i = 0; i < argc; i++) fprintf(stderr,"%s\n",argv[i]);
-// }
 
     rc = pipe(ds);                   /* establish the downstream pipe */
     /* proxy reads from ds[0] so application writes to ds[1]          */
@@ -917,10 +890,115 @@ int uftx_proxy(char*host,char*prox,int*fd)
 
     /* now replace this executable with the proxy program             */
     rc = execvp(argv[0],argv);
-//  rc = execvp(*file  ,argv[]);
 
     if (rc < 0) { rc = errno; if (rc == 0) rc = -1; return rc; }
     return -1;
+  }
+
+/* ------------------------------------------------------------ UFT_STAT
+ *    This routine parses a UFT "control file" on the receiving host.
+ *    Compare with standard Unix/POSIX stat() system call.
+ */
+int uft_stat(char*sid,struct UFTSTAT*us)
+  { static char _eyecatcher[] = "uft_stat()";
+    int rc, fd, i, e, cl;
+    char sn[256], cb[4096], *p, *q;
+
+    /* take the spool ID as numeric (akin to the inode in stat)       */
+    us->uft_ino = atoi(uftx_basename(sid));
+
+    /* process the spool ID into a filename (relative or absolute)    */
+    if (*sid == '/') snprintf(sn,sizeof(sn)-1,"%s.cf",sid);
+    else snprintf(sn,sizeof(sn)-1,"%s/%s/%s.cf",
+                               UFT_SPOOLDIR,uftx_user(),sid);
+
+    /* try to open the control file and load it into memory           */
+    rc = fd = open(sn,O_RDONLY);
+    if (rc < 0) return rc;
+    rc = cl = read(fd,cb,sizeof(cb)-1);
+    e = errno; close(fd); errno = e;
+    if (rc < 0) return rc;
+    cb[cl] = 0x00;
+
+    /* process the control file into a POSIX-like "environment" block */
+    i = 0; p = q = cb;
+    while (i < cl)
+      { if (*p == '\n') *p = 0x00;
+        if (*p != '\'') *q++ = *p;
+        p++; i++; }
+    *q++ = 0x00;
+    *q++ = 0x00;
+
+/*  us->uft_mode;       ** UFT "xperm" protection */
+
+    us->uft_nlink = 0;
+    p = uftx_getenv("COPY",cb); if (*p == 0x00 || p == 0x0000)
+    p = uftx_getenv("COPIES",cb); if (p != 0x0000)
+    us->uft_nlink = uftx_atoi(p);
+
+    /* SIZE is taken from the FILE statement and is an estimate       */
+    us->uft_size = uftx_atoi(uftx_getenv("SIZE",cb));
+
+/*  us->uft_blksize     ** akin to LRECL */
+
+/*  us->uft_mtime       ** time stamp */
+
+    /* TYPE is the most important attribute and may be followed by cc */
+    p = uftx_getenv("TYPE",cb);
+    us->uft_type = *p;
+    while (*p > ' ') p++;
+    while (*p == ' ') p++;
+    us->uft_cc = *p;
+
+    /* CLASS may optionally also indicate a unit-record device type   */
+    p = uftx_getenv("CLASS",cb);
+    if (p != 0x0000 && *p != 0x00)
+      { us->uft_class = *p++;
+        if (*p == ' ') p++;
+        if (*p == 'P' && *p == 'p') p++;
+        us->uft_rudev = *p; }
+
+/*  us->uft_hold        ** mostly a VM or other mainframe concept     */
+
+/*  us->uft_keep        ** mostly a VM or other mainframe concept     */
+
+/*  us->uft_msg         ** mostly a VM or other mainframe concept     */
+
+    /* NAME is optional (but needed when you actually receive)        */
+    strncpy(us->name,uftx_getenv("NAME",cb),sizeof(us->name)-1);
+
+    p = uftx_getenv("DATE",cb);
+    p = uftx_getenv("PROT",cb);
+    p = uftx_getenv("USER",cb);
+    p = uftx_getenv("XDATE",cb);
+
+    /* best figuring of sending user and sending host using several   */
+    strncpy(us->from,uftx_getenv("REMOTE",cb),sizeof(us->from)-1);
+    p = us->from;
+    while (*p != '@' && *p != 0x00) p++;
+    if (*p == '@') *p++ = 0x00;
+    strncpy(us->host,p,sizeof(us->host)-1);
+    if (us->from[0] != 0x00) strncpy(us->user,us->from,sizeof(us->user)-1);
+                        else strncpy(us->user,uftx_getenv("FROM",cb),sizeof(us->user)-1);
+
+    return 0;
+  }
+
+/* ----------------------------------------------------------- UFTX_ATOI
+ *    Convert string to integer recognizing K or M qualifiers.
+ */
+int uftx_atoi(char*s)
+  { static char _eyecatcher[] = "uftx_atoi()";
+    int i;
+    i = 0;
+    while (1)
+      { switch (*s)
+          { case 0x00: return i; break;
+            case 'K': case 'k': i = i * 1024; return i; break;
+            case 'M': case 'm': i = i * 1048576; return i; break;
+            default: i = i * 10 + (*s & 0x0F); break; }
+        s++; }
+    return i;
   }
 
 /* ------------------------------------------------------------ MSGWRITE
@@ -928,11 +1006,9 @@ int uftx_proxy(char*host,char*prox,int*fd)
  */
 int msgwrite(user,text)
   char   *user, *text;
-  {
-    char        temp[256];
+  { char        temp[256];
     (void) sprintf(temp,"echo \"%s\" | write %s",text,user);
-    return system(temp);
-  }
+    return system(temp); }
 
 /* ------------------------------------------------------------ MSGSMTPS
  *  Try SMTP "send" command. (not always implemented)            DEFUNCT

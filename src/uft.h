@@ -19,8 +19,8 @@
 #define         UFT_PROTOCOL    "UFT/2"
 #define         UFT_VERSION     "POSIXUFT/1.11"
 #define         UFT_COPYRIGHT   "© Copyright 1995-2025 Richard M. Troth"
-#define         UFT_VRM         "1.11"
-#define   UFT_VERINT   (((1) << 24) + ((11) << 16) + ((0) << 8) + (0))
+#define         UFT_VRM         "1.11.1"
+#define   UFT_VERINT   (((1) << 24) + ((11) << 16) + ((1) << 8) + (0))
 
 /* server constants */
 /* the SPOOLDIR has a sub-directory for each recipient */
@@ -43,7 +43,7 @@
 /* file name extensions */
 #define         UFT_EXT_CONTROL         ".cf" /* control, metadata */
 #define         UFT_EXT_DATA            ".df" /* data */
-#define         UFT_EXT_EXTRA           ".ef" /* auxdata, resource */
+#define         UFT_EXT_EXTRA           ".ef" /* auxdata, resource fork */
 #define         UFT_EXT_LIST            ".lf" /* 'ls -l' format */
 #define         UFT_EXT_WORK            ".wf"
 
@@ -62,6 +62,7 @@
 
 #define         UFT_SYSLOG_FACILITY     LOG_UUCP
 
+/* the following struct is best used for active UFT files             */
 typedef struct  UFTFILE {
                 /* to-and-from spool space */
                 int     cfd;    /* control file descriptor */
@@ -87,7 +88,7 @@ typedef struct  UFTFILE {
                         form[16], dist[16], dest[16];
                 int     size, copies;
                 char    title[64];
-                        } UFTFILE ;
+                        } UFTFILE ;             /* see also: UFTSTAT  */
 
 #define         UFT_B64_CODE    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 
@@ -195,38 +196,46 @@ static char *uft_copyright = UFT_COPYRIGHT;
 #define         MSG_UFT_HOST            "localhost"
 #define         MSG_UFT_PORT            608
 
+/* the following struct is best used to describe a UFT file           */
 typedef struct  UFTSTAT {
     int         uft_ino;        /* UFT spoolid */
     mode_t      uft_mode;       /* UFT "xperm" protection */
-    int         uft_nlink;      /* UFT copy count */
+    int         uft_nlink;      /* UFT copy count, "copies" */
     uid_t       uft_uid;        /* UFT user ID of owner */
     gid_t       uft_gid;        /* UFT group ID of owner */
     int         uft_size;       /* UFT "data" size, in bytes */
     int         uft_blksize;    /* UFT blocksize (record length) */
     time_t      uft_mtime;      /* UFT time of last mod, as sent */
-/*                  mtime=date|xdate     */
-
-    /* ... */
 
     char        uft_type,       /* UFT type (A, I, so on) */
+                uft_cc,         /* ASA, machine, or none */
+                uft_class,      /* "spool class" letter */
+                uft_rudev,      /* record-unit device type, "devtype" */
+                uft_hold,
+                uft_keep,
+                uft_msg,
+
                 name[64],
                 from[64],
-
-                uft_class,      /* "spool class" letter */
-                uft_hold,
-
-                cc[8],
-                devtype[8],
-                keep[4],
-                msg[4],
-
+                user[16],       /* from - parsed */
+                host[16],       /* from - parsed */
                 form[16],
                 dist[16],
                 dest[16],
                 title[64];
-                        } UFTSTAT ;
 
-int uft_stat(const char*,struct UFTSTAT*);
+/*
+tqcdhkm--- cpy user     host         size year mm dd time  sid  name
+---------- --- -------- -------- -------- ---- -- -- --:-- ---- ----------------
+||||||\___ msg (M) nomsg (-)
+|||||\____ keep (K) consume (-)
+||||\_____ hold (H) nohold (-)
+|||\______ devtype (prT, Con, pUn)      uft_rudev
+||\_______ class (A, B, C, etc.)
+|\________ CC (Asa, Machine, none)
+\_________ type (I or A or N)
+ */
+                        } UFTSTAT ;
 
 /*
 
@@ -248,7 +257,6 @@ uft stat <spoolid> <varname>
 # dist
 # dest
 # fcb
-#
 
 uft_title == an arbitrary string labelling this file
 uft_ver == a version number or revision index
@@ -312,17 +320,17 @@ int uftc_wack(int,char*,int);
 int uftd_agck(char*);
 
 int uftx_proxy(char*,char*,int*);
+int uft_stat(char*,struct UFTSTAT*);
+int uftx_atoi(char*);
 
 #define         _UFT_HEADER_
 #endif
 
 /*
-
 int msgwrite(char*,char*);                                            *
 int msgsmtps(char*,char*);                                            *
 int msgsmtpm(char*,char*);                                            *
 int msgmail(char*,chat*);                                             *
-
  */
 
 

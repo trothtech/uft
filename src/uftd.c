@@ -28,7 +28,7 @@ char            effn[64];
 
 struct  UFTFILE  uftfile0;
 
-int     uftcflag;
+extern int uftcflag;
 
 /* ------------------------------------------------------------ UFTDSTAT
  *    Writes a line to the stream indicated by sock (UFT client)
@@ -168,7 +168,7 @@ int main(int argc,char*argv[])
     (void) tcpident(0,from,256);      /* IDENT got a bad rap and died */
     (void) sprintf(line,"REMOTE=%s",from);
     (void) uftx_putline(tf,line,0);
-// FIXME: need to prepend the sending user if not found via IDENT (see below)
+/* FIXME: need to prepend the sending user if not found via IDENT (see below) */
     (void) strncpy(uftfile0.from,from,sizeof(uftfile0.from));
 
     /* where exactly does this item fit? */
@@ -265,13 +265,13 @@ int main(int argc,char*argv[])
                 if (tf >= 0) (void) uftx_putline(tf,temp,0);
                 if (cf >= 0) (void) uftx_putline(cf,temp,0); }
 
-// FIXME: if AUTH=AGENT then parse more and check it
+/* FIXME: if AUTH=AGENT then parse more and check it
 //              if (strcasecmp(auth,"AGENT") == 0)
 //                { for (p = q; *q > ' '; q++);
 //                  if (*q != 0x00) *q++ = 0x00;
 //                  if (*p != 0x00)
 //                  uftd_agck(,p,)
-//                }
+//                }                                                   */
 
             else (void) strncpy(auth,"N/A",256);
 

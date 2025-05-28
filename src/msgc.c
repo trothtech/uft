@@ -23,7 +23,7 @@
 
 #include "uft.h"
 
-int     uftcflag;
+extern int uftcflag;
 
 /* ------------------------------------------------------------------ */
 int main(int argc,char*argv[])
@@ -40,7 +40,7 @@ int main(int argc,char*argv[])
       {
         switch (argv[i][1])
           {
-//          case '?':                   /* help                       */
+            case '?':                   /* help                       */
             case 'v':   (void) sprintf(msgbuf,
                                 "%s: %s Internet TELL client",
                                 arg0,UFT_VERSION);

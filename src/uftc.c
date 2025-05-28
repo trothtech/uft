@@ -22,7 +22,8 @@
 
 char   *arg0;
 int     uftv;           /* protocol level (1 or 2) */
-int     uftcflag;
+
+extern int uftcflag;
 
 /* ------------------------------------------------------------------ */
 int main(int argc,char*argv[])
@@ -35,7 +36,6 @@ int main(int argc,char*argv[])
     mode_t      prot;
     struct tm *gmtstamp;
 
-//fprintf(stderr,"uftc: starting\n");
 
     /* note command name and set defaults */
     arg0 = uftx_basename(argv[0]);
@@ -45,7 +45,6 @@ int main(int argc,char*argv[])
     copy = 0;
     proxy = "";
 
-//fprintf(stderr,"uftc: starting II\n");
 
     /* process command-line options */
     for (i = 1; i < argc && argv[i][0] == '-' &&
@@ -148,7 +147,6 @@ int main(int argc,char*argv[])
           }
       }
 
-//fprintf(stderr,"uftc: parsed\n");
 
     /* announcement (iff verbose option requested) */
     if (uftcflag & UFT_VERBOSE)
@@ -225,14 +223,12 @@ int main(int argc,char*argv[])
     while (*host != 0x00 && *host != '@') host++;
     if (*host == '@') *host++ = 0x00; else host = "localhost";
 
-//fprintf(stderr,"uftc: connecting\n");
 
     (void) sprintf(temp,"%s:%d",host,UFT_PORT);
 
     /* open a connection to the UFT server - direct TCP or via proxy  */
     if (*proxy != 0x00)
       { int fd[2];
-//fprintf(stderr,"uftx_proxy(%s,%s,)\n",temp,proxy);
         rc = uftx_proxy(temp,proxy,fd);
         if (rc != 0) return rc;                        /* open failed */
         r = fd[0]; s = fd[1];            /* r for read and s for send */
@@ -319,9 +315,11 @@ int main(int argc,char*argv[])
 
     /* do we have a time stamp for this file? */
     if (mtime != 0)
-      { gmtstamp = localtime(&mtime);
+/*    { gmtstamp = localtime(&mtime);                                 */
+      { gmtstamp = gmtime(&mtime);
         if (gmtstamp->tm_year < 1900)
             gmtstamp->tm_year += 1900;
+        gmtstamp->tm_mon = gmtstamp->tm_mon + 1;
         sprintf(temp,"DATE %04d-%02d-%02d %02d:%02d:%02d %s",
                 gmtstamp->tm_year, gmtstamp->tm_mon,
                 gmtstamp->tm_mday, gmtstamp->tm_hour,
@@ -383,14 +381,10 @@ int main(int argc,char*argv[])
  if (i < 1) break; }
         (void) sprintf(temp,"DATA %d",i);
         if (uftcflag & UFT_VERBOSE) (void) uftx_putline(2,temp,0);
-//fprintf(stderr,"%s\n",temp);
         (void) tcpputs(s,temp);
         rc = uftc_wack(r,temp,sizeof(temp));           /* expect 3 here */
-//fprintf(stderr,"uftc_wack() returned %d\n",rc);
-//fprintf(stderr,"%s\n",temp);
         (void) tcpwrite(s,b,i);   /* send the data - we live for this */
         i = uftc_wack(r,temp,sizeof(temp));           /* expect 2 here */
-//fprintf(stderr,"uftc_wack() returned %d\n",i);
         if (i < 0)
           { if (errno != 0) (void) perror(arg0);
             else (void) uftx_putline(2,temp,0);
