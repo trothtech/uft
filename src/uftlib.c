@@ -49,6 +49,8 @@ int uftcflag;
 
 static char agstring[256] = { 0x00, 0x00, 0x00, 0x00, 0x00 };
 
+int uftlogfd = -1;
+
 /* ---------------------------------------------------------------------
  *    This routine handles message FORMATTING (not message delivery).
  *    It's a different way of doing gettext() type processing.
@@ -1016,6 +1018,24 @@ int uftdl699(int s,char*b)
         uftdstat(s,pb);
         if (*b != 0x00) b++;
       }
+  }
+
+/* ------------------------------------------------------------ UFTDSTAT
+ *    Writes a line to the stream indicated by sock (UFT client)
+ *    and attempts to log that line in tf (temp) and/or cf (meta).
+ *    Moved to the library from UFTD source 2025-06-02 (Monday).
+ */
+void uftdstat(int sock,char*zlda)
+  { static char _eyecatcher[] = "uftdstat()";
+    char        buff[256];
+
+    (void) tcpputs(sock,zlda);              /* write it to the client */
+    (void) snprintf(buff,sizeof(buff)-1,"#>%s",zlda);
+/*  if (tf >= 0) (void) uftx_putline(tf,buff,0);  */
+/*  if (cf >= 0) (void) uftx_putline(cf,buff,0);  */
+    if (uftlogfd >= 0) uftx_putline(uftlogfd,buff,0);   /* and log it */
+
+    return;
   }
 
 /* ------------------------------------------------------------ MSGWRITE

@@ -28,23 +28,7 @@ char            effn[64];
 
 struct  UFTFILE  uftfile0;
 
-extern int uftcflag;
-
-/* ------------------------------------------------------------ UFTDSTAT
- *    Writes a line to the stream indicated by sock (UFT client)
- *    and attempts to log that line in tf (temp) and/or cf (meta).
- */
-void uftdstat(int sock,char*zlda)
-  { static char _eyecatcher[] = "uftdstat()";
-    char        buff[256];
-
-    (void) tcpputs(sock,zlda);
-    (void) sprintf(buff,"#>%s",zlda);
-    if (tf >= 0) (void) uftx_putline(tf,buff,0);
-/*  if (cf >= 0) (void) uftx_putline(cf,buff,0);  */
-
-    return;
-  }
+extern int uftcflag, uftlogfd;    
 
 /* ----------------------------------------------------------- UFTD_PREF
  *    Preface a string ahead of the current content of another string.
@@ -95,9 +79,10 @@ int main(int argc,char*argv[])
     n = tf = cf = df = ef = -1;
     user[0] = 0x00;  auth[0] = 0x00;
     type[0] = 0x00;  seqs[0] = 0x00;  from[0] = 0x00;
+    uftlogfd = -1;
 
     uftfile0.type[0]    = '?';  uftfile0.type[1]    = 0x00;
-    uftfile0.cc[0]      = '-';  uftfile0.cc[1]    = 0x00;
+    uftfile0.cc[0]      = '-';  uftfile0.cc[1]      = 0x00;
     uftfile0.hold[0]    = '-';  uftfile0.hold[1]    = 0x00;
     uftfile0.class[0]   = '-';  uftfile0.class[1]   = 0x00;
     uftfile0.devtype[0] = '-';  uftfile0.devtype[1] = 0x00;
@@ -118,38 +103,38 @@ int main(int argc,char*argv[])
     if (n < 0)
       { (void) sprintf(temp,"522 spool directory unavailable (%d).",errno);
 /*      (void) sprintm(temp,"uft","srv",522,'E',0,NULL); */
-        (void) uftdstat(1,temp);
+        (void) uftdstat(1,temp);    /* error to client but no logging */
 #ifdef _UFT_DEBUG
     fprintf(stderr,"UFTD: 522 spool dir unavail\n");
 #endif
         return 1; }                    /* spool directory unavailable */
-    /* to leave control in the sysadmin's hands as much as possible,  */
-    /* DO NOT create the UFT spool directory; let him do it manually  */
+    /* Leave control in the sysadmin's hands as much as possible.     */
+    /* DO NOT create the UFT spool directory; let him do it manually. */
 
     /* get next temp control file in sequence */
     n = uftdnext();
     if (n < 0)
       { /* "no spoolids available" (or no permission?) */
         (void) sprintf(temp,"523 workspace sequence error. (%d)",errno);
-        (void) uftdstat(1,temp);
+        (void) uftdstat(1,temp);    /* error to client but no logging */
 #ifdef _UFT_DEBUG
     fprintf(stderr,"UFTD: 523 sequence error %d\n",n);
 #endif
         return n; }         /* workspace sequence error "no spoolids" */
 
-    /* now open a temporary control file (meta file) */
+    /* now open a temporary control file for logging */
     (void) sprintf(tffn,"%s/%04d.lf",UFT_SPOOLDIR,n);
-    tf = open(tffn,O_RDWR|O_CREAT,S_IRUSR);
+    uftlogfd = tf = open(tffn,O_RDWR|O_CREAT,S_IRUSR);
     if (tf < 0)
       { (void) sprintf(temp,"524 server temp file error. (%d)",errno);
-        (void) uftdstat(1,temp);
+        (void) uftdstat(1,temp);        /* stat and logging ... maybe */
 #ifdef _UFT_DEBUG
     fprintf(stderr,"UFTD: 524 temp file error\n");
 #endif
         return tf; }                   /* open of control file failed */
 
     (void) sprintf(temp,"#*%s server",UFT_VERSION);
-    (void) uftx_putline(tf,temp,0);
+    (void) uftx_putline(tf,temp,0);                        /* logging */
 
     /* all okay thus far, now send the herald (informative, but ACK)  */
 
@@ -162,19 +147,18 @@ int main(int argc,char*argv[])
     (void) sprintf(line,"222 %s %s %s %d ; ready.",
 /* 222 ibmisv.marist.edu UFT/2 VMCMSUFT/1.10.5 ; ready.               */
                 temp,UFT_PROTOCOL,UFT_VERSION,BUFSIZ);
-    (void) uftdstat(1,line);
+    (void) uftdstat(1,line);           /* 200 series herald for UFT/2 */
 
     /* who's on the other end of the socket? */
     (void) tcpident(0,from,256);      /* IDENT got a bad rap and died */
     (void) sprintf(line,"REMOTE=%s",from);
-    (void) uftx_putline(tf,line,0);
-/* FIXME: need to prepend the sending user if not found via IDENT (see below) */
+    (void) uftx_putline(tf,line,0);                        /* logging */
     (void) strncpy(uftfile0.from,from,sizeof(uftfile0.from));
 
     /* where exactly does this item fit? */
 #ifndef         UFT_ANONYMOUS
     (void) sprintf(temp,"118 SEQ=%04d (server)",n);
-    (void) uftdstat(1,temp);
+    (void) uftdstat(1,temp);                      /* stat and logging */
 #endif
 
     /* loop forever on commands from client */
@@ -197,7 +181,7 @@ int main(int argc,char*argv[])
 
         /* log everything as comments in the control file(s) */
         (void) sprintf(temp,"#<%s",p);
-        if (tf >= 0) (void) uftx_putline(tf,temp,0);
+        if (tf >= 0) (void) uftx_putline(tf,temp,0);       /* logging */
 /*      if (cf >= 0) (void) uftx_putline(cf,temp,0);                  */
 
         /* don't process comments any further, just log them */
@@ -229,12 +213,12 @@ int main(int argc,char*argv[])
 
             /*  put this variable into the control file  */
             (void) sprintf(temp,"%s='%s'",p2,q2);
-            if (tf >= 0) (void) uftx_putline(tf,temp,0);
+            if (tf >= 0) (void) uftx_putline(tf,temp,0);   /* logging */
             if (cf >= 0) (void) uftx_putline(cf,temp,0);
 
             /* ACK to the client */
             (void) sprintf(temp,"200 %s; %s okay",p,p);
-            (void) uftdstat(1,temp);
+            (void) uftdstat(1,temp);              /* stat and logging */
             continue;                           /* continue after ACK */
           }
 
@@ -244,7 +228,7 @@ int main(int argc,char*argv[])
             for (p = q; *q > ' '; q++);
             if (*q != 0x00) *q++ = 0x00;
             (void) sprintf(temp,"SIZE='%s'",p);
-            if (tf >= 0) (void) uftx_putline(tf,temp,0);
+            if (tf >= 0) (void) uftx_putline(tf,temp,0);   /* logging */
             if (cf >= 0) (void) uftx_putline(cf,temp,0);
             /* parse another (FROM) */
             for (p = q; *q > ' '; q++);
@@ -327,7 +311,7 @@ int main(int argc,char*argv[])
 
             /* now log it */
             (void) sprintf(temp,"USER='%s'",user);
-            if (tf >= 0) (void) uftx_putline(tf,temp,0);
+            if (tf >= 0) (void) uftx_putline(tf,temp,0);   /* logging */
             if (cf >= 0) (void) uftx_putline(cf,temp,0);
 
             /* now try to run with it */
@@ -425,7 +409,7 @@ int main(int argc,char*argv[])
 
             /* all okay! */
             (void) sprintf(temp,"208 %s; user %s okay",user,user);
-            (void) uftdstat(1,temp);
+            (void) uftdstat(1,temp);              /* stat and logging */
             continue;                           /* continue after ACK */
           }
 
@@ -433,11 +417,11 @@ int main(int argc,char*argv[])
         if (abbrev("DATA",p,3))
           { if (df < 0)                  /* data file was not opened? */
               { (void) sprintf(temp,"403 protocol sequence error.");
-                (void) uftdstat(1,temp);
+                (void) uftdstat(1,temp);          /* stat and logging */
                 continue; }                 /* continue after 4xx NAK */
             i = atoi(q);
             (void) sprintf(temp,"313 %d; send %d bytes of data.",i,i);
-            (void) uftdstat(1,temp);
+            (void) uftdstat(1,temp);              /* stat and logging */
 
             /* eat the indicated number of bytes before next command  */
             i = uftddata(df,0,i);
@@ -452,7 +436,7 @@ int main(int argc,char*argv[])
               continue; } /* return n; ** should be errno */
 
             (void) sprintf(temp,"213 %d; received %d bytes of data.",i,i);
-            (void) uftdstat(1,temp);         /* ACK */
+            (void) uftdstat(1,temp);       /* ACK -- stat and logging */
             uftfile0.size += i;
             continue;                       /* ACK */
           }
@@ -465,7 +449,7 @@ int main(int argc,char*argv[])
                 continue; }                 /* continue after 4xx NAK */
             i = atoi(q);
             (void) sprintf(temp,"313 %d; send %d bytes of data.",i,i);
-            (void) uftdstat(1,temp);
+            (void) uftdstat(1,temp);              /* stat and logging */
 
             i = uftddata(ef,0,i);
             if (i < 0)
@@ -478,7 +462,7 @@ int main(int argc,char*argv[])
                 continue; }                 /* continue after 5xx NAK */
 
             (void) sprintf(temp,"213 %d; received %d bytes of data.",i,i);
-            (void) uftdstat(1,temp);          /* ACK */
+            (void) uftdstat(1,temp);       /* ACK -- stat and logging */
             continue;                         /* ACK */
           }
 
@@ -520,19 +504,18 @@ int main(int argc,char*argv[])
             if (chdir(UFT_SPOOLDIR) < 0) break;   /* FIXME: should be 5xx */
 
             /* all clear; kill the log file */
-            (void) close(tf);   tf = -1;
-            (void) unlink(tffn);
+            close(tf); uftlogfd = tf = -1; unlink(tffn);
             /* but don't bother clearing that string
                because we're about to reload it */
 
             /* and get another server sequence number */
             n = uftdnext();  if (n < 0) break;
             (void) sprintf(tffn,"%s/%04d.cf",UFT_SPOOLDIR,n);
-            tf = open(tffn,O_RDWR|O_CREAT,S_IRUSR|S_IWUSR);
+            uftlogfd = tf = open(tffn,O_RDWR|O_CREAT,S_IRUSR|S_IWUSR);
             if (tf < 0) break;
 #ifndef         UFT_ANONYMOUS
             (void) sprintf(temp,"118 SEQ=%04d (server)",n);
-            (void) uftdstat(1,temp);     /* ACK */
+            (void) uftdstat(1,temp);       /* ACK -- stat and logging */
 #endif
             continue;           /* ACK */
           }
@@ -566,16 +549,16 @@ int main(int argc,char*argv[])
             if (chdir(UFT_SPOOLDIR) < 0) break;   /* FIXME: should be 5xx */
 
             /* all clear; now kill the log file */
-            close(tf); tf = -1; unlink(tffn);
+            close(tf); uftlogfd = tf = -1; unlink(tffn);
 
             /* and get another server sequence number */
             n = uftdnext();  if (n < 0) break;
             (void) sprintf(tffn,"%s/%04d.cf",UFT_SPOOLDIR,n);
-            tf = open(tffn,O_RDWR|O_CREAT,S_IRUSR|S_IWUSR);
+            uftlogfd = tf = open(tffn,O_RDWR|O_CREAT,S_IRUSR|S_IWUSR);
             if (tf < 0) break;
 #ifndef         UFT_ANONYMOUS
             (void) sprintf(temp,"118 SEQ=%04d (server)",n);
-            (void) uftdstat(1,temp);     /* ACK */
+            (void) uftdstat(1,temp);       /* ACK -- stat and logging */
 #endif
 
             continue;           /* ACK */
@@ -610,7 +593,7 @@ int main(int argc,char*argv[])
                           case 2: case 3: case 4: case 5:
                               r = cpqstr; while (*r > ' ') r++;
                                           while (*r == ' ') r++;
-                              uftdstat(1,r);
+                              uftdstat(1,r);      /* stat and logging */
                               break;
                           default:
                               uftdstat(1,"500 internal error");
