@@ -7,7 +7,7 @@
 #
 
 APPLID          =       uft
-VERSION         =       1.11
+VERSION         =       1.11.1
 DELIVERABLES    =       uftd sf rls rcv uftcndd tell
 SOURCEURL       =       https://raw.githubusercontent.com/trothtech/uft/refs/heads/main
 #                       https://raw.githubusercontent.com/trothtech/uft/master
@@ -31,11 +31,11 @@ all:		$(DELIVERABLES)
 
 uftd:		makefile uftd.o \
 			uftdnext.o uftddata.o uftduser.o \
-			uftdmove.o uftdimsg.o uftdlmsg.o uftdlist.o \
+			uftdmove.o uftdimsg.o uftdlmsg.o uftdlist.o uftdcpq.o \
 			abbrev.o tcpio.o aecs.o uftlib.o xmitmsgx.o
 		$(CC) $(LDFLAGS) -o uftd uftd.o \
 			uftdnext.o uftddata.o uftduser.o \
-			uftdmove.o uftdimsg.o uftdlmsg.o uftdlist.o \
+			uftdmove.o uftdimsg.o uftdlmsg.o uftdlist.o uftdcpq.o \
 			abbrev.o tcpio.o aecs.o uftlib.o xmitmsgx.o $(LIBS)
 
 uftdnext.o:	makefile uft.h uftdnext.c
@@ -59,8 +59,11 @@ uftdlmsg.o:	makefile uft.h uftdlmsg.c
 uftdlist.o:	makefile uft.h uftdlist.c
 		$(CC) $(CFLAGS) -c uftdlist.c
 
+uftdcpq.o:	makefile uft.h uftdcpq.c
+		$(CC) $(CFLAGS) -o uftdcpq.o -c uftdcpq.c
+
 uftd.o: 	makefile uft.h uftd.c
-		$(CC) $(CFLAGS) -c uftd.c
+		$(CC) $(CFLAGS) -o uftd.o -c uftd.c
 
 sf:		makefile uftc.o \
 			uftctext.o uftcprot.o \

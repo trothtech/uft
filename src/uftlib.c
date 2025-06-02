@@ -1001,6 +1001,23 @@ int uftx_atoi(char*s)
     return i;
   }
 
+/* ------------------------------------------------------------ UFTDL699
+ *    Loop on multiline content returning 699 replies to the client.
+ */
+int uftdl699(int s,char*b)
+  { static char _eyecatcher[] = "uftdl699()";
+    int i;
+    char *p, pb[256];
+    while (*b != 0x00)
+      { p = pb; i = 4;
+        *p++ = '6'; *p++ = '9'; *p++ = '9'; *p++ = ' ';
+        while (*b >= ' ' && i < sizeof(pb)-1) { *p++ = *b++; i++; }
+        *p = 0x00;
+        uftdstat(s,pb);
+        if (*b != 0x00) b++;
+      }
+  }
+
 /* ------------------------------------------------------------ MSGWRITE
  *  Try stock UNIX 'write' command if local user.                DEFUNCT
  */

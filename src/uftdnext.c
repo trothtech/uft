@@ -1,4 +1,4 @@
-/* Copyright 1995-2025 Richard M. Troth, all rights reserved.  <plaintext>
+/* Copyright 1995-2025 Richard M. Troth, all rights reserved. <plaintext>
  *
  *        Name: uftdnext.c
  *              Unsolicited File Transfer daemon "next" routine

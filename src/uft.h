@@ -1,7 +1,7 @@
 /* © Copyright 1995, 2005, 2025 Richard M. Troth, all rights reserved. <plaintext>
  *
- *        Name: uft.h
- *              Unsolicited File Transfer general C code header
+ *        Name: uft.h (C program header)
+ *              Unsolicited File Transfer common header for all C code
  *      Author: Richard Troth, Houston, Texas, USA
  *        Date: 1995-Jan-15, 2005-Jun-05
  */
@@ -17,7 +17,7 @@
 
 /* the version number and copyright */
 #define         UFT_PROTOCOL    "UFT/2"
-#define         UFT_VERSION     "POSIXUFT/1.11"
+#define         UFT_VERSION     "POSIXUFT/1.11.1"
 #define         UFT_COPYRIGHT   "© Copyright 1995-2025 Richard M. Troth"
 #define         UFT_VRM         "1.11.1"
 #define   UFT_VERINT   (((1) << 24) + ((11) << 16) + ((1) << 8) + (0))
@@ -178,7 +178,7 @@ time
 
 static char *uft_copyright = UFT_COPYRIGHT;
 
-/* © Copyright 1996, Richard M. Troth, all rights reserved.  <plaintext>
+/* © Copyright 1996, Richard M. Troth, all rights reserved. <plaintext>
  *
  *        Name: msghndlr.h
  *              header file for  msgd.c  and  msgcat.c
@@ -322,6 +322,11 @@ int uftd_agck(char*);
 int uftx_proxy(char*,char*,int*);
 int uft_stat(char*,struct UFTSTAT*);
 int uftx_atoi(char*);
+
+void uftdstat(int,char*);
+
+int uftdcpq(char*,char*,int);
+int uftdl699(int,char*);
 
 #define         _UFT_HEADER_
 #endif

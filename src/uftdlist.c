@@ -22,9 +22,9 @@
 
 /*  there's gotta be a better way to do this than to hard-code it!  */
 static  char  *mon[]  =
-                {       "Jan",  "Feb",  "Mar","Apr",
-                        "May",  "Jun",  "Jul","Aug",
-                        "Sep",  "Oct",  "Nov","Dec"  } ; 
+                {       "Jan", "Feb", "Mar", "Apr",
+                        "May", "Jun", "Jul", "Aug",
+                        "Sep", "Oct", "Nov", "Dec"  } ;
 /*  but I haven't learned enough UNIX yet
     to know where months are localized ... what headers? functions?  */
 

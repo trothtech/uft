@@ -24,7 +24,7 @@
  */
 
 /*  set some initial values  */
-vrm0 = "1.11"                   /* to coincide with the POSIX version */
+vrm0 = "1.11.1"                 /* to coincide with the POSIX version */
 
 /*  identify this stage  */
 Parse Source . . arg0 .
@@ -359,12 +359,12 @@ Do Forever
             Parse Value _cpq(cpq) With rc rs
             If rc = 0 Then Do
                 'CALLPIPE VAR RS | SPLIT AT x15' ,
-                    '| SPEC /199 / 1 1-* NEXT | *.OUTPUT:'
+                    '| SPEC /699 / 1 1-* NEXT | *.OUTPUT:'
                 'CALLPIPE COMMAND XMITMSG 200 (APPLID UFT' ,
                     'CALLER SRV NOHEADER | *.OUTPUT:'
             End ; Else Do
                 Parse Var cpq cpq .
-                'CALLPIPE COMMAND XMITMSG 470 CPQ (APPLID UFT' ,
+                'CALLPIPE COMMAND XMITMSG 433 CPQ (APPLID UFT' ,
                     'CALLER SRV NOHEADER | *.OUTPUT:'
             End /* If .. Do */
         End /* When .. Do */
@@ -916,8 +916,8 @@ Call Value var, val, "SESSION NSLOOKUP"
 Return val
 
 /* ----------------------------------------------------------------- CPQ
- *  selective 'cpq' logic
-               LOGMSG, USER user, USERS, NAMES, TIME, etc.
+ *    selective 'cpq' logic
+ *             LOGMSG, USER user, USERS, NAMES, TIME, etc.
  */
 _cpq: Procedure
 Parse Upper Arg a b .
@@ -936,7 +936,7 @@ Select /* a */
     When Abbrev("NAMES",a,1)    Then ,
         Parse Value DiagRC(08,"QUERY NAMES")   With 1 rc 10 . 17 rs
     When Abbrev("TIME",a,1)     Then ,
-        Parse Value DiagRC(08,"QUERY TIME")    With 1 rc 10 . 17 rs
+        Parse Value DiagRC(08,"QUERY TIME")    With 1 rc 10 . 17 rs '15'x .
     When Abbrev("USERS",a,1) & b = "" Then ,
         Parse Value DiagRC(08,"QUERY USERS")   With 1 rc 10 . 17 rs
     When Abbrev("USERS",a,1) & b ^= "" Then ,

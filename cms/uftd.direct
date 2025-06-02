@@ -1,18 +1,22 @@
-USER     UFTD     password  12M  32M BG
-* Requires class B for MSGNOH and DIAGD4, but will run satisfactorily
-* as class G.  DIAGD4 lets UFTD masquerade as RSCS,  which helps.
+USER     UFTD     password  32M   1G BG
+* Requires class B for MSGNOH and DIAGD4,
+* but will run satisfactorily as class G.
+* DIAGD4 lets UFTD masquerade as RSCS, which helps.
 * (VMSECURE will require that you grant SURROGATE priv's to UFTD
-* for DIAGD4 to work,  but again,  it *can* live without this)
+* for DIAGD4 to work, but again, it *can* live without this.)
 * It can probably run with as little as 6M virtual storage.
+* This sample CP Directory entry used to specify 12M virtual storage.
+*
  INCLUDE  CMS
 * The CMS "profile" should define virtual console, 190, 19E, etc.
-*:name.UFT/SIFT server :list.TCPIP RSCS
+*
  ACIGROUP gggggggg
  ACCOUNT  aaaaaaaa dist
  OPTION NOPDATA
 * NOPDATA allows UFTD to include useful information about the
 * files it processes in "hidden records" (no-op CCW records).
+*
  LINK     TCPMAINT  591  191 RR
-* You need to arrange for PROFILE EXEC to invoke UFTD EXEC.
  LINK     TCPMAINT  592  192 RR
+* You need to arrange for PROFILE EXEC to invoke UFTD EXEC.
 *

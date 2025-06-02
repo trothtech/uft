@@ -1,4 +1,4 @@
-/* Copyright 1995-2025 Richard M. Troth, all rights reserved.  <plaintext>
+/* Copyright 1995-2025 Richard M. Troth, all rights reserved. <plaintext>
  *
  *        Name: uftd.c
  *              Universal File Transfer daemon
@@ -595,11 +595,29 @@ int main(int argc,char*argv[])
             uftdstat(1,temp);            /* send ACK or NAK to client */
             continue; }                  /* continue after ACK or NAK */
 
+
+
         /* ---------------------------------------------- CPQ command */
         if (abbrev("CPQ",p,3))
-          { (void) sprintf(temp,"402 CPQ; CPQ not implemented.");
-            (void) uftdstat(1,temp);      /* signal 4xx NAK to client */
+          { int rc;             /* we might should have RC everywhere */
+            char cpqstr[256], *r;
+
+            rc = uftdcpq(q,cpqstr,sizeof(cpqstr)-1);
+            switch (rc) { case 0:
+                              uftdl699(1,cpqstr);
+                              uftdstat(1,"200 ACK");
+                              break;
+                          case 2: case 3: case 4: case 5:
+                              r = cpqstr; while (*r > ' ') r++;
+                                          while (*r == ' ') r++;
+                              uftdstat(1,r);
+                              break;
+                          default:
+                              uftdstat(1,"500 internal error");
+                              break; }
             continue; }                     /* continue after 4xx NAK */
+
+
 
         /* ---------------------------------------------- MSG command */
         if (abbrev("MSG",p,1))                /* p points to the verb */
