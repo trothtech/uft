@@ -10,62 +10,55 @@ The UFT client then sends commands, ending with `QUIT`.
 The UFT server responds to each command with a numeric code indicating
 acknowledgement (success) or negative acknowledgement (error or failure).
 
-
 ## UFT Primary Control Verbs
 
 * FILE
-* PIPE
 * USER
 * TYPE
+* META
 * DATA
-* AUXDATA
 * EOF
 * ABORT
-* META
 * QUIT
 
-`FILE` (or `PIPE`), `USER`, `TYPE`, and `DATA` are essential.
+## UFT Command Sequencing
+
+`FILE` must be the first command in a file transfer transaction.
+
+`USER` should follow `FILE` and indicatesthe intended recipieint.
+
+`TYPE` should follow `USER`.
+The `TYPE` command tells the receiving system how the file
+should be processed. (Plain text or binary or something else.)
+
+`META` must follow `TYPE`.
+At this point, the sender should provide any and all metadata,
+attributes of the file being sent comprising multiple `META` statements.
+
+Note that many older UFT clients may send attributes without the `META`
+prefix. Such attributes are listed below. Any attributes not so defined
+*must* be prefixed with `META` or should be rejected with a 400 series
+error code.
+
+`DATA` should come next, delivering the file contents.
+There can be any number of `DATA` statements. Each `DATA` command
+conveys part of the file (or perhaps all of it).
+
+`EOF` (end of file) must be sent when the whole file has been sent.
+The `EOF` statement triggers the receiving system to close the file
+and deliver it to the recipient.
+
+`ABORT` may be used to cancel a transaction and discard any content
+delivered up to that point. The `ABORT` command obviates `EOF`.
+
+`QUIT` terminates a session. When the receiving system gets `QUIT`
+it acknowledges the command and closes the connection.
+
+`FILE`, `USER`, `TYPE`, and `DATA` are essential.
 
 Note that `TYPE` might seem to be a meta command,
 but it remains a primary command because canonicalization is a
 central feature of UFT.
-
-A sample sequence might be ...
-* client connects
-* server sends the herald, a 200 code
-* client sends `FILE` *size* *from* *auth*
-* server acknowledges with a 200 code
-* client sends `USER` *recipient*
-* server acknowledges with a 200 code
-* client sends `TYPE A` indicating a plain text file
-* server acknowledges with a 200 code
-* client sends `DATA 12345`
-* server acknowledges with a 300 code, "feed me more" (the data)
-
-The server switches to "data mode" to consume the next 12345 bytes
-sent from the client.
-
-* client sends 12345 bytes of file content
-* server acknowledges with a 200 code and switches back to "command mode"
-* client sends `EOF`
-* server acknowledges with a 200 code
-* client sends `QUIT`
-* server acknowledges with a 200 code and closes its end of the connection
-* client closes its end of the connection
-
-The above transaction uses 6 primary commands and does not require any
-meta commands nor secondary commands. Simplicity is the first objective.
-
-## UFT Supplemental Commands
-
-* CPQ
-* MSG
-* AGENT
-* HELP
-* NOOP
-
-These are optional and not widely implemented.
-`CPQ` and `MSG` are specifically for emulating IBM "NJE" networking.
 
 ## UFT Meta Verbs
 
@@ -93,8 +86,20 @@ These are optional and not widely implemented.
 All of the above were originally implemented without the `META` prefix
 and there remain implementations which do not require `META` for these
 attribute commands. It is best for a server to tolerate either form.
-But new attributes or similar meta-data *must* be prefixed with `META`
+
+New attributes or similar new meta-data *must* be prefixed with `META`
 for clarity and for simplifying implementations.
+
+## UFT Supplemental Commands
+
+* CPQ
+* MSG
+* AGENT
+* HELP
+* NOOP
+
+These are optional and not widely implemented.
+`CPQ` and `MSG` are specifically for emulating IBM "NJE" networking.
 
 ## UFT Response Codes
 
@@ -151,5 +156,33 @@ developers and experimenters.
 
 Any type which a receiver does not recognize or implement should be
 treated as `TYPE I` or something which saves the data stream as-is.
+
+## Sample Transaction
+
+A sample sequence might be ...
+* client connects
+* server sends the herald, a 200 code
+* client sends `FILE` *size* *from* *auth*
+* server acknowledges with a 200 code
+* client sends `USER` *recipient*
+* server acknowledges with a 200 code
+* client sends `TYPE A` indicating a plain text file
+* server acknowledges with a 200 code
+* client sends `DATA 12345`
+* server acknowledges with a 300 code, "send me more" (the data)
+
+The server switches to "data mode" to consume the next 12345 bytes
+sent from the client.
+
+* client sends 12345 bytes of file content
+* server acknowledges with a 200 code and switches back to "command mode"
+* client sends `EOF`
+* server acknowledges with a 200 code
+* client sends `QUIT`
+* server acknowledges with a 200 code and closes its end of the connection
+* client closes its end of the connection
+
+The above transaction uses 6 primary commands and does not require any
+meta commands nor secondary commands. Simplicity is the first objective.
 
 
