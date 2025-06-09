@@ -13,7 +13,7 @@
  *              keep the original SENDFILE and call this one SIFT EXEC.
  */
 
-vrm = "1.11.1"                  /* to coincide with the POSIX version */
+vrm = "2.0"                     /* to coincide with the POSIX version */
 
 Address "COMMAND"
 

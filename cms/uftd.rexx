@@ -24,7 +24,7 @@
  */
 
 /*  set some initial values  */
-vrm0 = "1.11.1"                 /* to coincide with the POSIX version */
+vrm0 = "2.0"                    /* to coincide with the POSIX version */
 
 /*  identify this stage  */
 Parse Source . . arg0 .
@@ -354,7 +354,7 @@ Do Forever
         End /* When .. Do */
 
         /* a BITNETism, because I like it */
-        When verb = "CPQ"  Then Do
+        When Abbrev("CPQUERY",verb,3) Then Do
             Parse Upper Var line . cpq
             Parse Value _cpq(cpq) With rc rs
             If rc = 0 Then Do
