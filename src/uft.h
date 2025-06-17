@@ -17,23 +17,25 @@
 
 /* the version number and copyright */
 #define         UFT_PROTOCOL    "UFT/2"
-#define         UFT_VERSION     "POSIXUFT/1.11.1"
+#define         UFT_VERSION     "POSIXUFT/2.0"
 #define         UFT_COPYRIGHT   "© Copyright 1995-2025 Richard M. Troth"
-#define         UFT_VRM         "1.11.1"
-#define   UFT_VERINT   (((1) << 24) + ((11) << 16) + ((1) << 8) + (0))
+#define         UFT_VRM         "2.0"
+#define    UFT_VERINT    (((2) << 24) + ((0) << 16) + ((0) << 8) + (0))
 
 /* server constants */
 /* the SPOOLDIR has a sub-directory for each recipient */
 #ifndef         UFT_SPOOLDIR
-#define         UFT_SPOOLDIR    "/var/spool/uft"
+ #define        UFT_SPOOLDIR    "/var/spool/uft"
 #endif
 
 #ifndef         UFT_GID
-#define         UFT_GID         0
+ #define        UFT_GID         0
+ /* possibly follow UUCP for this number */
+ /* the TCP port for UUCP is 540 (see /etc/services) for one example  */
 #endif
 
 #ifndef         UFT_PIPESDIR
-#define         UFT_PIPESDIR    "/usr/libexec/uft"
+ #define        UFT_PIPESDIR    "/usr/libexec/uft"
 #endif
 
 /* the SEQuence file name may be platform dependent */
@@ -78,16 +80,16 @@ typedef struct  UFTFILE {
                 char    *efn;   /* ext attr file path */
                 char    *lfn;   /* log file path */
 
-                char    from[64],
-                        name[64],
+                char    from[64],       /* same in UFTSTAT struct     */
+                        name[64],       /* same in UFTSTAT struct     */
                         type[8],                /* should be one byte */
                         cc[8],                  /* should be one byte */
-                        hold[8],
+                        hold[8],                /* should be one byte */
                         class[8],               /* should be one byte */
-                        devtype[8], keep[4], msg[4],
-                        form[16], dist[16], dest[16];
-                int     size, copies;
-                char    title[64];
+                        devtype[8], keep[4], msg[4],   /* uft_rudev, uft_keep, uft_msg */
+                        form[16], dist[16], dest[16];         /* same */
+                int     size, copies;   /* uft_size, uft_nlink        */
+                char    title[64];      /* same in UFTSTAT struct     */
                         } UFTFILE ;             /* see also: UFTSTAT  */
 
 #define         UFT_B64_CODE    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
@@ -196,33 +198,34 @@ static char *uft_copyright = UFT_COPYRIGHT;
 #define         MSG_UFT_HOST            "localhost"
 #define         MSG_UFT_PORT            608
 
-/* the following struct is best used to describe a UFT file           */
+/* the following struct is best used to describe a UFT "spool file"   */
 typedef struct  UFTSTAT {
     int         uft_ino;        /* UFT spoolid */
     mode_t      uft_mode;       /* UFT "xperm" protection */
     int         uft_nlink;      /* UFT copy count, "copies" */
     uid_t       uft_uid;        /* UFT user ID of owner */
     gid_t       uft_gid;        /* UFT group ID of owner */
-    int         uft_size;       /* UFT "data" size, in bytes */
-    int         uft_blksize;    /* UFT blocksize (record length) */
-    time_t      uft_mtime;      /* UFT time of last mod, as sent */
+    int         uft_size;       /* UFT total "data" size, in bytes    */
+    int         uft_blksize;    /* UFT blocksize (record length)      */
+    time_t      uft_mtime;      /* UFT time of last mod, as sent      */
 
     char        uft_type,       /* UFT type (A, I, so on) */
                 uft_cc,         /* ASA, machine, or none */
                 uft_class,      /* "spool class" letter */
                 uft_rudev,      /* record-unit device type, "devtype" */
-                uft_hold,
-                uft_keep,
-                uft_msg,
+                uft_hold,       /* a z/VM or other mainframe concept  */
+                uft_keep,       /* a z/VM or other mainframe concept  */
+                uft_msg,        /* a z/VM or other mainframe concept  */
 
                 name[64],
                 from[64],
-                user[16],       /* from - parsed */
+                user[16],       /* from - parsed, NOT who it's to/for */
                 host[16],       /* from - parsed */
-                form[16],
-                dist[16],
-                dest[16],
-                title[64];
+
+                form[16],       /* z/VM, mainframe, or print concept  */
+                dist[16],       /* z/VM, mainframe, or print concept  */
+                dest[16],       /* z/VM, mainframe, or print concept  */
+                title[64];      /* z/VM, mainframe, or print concept  */
 
 /*
 tqcdhkm--- cpy user     host         size year mm dd time  sid  name
@@ -235,6 +238,9 @@ tqcdhkm--- cpy user     host         size year mm dd time  sid  name
 |\________ CC (Asa, Machine, none)
 \_________ type (I or A or N)
  */
+
+    char        sidp[64];               /* SID full path              */
+    void        *prev, *next;           /* pointers if chaining       */
                         } UFTSTAT ;
 
 /*
@@ -250,20 +256,11 @@ uft stat <spoolid> <varname>
 # size
 # dev
 #
-# from
-# class
-# form
-# hold|nohold
-# dist
-# dest
-# fcb
 
-uft_title == an arbitrary string labelling this file
 uft_ver == a version number or revision index
 uft_recfmt == F | V
 uft_reclen == record length
 
-uft_hold.html ==
 uft_host.html ==
 uft_name.html ==
 uft_note.html ==

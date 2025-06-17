@@ -41,6 +41,9 @@ int uftdcpq_cplevel(char*cpqstr,int cpqsl)
 //  uftdstat(1,cpqstr);                   /* return 6xx to the client */
 
     /* if we are on Linux then we have sysinfo */
+      /* /proc/uptime */
+      /* IPL at 2025-01-02 13:16:56 EDT */
+/* uptime 13:36:30  up 195 days 16:01,  3 users,  load average: 0.07, 0.03, 0.00 */
 
     return 0;
   }
@@ -97,6 +100,8 @@ int uftdcpq_indicate(char*cpqstr,int cpqsl)
 
 //  uftdstat(1,cpqstr);                   /* return 6xx to the client */
 
+/* uptime 13:36:30  up 195 days 16:01,  3 users,  load average: 0.07, 0.03, 0.00 */
+
     return 0;
   }
 
@@ -137,9 +142,6 @@ int uftdcpq_time(char*cpqstr,int cpqsl)
 
     char *wday[8] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", NULL };
 
-    char  *mon[]  = { "Jan", "Feb", "Mar", "Apr",
-                      "May", "Jun", "Jul", "Aug",
-                      "Sep", "Oct", "Nov", "Dec"  } ;
 
     struct tm *tmstamp;
     time_t tmval;
@@ -172,6 +174,7 @@ int uftdcpq_time(char*cpqstr,int cpqsl)
  */
 int uftdcpq_users(char*cpqstr,int cpqsl)
   { static char _eyecatcher[] = "uftdcpq_users()";
+/* uptime 13:36:30  up 195 days 16:01,  3 users,  load average: 0.07, 0.03, 0.00 */
     return 0;
   }
 
@@ -192,9 +195,9 @@ int uftdcpq(char*a,char*cpqstr,int cpqsl)
     char *msgv[4], msg2[16], *b;
 
     strncpy(msg2,a,sizeof(msg2)-1); msg2[sizeof(msg2)-1] = 0x00;
-    a = msg2; while (*a != 0x00)
+    a = msg2; while /* (*a != 0x00) */ (*a > ' ')
       { if (islower(*a)) *a = toupper(*a);   a++; }
-    a = msg2;
+    *a = 0x00; a = msg2;
 
     if (abbrev("CPLEVEL",a,3))  return uftdcpq_cplevel(cpqstr,cpqsl);
     if (abbrev("CPUID",a,3))    return uftdcpq_cpuid(cpqstr,cpqsl);

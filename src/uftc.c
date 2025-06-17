@@ -4,7 +4,7 @@
  *              Unsolicited File Transfer client
  *              *finally* an Internet SENDFILE for Unix
  *      Author: Rick Troth, Houston, Texas, USA
- *        Date: 1994-Jun-30, 1995-Jan-22
+ *        Date: 1994-Jun-30, 1995-Jan-22 ... and following
  *
  */
 
@@ -36,7 +36,6 @@ int main(int argc,char*argv[])
     mode_t      prot;
     struct tm *gmtstamp;
 
-
     /* note command name and set defaults */
     arg0 = uftx_basename(argv[0]);
     uftcflag = UFT_BINARY;      /* default */
@@ -45,57 +44,47 @@ int main(int argc,char*argv[])
     copy = 0;
     proxy = "";
 
-
     /* process command-line options */
     for (i = 1; i < argc && argv[i][0] == '-' &&
                             argv[i][1] != 0x00; i++)
       {
         switch (argv[i][1])
           {
+            case '?':   argc = i;       /* help                       */
+            case 'v':   case 'V':       /* verbose                    */
+                        uftcflag |= UFT_VERBOSE;
+                        break;
             case 'a':   case 'A':       /* ASCII (ie: plain text)     */
                         uftcflag &= ~UFT_BINARY;
                         type = "A";
                         break;
-
             case 'b':   case 'B':       /* BINARY                     */
             case 'i':   case 'I':       /* aka IMAGE                  */
                         uftcflag |= UFT_BINARY;
                         type = "I";
                         break;
-
 #ifdef  OECS
             case 'e':   case 'E':       /* EBCDIC (IBM plain text)    */
                         uftcflag |= UFT_BINARY;
                         type = "E";
                         break;
 #endif
-
             case 't':   case 'T':       /* sender-specified TYPE      */
                         i++;   
                         type = argv[i];
                         break;
-
             case 'n':   case 'N':       /* NAME of the file           */
                         i++;
                         name = argv[i];
                         break;
-
-            case '?':                   /* help                       */
-                        argc = i;
-            case 'v':   case 'V':       /* verbose                    */
-                        uftcflag |= UFT_VERBOSE;
-                        break;
-
             case 'c':   case 'C':       /* CLASS                      */
                         i++;   
                         class = argv[i];
                         break;
-
             case 'm':   case 'M':       /* TYPE=M for email           */
                         uftcflag &= ~UFT_BINARY;
                         type = "M";
                         break;
-
             case '#':   /* COPY -or- COPIES                           */
                         i++;    
                         copy = atoi(argv[i]);
@@ -105,7 +94,7 @@ int main(int argc,char*argv[])
             case '-':                          /* long format options */
                 if (abbrev("--version",argv[i],6) > 0)
                   { sprintf(temp,"%s: %s Internet SENDFILE client",
-                            arg0,UFT_VERSION);
+                                arg0,UFT_VERSION);
                     uftx_putline(2,temp,0);
                     return 0; } else           /* exit from help okay */
                 if (abbrev("--ascii",argv[i],5) > 0 ||
@@ -118,10 +107,8 @@ int main(int argc,char*argv[])
                 if (abbrev("--ebcdic",argv[i],8) > 0)
                   { uftcflag |= UFT_BINARY; type = "E"; } else
 #endif
-
                 if (abbrev("--proxy",argv[i],7) > 0)
                   { i++; proxy = argv[i]; } else
-
                 if (abbrev("--type",argv[i],6) > 0)
                   { i++; type = argv[i]; } else
                 if (abbrev("--name",argv[i],6) > 0)
@@ -130,13 +117,21 @@ int main(int argc,char*argv[])
                   { uftcflag |= UFT_VERBOSE; } else
                 if (abbrev("--class",argv[i],4) > 0)
                   { i++; class = argv[i]; } else
+/*                          --dest
+                            --dist --ms --mailstop
+                            --form
+                            --title                                   */
                 if (abbrev("--mail",argv[i],6) > 0 ||
                     abbrev("--email",argv[i],4) > 0)
                   { uftcflag &= ~UFT_BINARY; type = "M"; } else
                 if (abbrev("--copy",argv[i],4) > 0 ||
                     abbrev("--copies",argv[i],4) > 0)
-                  { i++; copy = atoi(argv[i]); }
-                        break;
+                  { i++; copy = atoi(argv[i]); } else
+                  { sprintf(temp,"%s: invalid option %s",
+                                arg0,argv[i]);
+                    uftx_putline(2,temp,0);
+                    return 1; }             /* exit on invalid option */
+                    break;
 /* ------------------------------------------------------------------ */
 
             default:    (void) sprintf(temp,"%s: invalid option %s",
@@ -147,7 +142,6 @@ int main(int argc,char*argv[])
           }
       }
 
-
     /* announcement (iff verbose option requested) */
     if (uftcflag & UFT_VERBOSE)
       {
@@ -157,7 +151,7 @@ int main(int argc,char*argv[])
 
     /* be sure we still have enough args (min 2) left over */
     if ((argc - i) < 2)
-      {
+      { /* (void) system("xmitmsg -2 386"); */
         (void) sprintf(temp,
                 "Usage: %s [ -a | -i ] <file> [to] <someone>",arg0);
         (void) uftx_putline(2,temp,0);
@@ -222,7 +216,6 @@ int main(int argc,char*argv[])
     host = targ;              /* targ later used for the USER command */
     while (*host != 0x00 && *host != '@') host++;
     if (*host == '@') *host++ = 0x00; else host = "localhost";
-
 
     (void) sprintf(temp,"%s:%d",host,UFT_PORT);
 
@@ -434,14 +427,8 @@ int main(int argc,char*argv[])
         -i  image (binary)
 
         -#  copies
-        -c  class
-        -ms  dist  (aka "mail stop")
         -q
         -f
-
-        DEST
-        UCS
-        FCB
  */
 
 

@@ -900,6 +900,11 @@ int uftx_proxy(char*host,char*prox,int*fd)
 /* ------------------------------------------------------------ UFT_STAT
  *    This routine parses a UFT "control file" on the receiving host.
  *    Compare with standard Unix/POSIX stat() system call.
+ *
+ *        Note: a UFT "spool file" should not have ".cf" or ".df"
+ *              or similar qualifiers. It should be numeric, four digits
+ *              (unless more digits are needed), and comprised of
+ *              (at least) the ".cf" and ".df" physical Unix files.
  */
 int uft_stat(char*sid,struct UFTSTAT*us)
   { static char _eyecatcher[] = "uft_stat()";
@@ -909,17 +914,20 @@ int uft_stat(char*sid,struct UFTSTAT*us)
     /* take the spool ID as numeric (akin to the inode in stat)       */
     us->uft_ino = atoi(uftx_basename(sid));
 
-    /* process the spool ID into a filename (relative or absolute)    */
-    if (*sid == '/') snprintf(sn,sizeof(sn)-1,"%s.cf",sid);
-    else snprintf(sn,sizeof(sn)-1,"%s/%s/%s.cf",
-                               UFT_SPOOLDIR,uftx_user(),sid);
+    /* process the spool ID into a pathname, ultimately absolute      */
+    if (*sid == '/') strncpy(us->sidp,sid,sizeof(us->sidp)-1);
+               else snprintf(us->sidp,sizeof(us->sidp)-1,
+                     "%s/%s/%04d",UFT_SPOOLDIR,uftx_user(),us->uft_ino);
+
+    /* construct the full path to the name of the control file        */
+    snprintf(sn,sizeof(sn)-1,"%s.cf",us->sidp);
 
     /* try to open the control file and load it into memory           */
     rc = fd = open(sn,O_RDONLY);
-    if (rc < 0) return rc;
+    if (rc < 0) { us->sidp[0] = 0x00; return rc; }
     rc = cl = read(fd,cb,sizeof(cb)-1);
     e = errno; close(fd); errno = e;
-    if (rc < 0) return rc;
+    if (rc < 0) { us->sidp[0] = 0x00; return rc; }
     cb[cl] = 0x00;
 
     /* process the control file into a POSIX-like "environment" block */
@@ -929,7 +937,7 @@ int uft_stat(char*sid,struct UFTSTAT*us)
         if (*p != '\'') *q++ = *p;
         p++; i++; }
     *q++ = 0x00;
-    *q++ = 0x00;
+    *q++ = 0x00;        /* double null marks end of environment block */
 
 /*  us->uft_mode;       ** UFT "xperm" protection */
 
@@ -940,10 +948,11 @@ int uft_stat(char*sid,struct UFTSTAT*us)
 
     /* SIZE is taken from the FILE statement and is an estimate       */
     us->uft_size = uftx_atoi(uftx_getenv("SIZE",cb));
+    /* we should change this to stat() the .df file for more accuracy */
 
 /*  us->uft_blksize     ** akin to LRECL */
 
-/*  us->uft_mtime       ** time stamp */
+/*  us->uft_mtime       ** time stamp (of the original, if provided)  */
 
     /* TYPE is the most important attribute and may be followed by cc */
     p = uftx_getenv("TYPE",cb);
@@ -957,22 +966,32 @@ int uft_stat(char*sid,struct UFTSTAT*us)
     if (p != 0x0000 && *p != 0x00)
       { us->uft_class = *p++;
         if (*p == ' ') p++;
-        if (*p == 'P' && *p == 'p') p++;
+        if (*p == 'P' && *p == 'p') p++;   /* PRT ==> R and PUN ==> U */
         us->uft_rudev = *p; }
 
-/*  us->uft_hold        ** mostly a VM or other mainframe concept     */
+    /* us->uft_hold         ** mostly a VM or other mainframe concept */
+    p = uftx_getenv("HOLD",cb);
+    if (p != 0x0000 && *p != 0x00) us->uft_hold = *p;
 
-/*  us->uft_keep        ** mostly a VM or other mainframe concept     */
+    /* us->uft_keep         ** mostly a VM or other mainframe concept */
+    p = uftx_getenv("KEEP",cb);
+    if (p != 0x0000 && *p != 0x00) us->uft_keep = *p;
 
-/*  us->uft_msg         ** mostly a VM or other mainframe concept     */
+    /* us->uft_msg          ** mostly a VM or other mainframe concept */
+    p = uftx_getenv("MSG",cb);
+    if (p != 0x0000 && *p != 0x00) us->uft_msg = *p;
 
     /* NAME is optional (but needed when you actually receive)        */
     strncpy(us->name,uftx_getenv("NAME",cb),sizeof(us->name)-1);
 
     p = uftx_getenv("DATE",cb);
+/*  strncpy(                                                          */
     p = uftx_getenv("PROT",cb);
+/*  strncpy(                                                          */
     p = uftx_getenv("USER",cb);
+/*  strncpy(                                                          */
     p = uftx_getenv("XDATE",cb);
+/*  strncpy(                                                          */
 
     /* best figuring of sending user and sending host using several   */
     strncpy(us->from,uftx_getenv("REMOTE",cb),sizeof(us->from)-1);
@@ -982,6 +1001,24 @@ int uft_stat(char*sid,struct UFTSTAT*us)
     strncpy(us->host,p,sizeof(us->host)-1);
     if (us->from[0] != 0x00) strncpy(us->user,us->from,sizeof(us->user)-1);
                         else strncpy(us->user,uftx_getenv("FROM",cb),sizeof(us->user)-1);
+
+/*
+      TYPE              uft_type        TYPE
+      CC                uft_cc          TYPE (second token)
+      CLASS             uft_class       CLASS
+      devtype           uft_rudev       CLASS (second token)
+      HOLD              uft_hold        HOLD
+      KEEP              uft_keep        KEEP
+      MSG               uft_msg         MSG
+      COPY              uft_nlink       COPY | COPIES
+                        user            REMOTE | FROM
+                        host            REMOTE
+      date stamp on SID
+      SID               uft_ino
+      NAME              name            NAME
+ */
+    us->form[0] = 0x00; us->dist[0] = 0x00; us->dest[0] = 0x00;
+    us->title[0] = 0x00;
 
     return 0;
   }

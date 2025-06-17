@@ -65,12 +65,12 @@ int main(int argc,char*argv[])
             default:    (void) sprintf(msgbuf,"%s: invalid option %s",
                                 arg0,argv[i]);
                         (void) uftx_putline(2,msgbuf,0);
-                        return 1;
+                        return 1;           /* exit on invalid option */
                         break;
           }
       }
 
-    /*  confirm sufficient arguments  */
+    /* be sure we still have enough args (min 2) left over */
     if (argc < 2)
       { /* (void) system("xmitmsg -2 386"); */
         fprintf(stderr,"Missing operand(s).\n");

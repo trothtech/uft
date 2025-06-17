@@ -26,14 +26,14 @@
 *         Note: the following line is essential:
 & 3
 *
-0000      1.11.1
-0001      UFT/1.11.1 client (CMS)
-0002      UFT/1.11.1 server (z/VM)
+0000      2.0
+0001      UFT/2.0 client (CMS)
+0002      UFT/2.0 server (z/VM)
 0003    E Invalid option: &1
 0004      UFT/&1
 0005      UFT/&1 client
 0006      UFT/&1 server
-0007      1.11.1
+0007      2.0
 *008    X ........
 *009    X ........
 *010    X ........
@@ -50,7 +50,9 @@
   54    E Incomplete fileid specified
   70    E Invalid parameter &1
   92    I File (&1) spooled to &2 -- origin &3(&4) &5 &6 &7
+  93      File &1 received from &2 sent as &3
   94    I File &1 spooled to &2 origin &3
+  95      Note &1 received from &2
   96    I From &1(&2): &3
 *
 * spontaneous info messages (including deprecated UFT/1 herald)
@@ -75,6 +77,7 @@
 0145      145 &1 not logged on
 0153      153 &1 not in CP directory
 0185    I Active reader class empty (Next file &1 Class &2).
+ 199      199 &1
 *
 * help for curious telnetters and netcatters
 0101  01  101
@@ -194,6 +197,8 @@
 0567    E 567 User &1 is not enrolled
 0571    E 571 User &1 not available
 0597    E 597 User validation function &1 not found
+*
+ 699      699 &1
 *
  999      © Copyright 1995, 1997, 2025 Richard M. Troth, all rights reserved.
 *
