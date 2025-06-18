@@ -33,6 +33,9 @@
 
 #include <ctype.h>
 
+#define __USE_XOPEN
+#include <time.h>
+
 #ifdef          __OPEN_VM
  #ifndef        OECS
   #define       OECS
@@ -910,6 +913,8 @@ int uft_stat(char*sid,struct UFTSTAT*us)
   { static char _eyecatcher[] = "uft_stat()";
     int rc, fd, i, e, cl;
     char sn[256], cb[4096], *p, *q;
+    struct  stat  statbuf;
+    struct  tm  uft_stat_time;
 
     /* take the spool ID as numeric (akin to the inode in stat)       */
     us->uft_ino = atoi(uftx_basename(sid));
@@ -925,10 +930,16 @@ int uft_stat(char*sid,struct UFTSTAT*us)
     /* try to open the control file and load it into memory           */
     rc = fd = open(sn,O_RDONLY);
     if (rc < 0) { us->sidp[0] = 0x00; return rc; }
+    fstat(fd,&statbuf);
     rc = cl = read(fd,cb,sizeof(cb)-1);
     e = errno; close(fd); errno = e;
     if (rc < 0) { us->sidp[0] = 0x00; return rc; }
     cb[cl] = 0x00;
+    us->uft_stime = statbuf.st_mtime;
+
+    /* dummy out all single-byte fields in the struct                 */
+    us->uft_type = us->uft_cc = us->uft_class = us->uft_rudev =
+                   us->uft_hold = us->uft_keep = us->uft_msg = '-';
 
     /* process the control file into a POSIX-like "environment" block */
     i = 0; p = q = cb;
@@ -941,7 +952,7 @@ int uft_stat(char*sid,struct UFTSTAT*us)
 
 /*  us->uft_mode;       ** UFT "xperm" protection */
 
-    us->uft_nlink = 0;
+    us->uft_nlink = 1;       /* default is one copy (e.g., for print) */
     p = uftx_getenv("COPY",cb); if (*p == 0x00 || p == 0x0000)
     p = uftx_getenv("COPIES",cb); if (p != 0x0000)
     us->uft_nlink = uftx_atoi(p);
@@ -952,7 +963,12 @@ int uft_stat(char*sid,struct UFTSTAT*us)
 
 /*  us->uft_blksize     ** akin to LRECL */
 
+    us->uft_mtime = us->uft_stime;
 /*  us->uft_mtime       ** time stamp (of the original, if provided)  */
+    p = uftx_getenv("DATE",cb);
+    if (p != 0x0000 && *p != 0x00)
+      { strptime(p,"%F %T %Z",&uft_stat_time);
+        us->uft_mtime = mktime(&uft_stat_time); }
 
     /* TYPE is the most important attribute and may be followed by cc */
     p = uftx_getenv("TYPE",cb);
@@ -985,11 +1001,11 @@ int uft_stat(char*sid,struct UFTSTAT*us)
     strncpy(us->name,uftx_getenv("NAME",cb),sizeof(us->name)-1);
 
     p = uftx_getenv("DATE",cb);
-/*  strncpy(                                                          */
+/*  strncpy(us->date,,sizeof(us->date)-1);                            */
     p = uftx_getenv("PROT",cb);
 /*  strncpy(                                                          */
     p = uftx_getenv("USER",cb);
-/*  strncpy(                                                          */
+/*  strncpy(us->date,,sizeof(us->date)-1);                            */
     p = uftx_getenv("XDATE",cb);
 /*  strncpy(                                                          */
 

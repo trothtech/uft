@@ -158,7 +158,8 @@ int uftdcpq_time(char*cpqstr,int cpqsl)
             tmstamp->tm_hour,                  /* Hours        [0-23] */
             tmstamp->tm_min,                   /* Minutes      [0-59] */
             tmstamp->tm_sec,                   /* Seconds      [0-60] */
-            tmstamp->tm_zone,                  /* Timezone abbrev     */
+//          tmstamp->tm_zone,                  /* Timezone abbrev     */
+tzname[0],
             wday[tmstamp->tm_wday],            /* Day of week  [0-6]  */
             tmstamp->tm_year,                  /* Year - 1900         */
             tmstamp->tm_mon,                   /* Month        [0-11] */

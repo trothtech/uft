@@ -316,7 +316,7 @@ int main(int argc,char*argv[])
         sprintf(temp,"DATE %04d-%02d-%02d %02d:%02d:%02d %s",
                 gmtstamp->tm_year, gmtstamp->tm_mon,
                 gmtstamp->tm_mday, gmtstamp->tm_hour,
-                gmtstamp->tm_min, gmtstamp->tm_sec, "GMT");
+                gmtstamp->tm_min, gmtstamp->tm_sec, tzname[0]);
         if (uftcflag & UFT_VERBOSE) (void) uftx_putline(2,temp,0);
         i = tcpputs(s,temp);
         i = uftc_wack(r,temp,sizeof(temp));

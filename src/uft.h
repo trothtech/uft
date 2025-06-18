@@ -207,7 +207,8 @@ typedef struct  UFTSTAT {
     gid_t       uft_gid;        /* UFT group ID of owner */
     int         uft_size;       /* UFT total "data" size, in bytes    */
     int         uft_blksize;    /* UFT blocksize (record length)      */
-    time_t      uft_mtime;      /* UFT time of last mod, as sent      */
+    time_t      uft_mtime,      /* UFT time of last mod, as sent      */
+                uft_stime;      /* time stamp on spool file           */
 
     char        uft_type,       /* UFT type (A, I, so on) */
                 uft_cc,         /* ASA, machine, or none */
