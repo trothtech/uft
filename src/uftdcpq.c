@@ -38,8 +38,6 @@ int uftdcpq_cplevel(char*cpqstr,int cpqsl)
              cpquts.version,    /* -v, --kernel-version */
              cpquts.machine);   /* -m, --machine */
 
-//  uftdstat(1,cpqstr);                   /* return 6xx to the client */
-
     /* if we are on Linux then we have sysinfo */
       /* /proc/uptime */
       /* IPL at 2025-01-02 13:16:56 EDT */
@@ -66,7 +64,6 @@ int uftdcpq_cpuid(char*cpqstr,int cpqsl)
 
     snprintf(cpqstr,cpqsl,"CPUID = %s",uuid);
 
-
     return 0;
   }
 
@@ -79,8 +76,6 @@ int uftdcpq_files(char*cpqstr,int cpqsl)
     char uuid[256];
 
     snprintf(cpqstr,sizeof(cpqstr)-1,"FILES: N/A");
-
-//  uftdstat(1,cpqstr);                   /* return 6xx to the client */
 
     return 0;
   }
@@ -97,8 +92,6 @@ int uftdcpq_indicate(char*cpqstr,int cpqsl)
     char uuid[256];
 
     snprintf(cpqstr,sizeof(cpqstr)-1,"INDICATE: N/A");
-
-//  uftdstat(1,cpqstr);                   /* return 6xx to the client */
 
 /* uptime 13:36:30  up 195 days 16:01,  3 users,  load average: 0.07, 0.03, 0.00 */
 
@@ -148,7 +141,7 @@ int uftdcpq_time(char*cpqstr,int cpqsl)
 
     tmval = time(NULL);
     tmstamp = gmtime(&tmval);
-//  tmstamp = localtime(&tmval);
+/*  tmstamp = localtime(&tmval);                                   // */
 
     if (tmstamp->tm_year < 1900) tmstamp->tm_year += 1900;
     tmstamp->tm_mon = tmstamp->tm_mon + 1;
@@ -158,8 +151,8 @@ int uftdcpq_time(char*cpqstr,int cpqsl)
             tmstamp->tm_hour,                  /* Hours        [0-23] */
             tmstamp->tm_min,                   /* Minutes      [0-59] */
             tmstamp->tm_sec,                   /* Seconds      [0-60] */
-//          tmstamp->tm_zone,                  /* Timezone abbrev     */
-tzname[0],
+/*          tmstamp->tm_zone,                  // Timezone abbrev     */
+            tzname[0],
             wday[tmstamp->tm_wday],            /* Day of week  [0-6]  */
             tmstamp->tm_year,                  /* Year - 1900         */
             tmstamp->tm_mon,                   /* Month        [0-11] */
@@ -207,8 +200,8 @@ int uftdcpq(char*a,char*cpqstr,int cpqsl)
     if (abbrev("LOGMSG",a,3))   return uftdcpq_logmsg(cpqstr,cpqsl);
     if (abbrev("NAMES",a,1))    return uftdcpq_names(cpqstr,cpqsl);
     if (abbrev("TIME",a,1))     return uftdcpq_time(cpqstr,cpqsl);
-//  if (abbrev("USERS",a,5) && *b == 0x00) return uftdcpq_users(cpqstr,cpqsl);
-//  if (abbrev("USERS",a,1) && *b != 0x00) return uftdcpq_user(cpqstr,cpqsl,b);
+/*  if (abbrev("USERS",a,5) && *b == 0x00) return uftdcpq_users(cpqstr,cpqsl); // */
+/*  if (abbrev("USERS",a,1) && *b != 0x00) return uftdcpq_user(cpqstr,cpqsl,b); // */
 
     /* otherwise return 433 "Invalid option"                          */
     msgv[1] = msg2;
@@ -225,15 +218,14 @@ int main(int argc,char*argv[])
     int rc;
     char cpqstr[256], *p;
 
-//  rc = uftdcpq("CPLEVEL",cpqstr,sizeof(cpqstr)-1);
-//  rc = uftdcpq("CPUID",cpqstr,sizeof(cpqstr)-1);
+/*  rc = uftdcpq("CPLEVEL",cpqstr,sizeof(cpqstr)-1);               // */
+/*  rc = uftdcpq("CPUID",cpqstr,sizeof(cpqstr)-1);                 // */
 
+/* #uftdcpq("FILES",cpqstr,sizeof(cpqstr)-1);                      // */
+/* #rc = uftdl699(1,cpqstr);                                       // */
 
-// #uftdcpq("FILES",cpqstr,sizeof(cpqstr)-1);
-// #rc = uftdl699(1,cpqstr);
-
-// #uftdcpq("INDICATE",cpqstr,sizeof(cpqstr)-1);
-// #rc = uftdl699(1,cpqstr);
+/* #uftdcpq("INDICATE",cpqstr,sizeof(cpqstr)-1);                   // */
+/* #rc = uftdl699(1,cpqstr);                                       // */
 
     rc = uftdcpq("LOGMSG",cpqstr,sizeof(cpqstr)-1);
     switch (rc) { case 0:
@@ -250,17 +242,17 @@ int main(int argc,char*argv[])
                       break; }
 return 0;
 
-//  rc = uftdcpq("NAMES",cpqstr,sizeof(cpqstr)-1);
-//  rc = uftdl699(1,cpqstr);
+/*  rc = uftdcpq("NAMES",cpqstr,sizeof(cpqstr)-1);                 // */
+/*  rc = uftdl699(1,cpqstr);                                       // */
 
-//  rc = uftdcpq("TIME",cpqstr,sizeof(cpqstr)-1);
-//  rc = uftdl699(1,cpqstr);
+/*  rc = uftdcpq("TIME",cpqstr,sizeof(cpqstr)-1);                  // */
+/*  rc = uftdl699(1,cpqstr);                                       // */
 
-// #uftdcpq("USERS",cpqstr,sizeof(cpqstr)-1);
-// #rc = uftdl699(1,cpqstr);
+/* #uftdcpq("USERS",cpqstr,sizeof(cpqstr)-1);                      // */
+/* #rc = uftdl699(1,cpqstr);                                       // */
 
-// #uftdcpq("USER",cpqstr,sizeof(cpqstr)-1);
-// #rc = uftdl699(1,cpqstr);
+/* #uftdcpq("USER",cpqstr,sizeof(cpqstr)-1);                       // */
+/* #rc = uftdl699(1,cpqstr);                                       // */
 
     rc = uftdcpq("blaH",cpqstr,sizeof(cpqstr)-1);
     switch (rc) { case 0:
@@ -275,7 +267,6 @@ return 0;
                   default:
                       uftdstat(1,"500 internal error");
                       break; }
-
 
     return 0;
   }
