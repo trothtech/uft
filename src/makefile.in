@@ -126,7 +126,7 @@ distclean:
 			*:* *';'* makefile Makefile makefile.old \
 			uft.spec configure.sh configure.h *.rpm *.log .rpmseq
 		rm -rf rpmbuild.d
-                sh -c ' cd xmitmsgx ; exec $(MAKE) distclean '
+		sh -c ' cd xmitmsgx ; exec $(MAKE) distclean '
 
 #makefile:	makefile.in configure
 #		@echo "$(MAKE): makefile is out of synch"

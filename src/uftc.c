@@ -313,6 +313,7 @@ int main(int argc,char*argv[])
         if (gmtstamp->tm_year < 1900)
             gmtstamp->tm_year += 1900;
         gmtstamp->tm_mon = gmtstamp->tm_mon + 1;
+/*                         %Y-%m-%d, the ISO 8601 date format         */
         sprintf(temp,"DATE %04d-%02d-%02d %02d:%02d:%02d %s",
                 gmtstamp->tm_year, gmtstamp->tm_mon,
                 gmtstamp->tm_mday, gmtstamp->tm_hour,

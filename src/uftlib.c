@@ -287,7 +287,7 @@ int uftd_fann(char*user,char*spid,char*from)
     l = sizeof(buffer) - 2;
 
     mv[1] = spid; mv[2] = user; mv[3] = from;
-    rc = uftx_message(q,l,1004,"SRV",4,mv);           /* change to 94 */
+    rc = uftx_message(q,l,94,"SRV",4,mv);          /* previously 1004 */
     if (rc < 0) return rc;
 
     while (*q != 0x00 && i < l) { *q++; i++; }
@@ -316,6 +316,13 @@ int uftd_fann(char*user,char*spid,char*from)
     p = "MSGFROM=";                          /* who is the file from? */
     while (*p != 0x00 && i < l) { *q++ = *p++; i++; }
     p = from;
+    while (*p != 0x00 && i < l) { *q++ = *p++; i++; }
+    if (i < l) { *q++ = 0x00; i++; }
+
+    /* indicate the "spool ID"                                        */
+    p = "UFTSPID=";
+    while (*p != 0x00 && i < l) { *q++ = *p++; i++; }
+    p = spid;
     while (*p != 0x00 && i < l) { *q++ = *p++; i++; }
     if (i < l) { *q++ = 0x00; i++; }
 
@@ -356,9 +363,7 @@ int uftd_fann(char*user,char*spid,char*from)
 char *uftx_user()
   { static char _eyecatcher[] = "uftx_user()";
     char       *u;
-    extern  char       *getenv();
 
-#ifndef _OE_SOCKETS
     struct passwd *pwdent;
 
     /*  first try effective uid key into passwd  */
@@ -368,7 +373,6 @@ char *uftx_user()
     /*  next try real uid key into passwd  */
     pwdent = getpwuid(getuid());
     if (pwdent) return pwdent->pw_name;
-#endif
 
     /*  thin ice,  try USER env var  */
     u = getenv("USER");
@@ -389,7 +393,6 @@ char *uftx_user()
 char *useridg()
   {
     char       *g;
-    extern  char       *getenv();
     struct passwd *pwdent;
 
     /*  if the user set one, take that  */
@@ -409,10 +412,6 @@ char *useridg()
   }
 #endif
 
-
-/**********************************************************************/
-
-
 /* © Copyright 1996, Richard M. Troth, all rights reserved.  <plaintext>
  *
  *        Name: imsg.c
@@ -424,8 +423,8 @@ char *useridg()
  *       To do: an option to issue IMSGs to others
  *
  *              An IMSG is a local thing.
- *              At this time,  IMSGs from  user@host
- *              are meaningless unles  host  is the local system.
+ *              At this time, IMSGs from user@host
+ *              are meaningless unles host is the local system.
  *
  */
   
@@ -967,7 +966,8 @@ int uft_stat(char*sid,struct UFTSTAT*us)
 /*  us->uft_mtime       ** time stamp (of the original, if provided)  */
     p = uftx_getenv("DATE",cb);
     if (p != 0x0000 && *p != 0x00)
-      { strptime(p,"%F %T %Z",&uft_stat_time);
+/*    { strptime(p,"%F %T %Z",&uft_stat_time);                        */
+      { strptime(p,"%Y-%m-%d %T %Z",&uft_stat_time);
         us->uft_mtime = mktime(&uft_stat_time); }
 
     /* TYPE is the most important attribute and may be followed by cc */
