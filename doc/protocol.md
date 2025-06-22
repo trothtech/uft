@@ -30,8 +30,12 @@ acknowledgement (success) or negative acknowledgement (error or failure).
 `TYPE` should follow `USER`.
 The `TYPE` command tells the receiving system how the file
 should be processed. (Plain text or binary or something else.)
+It takes one argument, a canonization indicator such as `A` or `I`.
 
-`META` must follow `TYPE`.
+`TYPE` optionally takes a second argument, a carriage control indicator.
+The CC indicator is meaningful for print material.
+
+`META`, including all meta statements, must follow `TYPE`.
 At this point, the sender should provide any and all metadata,
 attributes of the file being sent comprising multiple `META` statements.
 
@@ -86,6 +90,12 @@ central feature of UFT.
 All of the above were originally implemented without the `META` prefix
 and there remain implementations which do not require `META` for these
 attribute commands. It is best for a server to tolerate either form.
+
+`META CLASS` takes one argument, a spooling classification
+consisting of a single letter. It optionally takes a second argument
+indicating the type of "unit record" device applies to the file.
+All of this is relevant for environments and operating systems
+with integrated spooling systems such as IBM z/VM or IBM z/OS.
 
 New attributes or similar new meta-data *must* be prefixed with `META`
 for clarity and for simplifying implementations.
