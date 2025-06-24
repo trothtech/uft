@@ -254,8 +254,7 @@ int msgd_umsg(char*user,char*text,char*from)
         if (*bfh == '@') *bfh++ = 0x00;
 
         mv[1] = bfh; mv[2] = bff; mv[3] = text;    /* From &1(&2): &3 */
-        rc = uftx_message(buffer,sizeof(buffer)-1,8416,"SRV",4,mv);
-                                                      /* change to 96 */
+        rc = uftx_message(buffer,sizeof(buffer)-1,96,"SRV",4,mv);
 
 /* reusing p ... and this needs to be fixed in the XMM package */
         p = buffer; while (*p != ' ' && *p != 0x00) p++;
@@ -286,45 +285,39 @@ int uftd_fann(char*user,char*spid,char*from)
     q = buffer; i = 0;
     l = sizeof(buffer) - 2;
 
-    mv[1] = spid; mv[2] = user; mv[3] = from;
+    mv[0] = "";
+    mv[1] = spid; mv[2] = user; mv[3] = from;         /* three tokens */
     rc = uftx_message(q,l,94,"SRV",4,mv);          /* previously 1004 */
     if (rc < 0) return rc;
 
-    while (*q != 0x00 && i < l) { *q++; i++; }
-    if (i < l) { *q++ = 0x00; i++; }     /* but terminate here anyway */
+    while (*q != 0x00 && i < l) { q++; i++; }
+    if (i < l) { q++; i++; }      /* skip one more past end of string */
 
     /* we don't always care about the message type but we always tell */
-/*  p = "MSGTYPE=UMSG";         ** 1 - MSG       */
-/*  p = "MSGTYPE=WMSG";         ** 2 - WNG, WMSG */
-/*  p = "MSGTYPE=CMSG";         ** 3 - CPCONIO   */
-/*  p = "MSGTYPE=SMSG";         ** 4 - SMSG      */
-/*  p = "MSGTYPE=VMSG";         ** 5 - VMCONIO   */
-/*  p = "MSGTYPE=EMSG";         ** 6 - EMSG      */
     p = "MSGTYPE=IMSG";         /* 7 - IMSG      */
-/*  p = "MSGTYPE=FMSG";         ** 8 - SCIF      */
     while (*p != 0x00 && i < l) { *q++ = *p++; i++; }
-    if (i < l) { *q++ = 0x00; i++; }
+    if (i < l) { *q++ = 0x00; i++; }    /* terminate and skip pointer */
 
     /* this is obvious to the receiving user but we include it anyway */
     p = "MSGUSER=";                 /* who is this file to? (obvious) */
     while (*p != 0x00 && i < l) { *q++ = *p++; i++; }
     p = user;
     while (*p != 0x00 && i < l) { *q++ = *p++; i++; }
-    if (i < l) { *q++ = 0x00; i++; }
+    if (i < l) { *q++ = 0x00; i++; }    /* terminate and skip pointer */
 
     /* this is in the message but here too (varies from VM IMSG)      */
     p = "MSGFROM=";                          /* who is the file from? */
     while (*p != 0x00 && i < l) { *q++ = *p++; i++; }
     p = from;
     while (*p != 0x00 && i < l) { *q++ = *p++; i++; }
-    if (i < l) { *q++ = 0x00; i++; }
+    if (i < l) { *q++ = 0x00; i++; }    /* terminate and skip pointer */
 
     /* indicate the "spool ID"                                        */
     p = "UFTSPID=";
     while (*p != 0x00 && i < l) { *q++ = *p++; i++; }
     p = spid;
     while (*p != 0x00 && i < l) { *q++ = *p++; i++; }
-    if (i < l) { *q++ = 0x00; i++; }
+    if (i < l) { *q++ = 0x00; i++; }    /* terminate and skip pointer */
 
     /* double NULL marks end of environment variables                 */
     if (i < l) { *q++ = 0x00; i++; }
@@ -813,6 +806,15 @@ char*uftx_getenv(char*var,char*env)
 
     return p;
   }
+
+/*  p = "MSGTYPE=UMSG";         ** 1 - MSG       */
+/*  p = "MSGTYPE=WMSG";         ** 2 - WNG, WMSG */
+/*  p = "MSGTYPE=CMSG";         ** 3 - CPCONIO   */
+/*  p = "MSGTYPE=SMSG";         ** 4 - SMSG      */
+/*  p = "MSGTYPE=VMSG";         ** 5 - VMCONIO   */
+/*  p = "MSGTYPE=EMSG";         ** 6 - EMSG      */
+/*  p = "MSGTYPE=IMSG";         ** 7 - IMSG      */
+/*  p = "MSGTYPE=FMSG";         ** 8 - SCIF      */
 
 /* ------------------------------------------------------------ BASENAME
  *    Returns a pointer to the filename at the enf of a path.

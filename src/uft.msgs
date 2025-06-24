@@ -54,6 +54,7 @@
   94    I File &1 spooled to &2 origin &3
   95      Note &1 received from &2
   96    I From &1(&2): &3
+  97    I From &1: &2
 *
 * spontaneous info messages (including deprecated UFT/1 herald)
 0100      100 &1 UFT/1 VMCMSUFT/1.2.2 ready.
