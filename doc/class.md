@@ -17,13 +17,16 @@ a queuing device type.
 
 The format of the `META CLASS` command is:
 
-    META CLASS class [devtype]
+    [META] CLASS class [devtype]
 
 where
 
     class       is the canonization type
 
     devtype     is an optional format or "carriage control" indicator
+
+For historical reasons, `META` is not always required.
+Some older UFT servers will accept `CLASS` as a metadata statement.
 
 ## Command Response
 
