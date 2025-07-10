@@ -26,20 +26,20 @@
 *         Note: the following line is essential:
 & 3
 *
-0000      2.0
-0001      UFT/2.0 client (CMS)
-0002      UFT/2.0 server (z/VM)
+0000      2.0.2
+0001      UFT/2.0.2 client (CMS)
+0002      UFT/2.0.2 server (z/VM)
 0003    E Invalid option: &1
 0004      UFT/&1
 0005      UFT/&1 client
 0006      UFT/&1 server
-0007      2.0
+0007      2.0.2
 *008    X ........
 *009    X ........
 *010    X ........
 0011      VMCMSUFT/&1
 0012      POSIXUFT/&1
-*013    X ........
+0013      UFT/redacted
 *014    X ........
 *
   15    E Unknown &1 command
@@ -129,6 +129,7 @@
 0221      221 Service closing control connection.
 0222      222 &1 UFT/2 VMCMSUFT/&3 &4 ; ready.
 0223      223 &1 UFT/2 POSIXUFT/&3 &4 ; ready.
+0224      224 *anonymous UFT/2 UFT/redacted 0 ; ready.
 0230      230 Local username okay, proceed.
 0250      250 Requested file action okay, completed.
 *

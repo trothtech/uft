@@ -3,6 +3,7 @@
  *        Name: uftddata.c
  *              Unsolicited File Transfer daemon "data" routine
  *
+ *        NOTE: This source is due for merge into UFTD or UFTLIB.
  */
 
 #include <fcntl.h>

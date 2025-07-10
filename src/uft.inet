@@ -5,13 +5,13 @@
 # not needing to have any credentials on the receiving end.
 # ("unsolicited" file transfer, a.k.a.: sender-initiated file transfer)
 #
-service uft
+#service uft
+service sift-uft
 {
         port            = 608
         socket_type     = stream
         protocol        = tcp
         wait            = no
         user            = root
-#       server          = /usr/sbin/uftd
         server          = /usr/libexec/uftd
 }

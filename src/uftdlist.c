@@ -10,6 +10,8 @@
  *              but for "network files" available to the user
  *              rather than ordinary files in a filesystem.
  *
+ *        NOTE: This source is due for merge into UFTD or UFTLIB.
+ *        NOTE: This routine should switch to using UFTSTAT instead of UFTFILE.
  */
 
 #include        <string.h>

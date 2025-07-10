@@ -9,6 +9,7 @@
  *		Thanks to Bill Hunter at the University of Alabama
  *		for reporting certain problems with AIX here.
  *
+ *        NOTE: This source is due for merge into UFTD or UFTLIB.
  */
 
 #include <pwd.h>

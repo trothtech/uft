@@ -4,6 +4,8 @@
  *  This function performs as many read()s as needed until the requested
  *  number of bytes are acquired. This is how we explicitly discard
  *  any record structure that UNIX may have learned about.
+ *
+ *        NOTE: This source is due for merge into UFTD or UFTLIB.
  */
 
 #include <unistd.h>

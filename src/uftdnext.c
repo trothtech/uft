@@ -4,6 +4,7 @@
  *              Unsolicited File Transfer daemon "next" routine
  *              returns next available SEQuence number
  *
+ *        NOTE: This source is due for merge into UFTD or UFTLIB.
  */
 
 #include <stdio.h>

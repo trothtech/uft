@@ -5,6 +5,7 @@
  *	Author: Rick Troth, Houston, Texas, USA
  *	  Date: 1995-Oct-21
  *
+ *        NOTE: This source is due for merge into UFTD or UFTLIB.
  */
 
 #include	<stdio.h>

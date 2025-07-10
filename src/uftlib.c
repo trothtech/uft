@@ -36,15 +36,18 @@
 #define __USE_XOPEN
 #include <time.h>
 
+/* OpenVM is a POSIX environment for VM/CMS so set the OECS symbol    */
 #ifdef          __OPEN_VM
  #ifndef        OECS
   #define       OECS
  #endif
 #endif
 
+/* The following three lines are related to the XMITMSGX package      *
+ * which is maintained separately from the UFT package.               */
 #include "xmitmsgx/xmitmsgx.h"
-char *xmmprefix = PREFIX;
-static struct MSGSTRUCT uftmsgs;
+char *xmmprefix = PREFIX;            /* tells XMM to share our prefix */
+static struct MSGSTRUCT uftmsgs;      /* info for the message handler */
 
 #include "uft.h"
 
@@ -56,7 +59,9 @@ int uftlogfd = -1;
 
 /* ---------------------------------------------------------------------
  *    This routine handles message FORMATTING (not message delivery).
- *    It's a different way of doing gettext() type processing.
+ *    It's a different way of doing gettext() type processing
+ *    which is compatible with the 'XMITMSG' command and APPLMSG macro
+ *    from VM/CMS land. (POSIX UFT shares the same messages with CMS.)
  */
 int uftx_message(char*mo,int ml,                    /* buffer, buflen */
                  int mn,                            /* message number */
@@ -1056,6 +1061,27 @@ int uftx_atoi(char*s)
             default: i = i * 10 + (*s & 0x0F); break; }
         s++; }
     return i;
+  }
+
+/* ------------------------------------------------------------ READSPAN
+ *    Read a "spanning record". When reading from a pipe, the requested
+ *    number of bytes might not be available to just one read() call.
+ *    This function performs as many read()s as needed until the desired
+ *    number of bytes are acquired. This is how we explicitly discard
+ *    any record structure that UNIX may have learned about.
+ */
+
+int uft_readspan(int s,char*b,int c)
+  { static char _eyecatcher[] = "uft_readspan()";
+    int         i,  j;
+
+    for (j = 0; c > 0; )
+      { i = read(s,&b[j],c);
+        if (i < 0) return i;
+        if (i < 1) break;
+        j = j + i;
+        c = c - i; }
+    return j;
   }
 
 /* ------------------------------------------------------------ UFTDL699

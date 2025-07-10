@@ -1,6 +1,6 @@
 #
 # description: an RFC 1440 file receiver server
-# Note that the RFC is out of date. (Wanna help with the re-write?)
+# Note that the RFC is out of date.
 # This protocol provides a way to send files with the sending user
 # not needing to have any credentials on the receiving end.
 # ("unsolicited" file transfer, a.k.a.: sender-initiated file transfer)
@@ -12,6 +12,5 @@ service ufts
         protocol        = tcp
         wait            = no
         user            = root
-#       server          = /usr/sbin/uftd
         server          = /usr/libexec/uftd
 }

@@ -8,6 +8,7 @@
  * this routine cuts SYSLOG records something like
  *      mmm dd hh:mm:ss localhost uftd[]: ttt file nnn to uuu from fff
  *
+ *        NOTE: This source is due for merge into UFTD or UFTLIB.
  */
 
 #include <syslog.h>

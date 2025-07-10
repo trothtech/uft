@@ -18,13 +18,16 @@ cd `dirname "$0"`
 D=`pwd`
 
 # I wish the following two were not hard-coded
-APPLID="$1"
-if [ -z "$APPLID" ] ; then echo "missing APPLID - you're doing it wrong, drive this from 'make'" ; exit 1 ; fi
 
-#VERSION=`grep '^#define' uft.h | grep UFT_VERSION \
-#                        | awk -F\" '{print $2}' | awk -F/ '{print $2}'`
+APPLID="$1"
+if [ -z "$APPLID" ] ; then echo "rpmbuild: missing APPLID"
+    echo "rpmbuild: you're doing it wrong, drive this from 'make'"
+    exit 1 ; fi
+
 VERSION="$2"
-if [ -z "$VERSION" ] ; then echo "missing VERSION - you're doing it wrong, drive this from 'make'" ; exit 1 ; fi
+if [ -z "$VERSION" ] ; then echo "rpmbuild: missing VERSION"
+    echo "rpmbuild: you're doing it wrong, drive this from 'make'"
+    exit 1 ; fi
 
 if [ ! -s .rpmseq ] ; then echo "1" > .rpmseq ; fi
 RELEASE=`cat .rpmseq`
@@ -56,7 +59,8 @@ rm -rf $STAGING
 
 #
 # configure the package normally
-./configure --prefix=/usr
+#./configure --prefix=/usr
+./configure --prefix=$PREFIX
 RC=$? ; if [ $RC -ne 0 ] ; then exit $RC ; fi
 
 #
@@ -74,8 +78,10 @@ RC=$? ; if [ $RC -ne 0 ] ; then exit $RC ; fi
 
 #
 # make it "properly rooted"
-mkdir $STAGING/usr
-mv $STAGING/*bin $STAGING/lib* $STAGING/share $STAGING/usr/.
+#mkdir $STAGING/usr
+mkdir $STAGING$PREFIX
+#mv $STAGING/*bin $STAGING/lib* $STAGING/share $STAGING/usr/.
+mv $STAGING/*bin $STAGING/lib* $STAGING/share $STAGING$PREFIX/.
 RC=$? ; if [ $RC -ne 0 ] ; then exit $RC ; fi
 
 #

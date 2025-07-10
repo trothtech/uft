@@ -4,6 +4,7 @@
  *              converts a stat() mode value into a 
  *              U:RWX, G:RWX, W:RWX, S:RWED formatted string 
  * 
+ *        NOTE: This source is due for merge into UFTD or UFTLIB.
  */ 
  
 #include        <sys/types.h>

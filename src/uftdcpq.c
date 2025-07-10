@@ -5,7 +5,10 @@
  *      Author: Rick Troth, Cedarville, Ohio, USA
  *        Date: 2025-05-30 (Friday)
  *
- *
+ *        Note: The purpose of this routine, and of the "CPQ" verb
+ *              in the protocol, is entirely for compatibility with
+ *              RSCS on z/VM. The responses provided are harmless
+ *              in a context where anonymity is not required.
  */
 
 #include <stdio.h>
@@ -23,11 +26,16 @@ z/VM Version 7 Release 3.0, service level 2401 (64-bit)
 Generated at 2024-03-22 17:29:19 EDT
 IPL at 2025-01-02 13:16:56 EDT
  */
-int uftdcpq_cplevel(char*cpqstr,int cpqsl)
-  { static char _eyecatcher[] = "uftdcpq_cplevel()";
+int uftdcpq_cplevel(char*cpqstr,int cpqsl)                 /* CPLEVEL */
+  { static char _eyecatcher[] = "uftdcpq_cplevel()";       /* CPLEVEL */
     int rc;
     struct utsname cpquts;
 
+#ifdef          UFT_ANONYMOUS
+    snprintf(cpqstr,cpqsl-1,"CPLEVEL: N/A");               /* CPLEVEL */
+#else
+
+    cpqstr[0] = 0x00;
     rc = uname(&cpquts);
     if (rc < 0) return rc;
 
@@ -43,6 +51,8 @@ int uftdcpq_cplevel(char*cpqstr,int cpqsl)
       /* IPL at 2025-01-02 13:16:56 EDT */
 /* uptime 13:36:30  up 195 days 16:01,  3 users,  load average: 0.07, 0.03, 0.00 */
 
+#endif
+
     return 0;
   }
 
@@ -50,10 +60,14 @@ int uftdcpq_cplevel(char*cpqstr,int cpqsl)
  *    ...
 CPUID = FF0818E885618000
  */
-int uftdcpq_cpuid(char*cpqstr,int cpqsl)
-  { static char _eyecatcher[] = "uftdcpq_cpuid()";
+int uftdcpq_cpuid(char*cpqstr,int cpqsl)                     /* CPUID */
+  { static char _eyecatcher[] = "uftdcpq_cpuid()";           /* CPUID */
     int fd, i;
     char uuid[256];
+
+#ifdef          UFT_ANONYMOUS
+    snprintf(cpqstr,cpqsl-1,"CPUID: N/A");                   /* CPUID */
+#else
 
     fd = open("/proc/sys/kernel/random/boot_id",O_RDONLY); if (fd < 0)
     fd = open("/proc/sys/kernel/random/uuid",O_RDONLY); if (fd < 0)
@@ -64,6 +78,8 @@ int uftdcpq_cpuid(char*cpqstr,int cpqsl)
 
     snprintf(cpqstr,cpqsl,"CPUID = %s",uuid);
 
+#endif
+
     return 0;
   }
 
@@ -71,8 +87,8 @@ int uftdcpq_cpuid(char*cpqstr,int cpqsl)
  *    not sure how to derive a 'CPQ FILES' response on Unix/Linux/POSIX
 FILES: 0016 RDR, 0001 PRT,   NO PUN
  */
-int uftdcpq_files(char*cpqstr,int cpqsl)
-  { static char _eyecatcher[] = "uftdcpq_files()";
+int uftdcpq_files(char*cpqstr,int cpqsl)                      /* FILES */
+  { static char _eyecatcher[] = "uftdcpq_files()";            /* FILES */
     char uuid[256];
 
     snprintf(cpqstr,sizeof(cpqstr)-1,"FILES: N/A");
@@ -87,8 +103,8 @@ MDC READS-000000/SEC WRITES-000000/SEC HIT RATIO-000%
 PAGING-3/SEC
 Q0-00001 Q1-00007           Q2-00002 EXPAN-002 Q3-00068 EXPAN-002
  */
-int uftdcpq_indicate(char*cpqstr,int cpqsl)
-  { static char _eyecatcher[] = "uftdcpq_indicate()";
+int uftdcpq_indicate(char*cpqstr,int cpqsl)               /* INDICATE */
+  { static char _eyecatcher[] = "uftdcpq_indicate()";     /* INDICATE */
     char uuid[256];
 
     snprintf(cpqstr,sizeof(cpqstr)-1,"INDICATE: N/A");
@@ -99,17 +115,22 @@ int uftdcpq_indicate(char*cpqstr,int cpqsl)
   }
 
 /* ----------------------------------------------------- UFTD_CPQ_LOGMSG
- *    motd
+ *    motd by any other name
  */
-int uftdcpq_logmsg(char*cpqstr,int cpqsl)
-  { static char _eyecatcher[] = "uftdcpq_logmsg()";
+int uftdcpq_logmsg(char*cpqstr,int cpqsl)                   /* LOGMSG */
+  { static char _eyecatcher[] = "uftdcpq_logmsg()";         /* LOGMSG */
     int fd, i;
+
+#ifdef          UFT_ANONYMOUS
+    snprintf(cpqstr,cpqsl-1,"LOGMSG: N/A");                 /* LOGMSG */
+#else
 
     fd = open("/etc/motd",O_RDONLY); if (fd < 0)
     strncpy(cpqstr,"N/A",cpqsl); else
       { i = read(fd,cpqstr,cpqsl); close(fd);
         if (i > 0) cpqstr[i] = 0x00; }
 
+#endif
 
     return 0;
   }
@@ -118,8 +139,8 @@ int uftdcpq_logmsg(char*cpqstr,int cpqsl)
  *    ...
 LCLEF02  - DSC , LTROTH1  - DSC , LSTAGE1  - DSC , ...
  */
-int uftdcpq_names(char*cpqstr,int cpqsl)
-  { static char _eyecatcher[] = "uftdcpq_names()";
+int uftdcpq_names(char*cpqstr,int cpqsl)                     /* NAMES */
+  { static char _eyecatcher[] = "uftdcpq_names()";           /* NAMES */
 
     strncpy(cpqstr,"N/A",cpqsl);
 
@@ -130,14 +151,17 @@ int uftdcpq_names(char*cpqstr,int cpqsl)
  *    ...
 TIME IS 16:45:28 EDT  FRIDAY 2025-05-30
  */
-int uftdcpq_time(char*cpqstr,int cpqsl)
-  { static char _eyecatcher[] = "uftdcpq_time()";
+int uftdcpq_time(char*cpqstr,int cpqsl)                       /* TIME */
+  { static char _eyecatcher[] = "uftdcpq_time()";             /* TIME */
 
     char *wday[8] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", NULL };
 
-
     struct tm *tmstamp;
     time_t tmval;
+
+#ifdef          UFT_ANONYMOUS
+    snprintf(cpqstr,cpqsl-1,"LOGMSG: N/A");                   /* TIME */
+#else
 
     tmval = time(NULL);
     tmstamp = gmtime(&tmval);
@@ -158,6 +182,7 @@ int uftdcpq_time(char*cpqstr,int cpqsl)
             tmstamp->tm_mon,                   /* Month        [0-11] */
             tmstamp->tm_mday);                 /* Day          [1-31] */
 
+#endif
 
     return 0;
   }
@@ -166,8 +191,8 @@ int uftdcpq_time(char*cpqstr,int cpqsl)
  *    ...
     53 USERS,      0 DIALED,      0 NET
  */
-int uftdcpq_users(char*cpqstr,int cpqsl)
-  { static char _eyecatcher[] = "uftdcpq_users()";
+int uftdcpq_users(char*cpqstr,int cpqsl)                     /* USERS */
+  { static char _eyecatcher[] = "uftdcpq_users()";           /* USERS */
 /* uptime 13:36:30  up 195 days 16:01,  3 users,  load average: 0.07, 0.03, 0.00 */
     return 0;
   }
@@ -176,8 +201,8 @@ int uftdcpq_users(char*cpqstr,int cpqsl)
  *    ...
 LTROTH1  - DSC
  */
-int uftdcpq_user(char*cpqstr,int cpqsl)
-  { static char _eyecatcher[] = "uftdcpq_user()";
+int uftdcpq_user(char*cpqstr,int cpqsl,char*user)        /* USER uuuu */
+  { static char _eyecatcher[] = "uftdcpq_user()";        /* USER uuuu */
     return 0;
   }
 
@@ -200,8 +225,8 @@ int uftdcpq(char*a,char*cpqstr,int cpqsl)
     if (abbrev("LOGMSG",a,3))   return uftdcpq_logmsg(cpqstr,cpqsl);
     if (abbrev("NAMES",a,1))    return uftdcpq_names(cpqstr,cpqsl);
     if (abbrev("TIME",a,1))     return uftdcpq_time(cpqstr,cpqsl);
-/*  if (abbrev("USERS",a,5) && *b == 0x00) return uftdcpq_users(cpqstr,cpqsl); // */
-/*  if (abbrev("USERS",a,1) && *b != 0x00) return uftdcpq_user(cpqstr,cpqsl,b); // */
+    if (abbrev("USERS",a,5) && *b == 0x00) return uftdcpq_users(cpqstr,cpqsl);
+    if (abbrev("USER",a,1) && *b != 0x00) return uftdcpq_user(cpqstr,cpqsl,b);
 
     /* otherwise return 433 "Invalid option"                          */
     msgv[1] = msg2;

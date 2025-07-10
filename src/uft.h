@@ -13,16 +13,19 @@
 
 #include "tcpio.h"
 
-/*       define UFT_ANONYMOUS to use 'uftd' via Tor                   */
+/*        Note: define UFT_ANONYMOUS to use 'uftd' via Tor            *
+ * What that does is mute certain announcements from UFTD which       *
+ * would render the server identifyable (means to de-anonymize it).   */
 
 /* the version number and copyright */
 #define         UFT_PROTOCOL    "UFT/2"
-#define         UFT_VERSION     "POSIXUFT/2.0"
+#define         UFT_VERSION     "POSIXUFT/2.0.2"
 #define         UFT_COPYRIGHT   "© Copyright 1995-2025 Richard M. Troth"
-#define         UFT_VRM         "2.0"
-#define    UFT_VERINT    (((2) << 24) + ((0) << 16) + ((0) << 8) + (0))
+#define         UFT_VRM         "2.0.2"
+#define    UFT_VERINT    (((2) << 24) + ((0) << 16) + ((2) << 8) + (0))
 
-/* server constants */
+/* server constants follow */
+
 /* the SPOOLDIR has a sub-directory for each recipient */
 #ifndef         UFT_SPOOLDIR
  #define        UFT_SPOOLDIR    "/var/spool/uft"
@@ -49,7 +52,8 @@
 #define         UFT_EXT_LIST            ".lf" /* 'ls -l' format */
 #define         UFT_EXT_WORK            ".wf"
 
-/* client constants */
+/* client constants follow */
+
 /* flag bits */
 #define         UFT_BINARY      0x8000
 #define         UFT_VERBOSE     0x4000
@@ -94,7 +98,7 @@ typedef struct  UFTFILE {
 
 #define         UFT_B64_CODE    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 
-/* RDR FILE >this< SENT FROM $from RDR WAS yadda yadda */
+/*    RDR FILE >this< SENT FROM $from RDR WAS yadda yadda */
 #define         UFT_TYPE_A_EXPANSION    "TXT" /* "ASCII" */ 
 #define         UFT_TYPE_B_EXPANSION    "BIN"
 #define         UFT_TYPE_C_EXPANSION    "PRT"
@@ -106,8 +110,9 @@ typedef struct  UFTFILE {
 #define         UFT_TYPE_U_EXPANSION    "BIN" /* "UNSPEC" */ 
 #define         UFT_TYPE_V_EXPANSION    "VAR" /* or "V16" */
 /*
-RDR FILE $FILE SENT FROM $RSCS RDR WAS #### ####
-xxx FILE nnnn  SENT FROM u@h
+      RDR FILE $FILE SENT FROM $RSCS RDR WAS #### ####
+      xxx FILE nnnn  SENT FROM u@h
+  93      File &1 received from &2 sent as &3
  */
 
 /* constants in support of IBM NETDATA encoding */
@@ -122,7 +127,10 @@ xxx FILE nnnn  SENT FROM u@h
 #define   UFT_ND_INMR06   "\xc9\xd5\xd4\xd9\xf0\xf6"   /* last record in transmission */
 #define   UFT_ND_INMR07   "\xc9\xd5\xd4\xd9\xf0\xf7"
 
-/* a struct for NETDATA processing */
+/* This is a struct for NETDATA processing.                           *
+ * The idea is to isolate "records" in Netdata speak from the stream  *
+ * and then reconstruct longer records (of the original file).        *
+ * See uftcndd.c source for additional comments.                      */
 typedef struct  UFTNDIO {
             void *buffer;
             int   bufmax;
@@ -186,6 +194,8 @@ static char *uft_copyright = UFT_COPYRIGHT;
  *              header file for  msgd.c  and  msgcat.c
  *      Author: Rick Troth, Houston, Texas, USA
  *        Date: 1994-Jul-26, 1996-Mar-24
+ *
+ *        Note: this is NOT for the message FORMATTER
  */
 
 /* flags */
@@ -198,7 +208,10 @@ static char *uft_copyright = UFT_COPYRIGHT;
 #define         MSG_UFT_HOST            "localhost"
 #define         MSG_UFT_PORT            608
 
-/* the following struct is best used to describe a UFT "spool file"   */
+/* The following struct is best used to describe a UFT "spool file".  *
+ * It is populated by uft_stat() and referenced by routines which     *
+ * routines which need to know attributes of a "spooled" UFT file.    *
+ * Some of the members are named to follow POSIX "stat" struct.       */
 typedef struct  UFTSTAT {
     int         uft_ino;        /* UFT spoolid */
     mode_t      uft_mode;       /* UFT "xperm" protection */
@@ -250,13 +263,6 @@ uft send <file> <target>
 uft list
 uft receive
 uft stat <spoolid> <varname>
-
-#
-# atime
-# ctime
-# size
-# dev
-#
 
 uft_ver == a version number or revision index
 uft_recfmt == F | V

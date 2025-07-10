@@ -5,6 +5,7 @@
  *		Moves control file contents accumulated thus far
  *		from server space into user space.
  *
+ *        NOTE: This source is due for merge into UFTD or UFTLIB.
  */
 
 #include <unistd.h>
