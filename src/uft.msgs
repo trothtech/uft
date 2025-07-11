@@ -26,14 +26,14 @@
 *         Note: the following line is essential:
 & 3
 *
-0000      2.0.2
-0001      UFT/2.0.2 client (CMS)
-0002      UFT/2.0.2 server (z/VM)
+0000      2.0.3
+0001      UFT/2.0.3 client (CMS)
+0002      UFT/2.0.3 server (z/VM)
 0003    E Invalid option: &1
 0004      UFT/&1
 0005      UFT/&1 client
 0006      UFT/&1 server
-0007      2.0.2
+0007      2.0.3
 *008    X ........
 *009    X ........
 *010    X ........

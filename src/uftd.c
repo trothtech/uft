@@ -156,9 +156,9 @@ int main(int argc,char*argv[])
 #endif
 
 /*  (void) sprintf(line,"112 %s %s %s %d ready.",                     */
-//  (void) sprintf(line,"222 %s %s %s %d ; ready.",
+/*  (void) sprintf(line,"222 %s %s %s %d ; ready.",                // */
 /* 222 ibmisv.marist.edu UFT/2 VMCMSUFT/1.10.5 ; ready.               */
-//              temp,UFT_PROTOCOL,UFT_VERSION,BUFSIZ);
+/*              temp,UFT_PROTOCOL,UFT_VERSION,BUFSIZ);             // */
 
     p = line;
     while (*p != 0x00 && *p != ' ') p++;    /* skip past message code */

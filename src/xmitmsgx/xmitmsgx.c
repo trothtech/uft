@@ -19,7 +19,6 @@
 #include <fcntl.h>
 #include <errno.h>
 
-#define __UU
 #include <syslog.h>
 
 #include <libgen.h>

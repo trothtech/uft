@@ -357,36 +357,50 @@ int uftd_fann(char*user,char*spid,char*from)
 
 /* -------------------------------------------------------------- USERID
  *    return login name from the best of several standard sources
+ *
+ *        Note: Size is limited to 63 characters because we force it
+ *              to lower case (ths is POSIX!) using a private buffer.
  */
 char *uftx_user()
   { static char _eyecatcher[] = "uftx_user()";
-    char       *u;
-
+    int i;
+    char *u;
+    static char ut[64];
     struct passwd *pwdent;
 
-    /*  first try effective uid key into passwd  */
+    u = "";
+
+    /* first try effective uid key into passwd */
+/*  if (*u == 0x00)                           this would be redundant */
     pwdent = getpwuid(geteuid());
-    if (pwdent) return pwdent->pw_name;
+    if (pwdent) u = pwdent->pw_name; if (u == 0x0000) u = "";
 
-    /*  next try real uid key into passwd  */
+    /* next try real uid key into passwd */
+    if (*u == 0x00) {
     pwdent = getpwuid(getuid());
-    if (pwdent) return pwdent->pw_name;
+    if (pwdent) u = pwdent->pw_name; if (u == 0x0000) u = ""; }
 
-    /*  thin ice,  try USER env var  */
-    u = getenv("USER");
-    if (u != 0x0000 && u[0] != 0x00) return u;
+    /* skating on thin ice: try USER environment variable */
+    if (*u == 0x00) {
+    u = getenv("USER"); if (u == 0x0000) u = ""; }
 
-    /*  last resort, try LOGNAME env var  */
-    u = getenv("LOGNAME");
-    if (u != 0x0000 && u[0] != 0x00) return u;
+    /* last resort: try LOGNAME environment variable */
+    if (*u == 0x00) {
+    u = getenv("LOGNAME"); if (u == 0x0000) u = ""; }
 
-    /*  give up!  */
-    return "";
+    /* force the username to lower case (ths is POSIX!) */
+    i = 0;
+    while (*u != 0x00 && i < sizeof(ut) - 1)
+      { if (isupper(*u)) ut[i] = tolower(*u);
+                    else ut[i] = *u;
+        i++; u++;
+      } ut[i] = 0x00;
+    return ut;
   }
 
 #ifndef _OE_SOCKETS
 /* ------------------------------------------------------------- USERIDG
- *  "g" for GECOS field, return personal name string, if available
+ *    "g" for GECOS field, return personal name string, if available
  */
 char *useridg()
   {

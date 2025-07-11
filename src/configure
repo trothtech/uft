@@ -75,7 +75,7 @@ case "$US" in
         if [ "$UM" = "arm64" ]; then
             echo "Configuring for macOS (ARM64 - Apple Silicon)"
             CFLAGS="$CFLAGS -fPIC"
-            LDFLAGS=
+            LDFLAGS=""
             SHFLAGS="-dynamiclib"
             SHLIB_EXT=".dylib"
         fi

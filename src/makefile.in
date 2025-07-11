@@ -7,7 +7,7 @@
 #
 
 APPLID          =       uft
-VERSION         =       2.0.2
+VERSION         =       2.0.3
 DELIVERABLES    =       uftd sf rls rcv uftcndd tell
 SOURCEURL       =       https://raw.githubusercontent.com/trothtech/uft/refs/heads/main
 #                       https://raw.githubusercontent.com/trothtech/uft/master
