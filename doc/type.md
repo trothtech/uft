@@ -28,8 +28,8 @@ where
 
 The usual response from `TYPE` is a 200 ACK.
 
-Not all UFT implementations support the *cc* parameter. <br/>
-Server implementations which do not support the *cc* parameter
+Not all UFT implementations support the cc parameter. <br/>
+Server implementations which do not support the cc parameter
 should respond with a 400 NAK.
 
 ## Command Sequencing

@@ -16,6 +16,7 @@ where
             The size specified need not be exact. (see below)
 
     from    is the sign-on name of the sending user
+            or the name of an equivalent sending entity
 
     auth    is an authentication token, best AGENT or a dash
 

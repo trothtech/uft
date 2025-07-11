@@ -20,7 +20,7 @@ is excluded from the META suite.
 
 ## Command Sequencing
 
-`META` should come after `TYPE` and *must* come after `USER`.
+`META` should come after `TYPE` and must come after `USER`.
 
 `META` must come before `DATA`.
 

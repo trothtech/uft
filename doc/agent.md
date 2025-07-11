@@ -16,11 +16,11 @@ This is a mind bender.
 
 The format of the `AGENT` command is:
 
-    AGENT *verifierstring*
+    AGENT verifierstring
 
 where
 
-    *verifierstring*
+    verifierstring
 
 is the peer verifier, a sort of "key", which is confirmed or denied
 by the UFT server which processes the command.

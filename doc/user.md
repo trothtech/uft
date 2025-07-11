@@ -15,7 +15,7 @@ The format of the `USER` command is:
 where
 
     user    is the name of the user or queue to receive the file
-            Quoting of special characters is not discussed.
+            Quoting or special characters are not discussed.
 
 ## Command Response
 

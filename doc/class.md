@@ -21,9 +21,9 @@ The format of the `META CLASS` command is:
 
 where
 
-    class       is the canonization type
+    class       is the class
 
-    devtype     is an optional format or "carriage control" indicator
+    devtype     is an optional  queuing device type
 
 For historical reasons, `META` is not always required.
 Some older UFT servers will accept `CLASS` as a metadata statement.
