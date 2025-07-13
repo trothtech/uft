@@ -197,7 +197,8 @@ int main(int argc,char*argv[])
       { size = 0;  mtime = 0;  prot = 0; }
 
     /* better peer authentication than IDENT is AGENT (see protocol)  */
-    fda = open("/var/run/uft/agent.key",O_RDONLY);
+    if (*proxy == 0x00) fda = open("/var/run/uft/agent.key",O_RDONLY);
+                   else fda = -1;
     if (fda >= 0)
       { i = read(fda,akey,sizeof(akey)-1);
         if (i > 0) akey[i] = 0x00;
