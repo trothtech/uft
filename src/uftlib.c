@@ -43,6 +43,10 @@
  #endif
 #endif
 
+#ifdef UFT_DO_SYSLOG
+ #include <syslog.h>
+#endif
+
 /* The following three lines are related to the XMITMSGX package      *
  * which is maintained separately from the UFT package.               */
 #include "xmitmsgx/xmitmsgx.h"
@@ -96,7 +100,8 @@ int uftx_message(char*mo,int ml,                    /* buffer, buflen */
 /* -------------------------------------------------------- User Message
  *  This routine attempts to deliver a message to a logged-on user.
  *  This is somewhat crude: we toss the work of finding the user
- *  and delivering the message to the 'write' command.
+ *  and delivering the message to the 'write' command. But be careful:
+ *  on MS Windows there is a completely different 'write' command.
  */
 int uftd_message(char*user,char*text)
   { static char _eyecatcher[] = "uftd_message()";
@@ -340,6 +345,12 @@ int uftd_fann(char*user,char*spid,char*from)
 
     /* -------- try brute force ------------------------------------- */
     rc = uftd_message(un,buffer);
+
+    /* -------- merge uftdlmsg logic here --------------------------- */
+#ifdef UFT_DO_SYSLOG
+    openlog("uftd",LOG_PID|LOG_CONS,LOG_UUCP);
+    syslog(LOG_INFO,"%s",buffer);
+#endif
 
     return rc;
   }

@@ -120,8 +120,10 @@ case "$US" in
 esac
 
 #
-# determine a locale
+# determine the locale
 if [ -z "$LOCALE" -a ! -z "$LANG" ] ; then LOCALE="$LANG" ; fi
+# perform locale clean-up
+LOCALE=`echo "$LOCALE" | awk -F. '{print $1}'`
 #LOCALE examples:
 #/usr/share/locale/
 #/usr/lib/nls/msg/

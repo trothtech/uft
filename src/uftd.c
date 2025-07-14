@@ -505,8 +505,8 @@ int main(int argc,char*argv[])
             (void) tcpputs(1,"200 ACK EOF");    /* ACK */
 
             /* notify the local user that a file has arrived -------- */
-            (void) uftdimsg(user,seqs,from,type);     /* IMSG 'write' */
-            (void) uftdlmsg(user,seqs,from,type);           /* SYSLOG */
+/*          (void) uftdimsg(user,seqs,from,type);  // see uftd_fann() */
+/*          (void) uftdlmsg(user,seqs,from,type);           // SYSLOG */
             (void) uftdlist(atoi(seqs),from);             /* ala 'ls' */
 
             seteuid(0);                      /* go back to being root */
@@ -554,7 +554,7 @@ int main(int argc,char*argv[])
             cffn[0] = 0x00;  wffn[0] = 0x00;
 
             /* at this point, signal ACK to client */
-            (void) tcpputs(1,"200 ACK ABORT");    /* ACK */
+            (void) tcpputs(1,"226 ACK ABORT");      /* "rollback" ACK */
 
             /* now lose the spoolid number, clear user, reset eUID    */
             n = -1;                    /* now lose the spoolid number */
