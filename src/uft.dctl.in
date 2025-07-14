@@ -1,0 +1,28 @@
+#
+#         Name: uft.dctl[.in] (Debian installer "control" file)
+#               required for Debian packaging
+#         Date: 2025-07-14 (Mon)
+#
+
+Package: %SPEC_APPLID%
+Version: %SPEC_VERSION%
+Maintainer: Rick Troth <rick@trothtech.us>
+Architecture: %SPEC_UNAMEM%
+Section: utils
+Priority: optional
+Description: Universal File Transfer (UFT)
+  UFT is Universal File Transfer, aka is Unsolicited File Transfer.
+  One may also call it "Internet SENDFILE" or "Internet TRANSMIT".
+  It does over TCP/IP what other tools do over IBM NJE protocol.
+
+#Essential
+#Depends: <put dependency packages here>
+#Homepage
+
+#BuildRoot: /tmp/uft
+#Prefix: %SPEC_PREFIX%
+#Provides: %SPEC_APPLID%
+
+#URL: http://www.casita.net/pub/uft/
+
+
