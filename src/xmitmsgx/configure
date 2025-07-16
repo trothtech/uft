@@ -75,7 +75,7 @@ case "$US" in
         if [ "$UM" = "arm64" ]; then
             echo "Configuring for macOS (ARM64 - Apple Silicon)"
             CFLAGS="$CFLAGS -fPIC"
-            LDFLAGS=
+            LDFLAGS=""
             SHFLAGS="-dynamiclib"
             SHLIB_EXT=".dylib"
         fi
@@ -101,6 +101,7 @@ case "$US" in
     Sun*|Sol*)
         UM=`uname -p`
         LIBS="-lsocket -lnsl"
+        SHFLAGS="$LDFLAGS -shared -Wl,-h"
         ;;
     OS390)              # OS/390, z/OS
         UM="s390x" # guessing! since both "s390x" and "s390" are viable
@@ -120,8 +121,10 @@ case "$US" in
 esac
 
 #
-# determine a locale
+# determine the locale
 if [ -z "$LOCALE" -a ! -z "$LANG" ] ; then LOCALE="$LANG" ; fi
+# perform locale clean-up
+LOCALE=`echo "$LOCALE" | awk -F. '{print $1}'`
 #LOCALE examples:
 #/usr/share/locale/
 #/usr/lib/nls/msg/

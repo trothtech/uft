@@ -9,7 +9,7 @@
 #
 
 APPLID          =       xmitmsgx
-VERSION         =       2.1.7
+VERSION         =       2.1.9
 
 DELIVERABLES    =       xmitmsg xmiterr xmmlogin libxmitmsgx.a libxmitmsgxdyn.so
 SOURCEURL       =       https://raw.githubusercontent.com/trothr/xmitmsgx/master
@@ -224,7 +224,7 @@ xmitmsgx.rpm:   xmitmsgx.spec
 
 #
 xmitmsgx.spec:  xmitmsgx.spec.in
-		@echo "$(MAKE): checking required variables"
+#		@echo "$(MAKE): checking required variables"
 #		test ! -z "$(UNAMEM)" # UNAMEM
 #		test ! -z "$(RELEASE)" # RELEASE
 #		test ! -z "$(STAGING)" # STAGING
@@ -242,7 +242,29 @@ xmitmsgx.spec.in:
 		@echo "$(MAKE): you need $@"
 		wget $(SOURCEURL)/$@
 
+
+########################################################################
+# DEB support
+
+xmitmsgx.deb:   xmitmsgx.dctl
+		./debbuild.sh $(APPLID) $(VERSION)
+
+xmitmsgx.dctl:  xmitmsgx.dctl.in
+		grep -v '#' xmitmsgx.dctl.in \
+		  | sed 's#%SPEC_PREFIX%#$(PREFIX)#g' \
+		  | sed 's#%SPEC_APPLID%#$(APPLID)#g' \
+		  | sed 's#%SPEC_VERSION%#$(VERSION)#g' \
+		  | sed 's#%SPEC_RELEASE%#$(RELEASE)#g' \
+		  | sed 's#%SPEC_UNAMEM%#$(UNAMEM)#g' \
+		  | sed 's#%SPEC_STAGING%#$(STAGING)#g' \
+		  | sed 's#%SPEC_LOCDIR%#$(LOCDIR)#g' \
+		  | sed 's#%SPEC_LOCALE%#$(LOCALE)#g' \
+		  | uniq > xmitmsgx.dctl
+
 #
+########################################################################
+#
+
 makefile:	makefile.in
 		@echo "$(MAKE): makefile is out of synch"
 		@echo "$(MAKE): you need to re-run ./configure"
@@ -268,12 +290,15 @@ errno.msgs:
 
 # reset things for a fresh build from source
 clean:
-		rm -f *.o *.a *.so *.dylib *.rpm *.class \
+		rm -f *.o *.a *.so *.dylib *.rpm *.deb *.log *.class \
 			msgtest xmsgtest xfortune xmiterr xmitmsg xmmlogin \
-			xmitmsgx.spec xmmjava.h
-		rm -rf rpmbuild.d
+			xmitmsgx.spec xmitmsgx.dctl xmmjava.h
 
-distclean:      clean
+distclean:
+		rm -f *.o *.a *.so *.dylib *.rpm *.deb *.log *.class \
+			msgtest xmsgtest xfortune xmiterr xmitmsg xmmlogin \
+			xmitmsgx.spec xmitmsgx.dctl xmmjava.h
+		rm -rf rpmbuild.d debbuild.d
 		@rm -f configure.h configure.sh makefile.old \
 		  xmmconfig.h xmmconfig.sh
 		@rm -f .rpmseq makefile

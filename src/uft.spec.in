@@ -20,7 +20,7 @@ Summary: Universal File Transfer (UFT)
 # the packaged software should be grouped with other packages.
 Group: Utilities/System
 
-#Source: https://github.com/trothr/uft/
+#Source: https://github.com/trothtech/uft/
 Source: uft-%{version}.tar.gz
 #Source: uft-%{SPEC_VERSION}.tar.gz
 #Copyright: Casita.Net

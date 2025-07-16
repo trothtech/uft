@@ -19,10 +19,10 @@
 
 /* the version number and copyright */
 #define         UFT_PROTOCOL    "UFT/2"
-#define         UFT_VERSION     "POSIXUFT/2.0.5"
+#define         UFT_VERSION     "POSIXUFT/2.0.6"
 #define         UFT_COPYRIGHT   "© Copyright 1995-2025 Richard M. Troth"
-#define         UFT_VRM         "2.0.5"
-#define    UFT_VERINT    (((2) << 24) + ((0) << 16) + ((5) << 8) + (0))
+#define         UFT_VRM         "2.0.6"
+#define    UFT_VERINT    (((2) << 24) + ((0) << 16) + ((6) << 8) + (0))
 
 /* server constants follow */
 

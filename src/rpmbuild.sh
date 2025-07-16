@@ -1,107 +1,94 @@
 #!/bin/sh
 #
-#         Name: rpmbuild.sh (shell script), originally buildrpm.sh
+#         Name: rpmbuild.sh (shell script)
 #               build an RPM from the "spec file"
-#         Date: 2024-03-17 (Sun) St. Patty's Day
-#     See also: script by similar name in the VMLINK package
+#         Date: 2023-03-22 (Wed)
+#
 #
 
-#PREFIX                 # set from $STAGING                            +
+#PREFIX                 # set from $STAGING
 #APPLID                 # taken from makefile, supplied as argument $1
 #VERSION                # taken from makefile, supplied as argument $2
-#RELEASE                # replaces RPMSEQ
 #UNAMEM                 # derived from `uname -m`
 #STAGING                # (see below)
 
 # run from the resident directory
 cd `dirname "$0"`
-D=`pwd`
 
-# I wish the following two were not hard-coded
-
+# two arguments from the makefile
 APPLID="$1"
 if [ -z "$APPLID" ] ; then echo "rpmbuild: missing APPLID"
     echo "rpmbuild: you're doing it wrong, drive this from 'make'"
     exit 1 ; fi
-
 VERSION="$2"
 if [ -z "$VERSION" ] ; then echo "rpmbuild: missing VERSION"
     echo "rpmbuild: you're doing it wrong, drive this from 'make'"
     exit 1 ; fi
 
-if [ ! -s .rpmseq ] ; then echo "1" > .rpmseq ; fi
-RELEASE=`cat .rpmseq`
-
 STAGING=`pwd`/rpmbuild.d
 
-#
-UNAMEM=`uname -m`
+# establish certain variables
 UNAMEM=`uname -m | sed 's#^i.86$#i386#' | sed 's#^armv.l$#arm#'`
-
-export UNAMEM RELEASE STAGING
+# RPM fixups
+if [ ! -s .rpmseq ] ; then echo "0" > .rpmseq ; fi
+RELEASE=`cat .rpmseq`
+export UNAMEM STAGING RELEASE
 
 #
 # we're moving more settings into the config artifacts
 . ./configure.sh
 # CFLAGS, PREFIX, SYSTEM, LDFLAGS, SHFLAGS, LOCDIR, LOCALE
+if [ -z "$MAKE" ] ; then MAKE=make ; fi
 
 #
-# process the skeletal spec file into a usable spec file
-rm -f uft.spec
-make STAGING=$STAGING UNAMEM=$UNAMEM RELEASE=$RELEASE uft.spec
+# process the skeletal spec file into a usable RPM spec file
+rm -f $APPLID.spec
+$MAKE STAGING=$STAGING UNAMEM=$UNAMEM RELEASE=$RELEASE $APPLID.spec
 RC=$? ; if [ $RC -ne 0 ] ; then exit $RC ; fi
-
-#
-# clean up from any prior run
-make clean 1> /dev/null 2> /dev/null
-rm -rf $STAGING
-#find . -print | grep ';' | xargs -r rm
 
 #
 # configure the package normally
-#./configure --prefix=/usr
-./configure --prefix=$PREFIX
+./configure # --prefix=$PREFIX
 RC=$? ; if [ $RC -ne 0 ] ; then exit $RC ; fi
 
-#
-# 'just make'
-#make
-#make all # just short of doing 'make install'
-#make sf uftd
-make
+# 
+# 'just make' - build all deliverables
+$MAKE all # just short of doing 'make install'
 RC=$? ; if [ $RC -ne 0 ] ; then exit $RC ; fi
+$MAKE rexx 2> /dev/null
+$MAKE java 2> /dev/null
 
 #
 # override the PREFIX for the install step
-make PREFIX=$STAGING install
+$MAKE PREFIX=$STAGING install
 RC=$? ; if [ $RC -ne 0 ] ; then exit $RC ; fi
 
 #
 # make it "properly rooted"
-#mkdir $STAGING/usr
-mkdir $STAGING$PREFIX
-#mv $STAGING/*bin $STAGING/lib* $STAGING/share $STAGING/usr/.
-mv $STAGING/*bin $STAGING/lib* $STAGING/share $STAGING$PREFIX/.
+mkdir -p $STAGING$PREFIX
+RC=$? ; if [ $RC -ne 0 ] ; then exit $RC ; fi
+
+#mv $STAGING/*bin $STAGING/lib* $STAGING/share $STAGING$PREFIX/.
+#RC=$? ; if [ $RC -ne 0 ] ; then exit $RC ; fi
+
+for D in bin lib lib64 libexec sbin share include ; do
+    mv $STAGING/$D $STAGING$PREFIX/. 2> /dev/null
+done
+if [ -d $STAGING/src ] ; then
+    mkdir -p $STAGING$PREFIX/src
+    mv $STAGING/src $STAGING$PREFIX/src/$APPLID
+fi
+
+#
+# dump the heavy lifting on the 'rpmbuild' command
+rpmbuild -bb --nodeps $APPLID.spec
 RC=$? ; if [ $RC -ne 0 ] ; then exit $RC ; fi
 
 #
-# build the RPM file (and keep a log of the process)
-rm -f uft.rpm.log
-echo "+ rpmbuild -bb --nodeps uft.spec"
-        rpmbuild -bb --nodeps uft.spec 2>&1 | tee uft.rpm.log
+# recover the resulting package file ... yay!
+mv $HOME/rpmbuild/RPMS/$UNAMEM/$APPLID-$VERSION-$RELEASE.$UNAMEM.rpm .
 RC=$? ; if [ $RC -ne 0 ] ; then exit $RC ; fi
-rm uft.spec
-
-#
-# recover the  resulting package file ... yay!
-cp -p $HOME/rpmbuild/RPMS/$UNAMEM/$APPLID-$VERSION-$RELEASE.$UNAMEM.rpm .
-#                          UNAMEM  APPLID- VERSION- RELEASE. UNAMEM
-RC=$? ; if [ $RC -ne 0 ] ; then exit $RC ; fi
-cp -p $APPLID-$VERSION-$RELEASE.$UNAMEM.rpm uft.rpm
-
-#
-# remove temporary build directory
-rm -r $STAGING
+cp -p $APPLID-$VERSION-$RELEASE.$UNAMEM.rpm $APPLID.rpm
 
 # increment the sequence number for the next build
 expr $RELEASE + 1 > .rpmseq

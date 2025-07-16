@@ -11,8 +11,8 @@
 #ifndef _XMITMSGX_H
 #define _XMITMSGX_H
 
-/* xmitmsgx-2.1.7            v2            r1            m7           */
-#define  XMITMSGX_VERSION  (((2) << 24) + ((1) << 16) + ((7) << 8) + (0))
+/* xmitmsgx-2.1.9            v2            r1            m9           */
+#define  XMITMSGX_VERSION  (((2) << 24) + ((1) << 16) + ((9) << 8) + (0))
 
 /* priorities (these are ordered)                                     */
 /*      MSGLEVEL_DEBUG           LOG_DEBUG   7 debug-level messages, not used here */

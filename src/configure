@@ -101,6 +101,7 @@ case "$US" in
     Sun*|Sol*)
         UM=`uname -p`
         LIBS="-lsocket -lnsl"
+        SHFLAGS="$LDFLAGS -shared -Wl,-h"
         ;;
     OS390)              # OS/390, z/OS
         UM="s390x" # guessing! since both "s390x" and "s390" are viable
