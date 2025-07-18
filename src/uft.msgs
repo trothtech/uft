@@ -150,6 +150,7 @@
 0404      404 Document not found
 0407      407 Proxy Authentication Required
 *411      411 protocol sequence error
+ 416      416 Missing operand(s)
 *421      421 (see 521)
 0426      426 Connection closed; transfer aborted.
 *432      432 No such local user &1

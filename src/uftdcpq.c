@@ -169,9 +169,12 @@ int uftdcpq_time(char*cpqstr,int cpqsl)                       /* TIME */
     tmstamp->tm_mon = tmstamp->tm_mon + 1;
 
     /* the tm_zone member is preferred but not all systems have it    */
-    tz = tmstamp->tm_zone;      /* TZ abbrev <bits/types/struct_tm.h> */
-/*  tz = tzname[0];                         // timezone name <time.h> */
-/*  if (tz == NULL || *tz == 0x00) tz = tzname[1];                    */
+#if !defined(__sun) && !defined(sun) && !defined(__SUNPRO_C) && !defined(__SUNPRO_CC)
+    tz = (char*) tmstamp->tm_zone;        /* <bits/types/struct_tm.h> */
+#else
+    tz = tzname[0];                         // timezone name <time.h> */
+    if (tz == NULL || *tz == 0x00) tz = tzname[1];
+#endif
     if (tz == NULL || *tz == 0x00) tz = "-";
 
     /* render it in the same format as the IBM systems render it      */

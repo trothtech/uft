@@ -10,6 +10,13 @@
  *
  *        Note: This is for UFT but includes MSG functions also.
  *
+
+needed:
+int uftc_open(char*,char*,int*);
+uftc_write()
+uftc_read()
+int uftc_close(int*);
+
  */
 
 #ifndef PREFIX
@@ -780,6 +787,50 @@ int uftc_wack(int s,char*b,int l)
           }
         if (uftcflag & UFT_VERBOSE) if (b[0] != 0x00) uftx_putline(2,b,0);
       }
+  }
+
+/* ----------------------------------------------------------- UFTC_OPEN
+ *    open a connection to the UFT server - direct TCP or via proxy
+ */
+int uftc_open(char*peer,char*prox,int*pipe)
+  { static char _eyecatcher[] = "uftc_open()";
+    int s;
+
+    /* if the supplied peer is bogus then stop right here             */
+    if (peer == NULL && *peer == 0x00) return -1; /* FIXME: set errno */
+
+    /* if a proxy string was provided then try connecting that way    */
+    if (prox != NULL && *prox != 0x00) return uftx_proxy(peer,prox,pipe);
+
+    /* normal connection is direct TCP with built-in DNS resolution   */
+    s = tcpopen(peer,0,0);
+/*  if (s < 0) { perror(peer); return -1; }            ** open failed */
+    if (s < 0) return s;                               /* open failed */
+    pipe[0] = pipe[1] = s;      /* input and output are the same here */
+    return 0;
+  }
+
+/* ---------------------------------------------------------- UFTC_WRITE
+ */
+int uftc_write() { }
+
+/* ----------------------------------------------------------- UFTC_READ
+ */
+int uftc_read() { }
+
+/* ---------------------------------------------------------- UFTC_CLOSE
+ *    close the pair of file descriptors talking to the server
+ */
+int uftc_close(int*pipe)
+  { static char _eyecatcher[] = "uftc_close()";
+    int rc;
+    rc = 0;
+    if (pipe[0] >= 0) rc = close(pipe[0]);
+    if (rc < 0) return rc;
+    if (pipe[1] >= 0 && pipe[1] != pipe[0]) rc = close(pipe[1]);
+    if (rc < 0) return rc;
+    pipe[0] = pipe[1] = -1;
+    return 0;
   }
 
 /* ----------------------------------------------------------- UFTD_AGCK

@@ -7,8 +7,8 @@
 #
 
 APPLID          =       uft
-VERSION         =       2.0.6
-DELIVERABLES    =       uftd sf rls rcv uftcndd tell
+VERSION         =       2.0.7
+DELIVERABLES    =       uftd sf rls rcv uftcndd tell cpq
 SOURCEURL       =       https://raw.githubusercontent.com/trothtech/uft/refs/heads/main
 #                       https://raw.githubusercontent.com/trothtech/uft/master
 
@@ -104,9 +104,9 @@ maketext:	makefile maketext.o tcpio.o aecs.o
 			maketext.o tcpio.o aecs.o $(LIBS)
 
 cpq:		makefile cpq.o \
-			tcpio.o aecs.o
+			uftlib.o tcpio.o xmitmsgx.o abbrev.o
 		$(CC) $(LDFLAGS) -o cpq cpq.o \
-			tcpio.o aecs.o $(LIBS)
+			uftlib.o tcpio.o xmitmsgx.o abbrev.o $(LIBS)
 
 cpqu:		makefile cpqu.o \
 			tcpio.o aecs.o
@@ -137,6 +137,8 @@ distclean:
 help:
 		@echo "$(MAKE):"
 		@echo "$(MAKE): this is the build logic for UFT, POSIX 'sendfile'"
+		@echo "$(MAKE): targets include ..."
+		@echo "$(MAKE):         all, install, uft.rpm, uft.deb"
 		@echo "$(MAKE):"
 
 #
@@ -249,7 +251,7 @@ homedir.o:	makefile homedir.c
 install:	$(DELIVERABLES)
 		mkdir -p $(PREFIX)/bin $(PREFIX)/etc/xinetd.d \
 			$(PREFIX)/share/locale/$(LOCALE) $(PREFIX)/libexec
-		cp -p sf rls rcv uftcndd tell $(PREFIX)/bin/.
+		cp -p sf rls rcv uftcndd tell cpq $(PREFIX)/bin/.
 #		cp -p uftd $(PREFIX)/sbin/.
 		cp -p uftd $(PREFIX)/libexec/.
 		cp -p uft.inet $(PREFIX)/etc/xinetd.d/uft
@@ -283,20 +285,8 @@ uft.spec:       uft.spec.in
                   | sed 's#%SPEC_LOCALE%#$(LOCALE)#g' \
 		  > uft.spec
 
-#Get yourself an easy source package, e.g. telnet-*-.src.rpm and do an
-# rpm -i telnet-*.src.rpm
-# cd /usr/src/redhat/SPECS  - see the  .spec  file
-
-#Now the .spec file tells how to unpack, patch, configure, compile, etc.
-#And it tells what files go into the final deliverable, and what scripts
-#run at installation (or removal) time.
-#You can even do a 'rpm -ba telnet.spec' so it will build a new .src.rpm
-#file (assuming you did patches etc in it).
-
-#Rob
-
-rpmbuild:
-		rpm -bc --short-circuit uft.spec
+#rpmbuild:
+#		rpm -bc --short-circuit uft.spec
 
 ########################################################################
 # DEB support
