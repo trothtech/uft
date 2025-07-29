@@ -28,7 +28,7 @@ extern int uftcflag;
 /* ------------------------------------------------------------------ */
 int main(int argc,char*argv[])
   { static char _eyecatcher[] = "uftc.c main()";
-    int         i, fd0, s, size, r, copy, fda, rc;
+    int         i, fd0, size, copy, fda, rc, fd[2];
     char        temp[256], targ[256], b[BUFSIZ], akey[256],
                *host, *name, *type, *auth, *class, *proxy;
     struct  stat    uftcstat;
@@ -144,10 +144,9 @@ int main(int argc,char*argv[])
 
     /* announcement (iff verbose option requested) */
     if (uftcflag & UFT_VERBOSE)
-      {
-        (void) sprintf(temp,"%s: %s Internet SENDFILE client",
+      { sprintf(temp,"%s: %s Internet SENDFILE client",
                 arg0,UFT_VERSION);
-        (void) uftx_putline(2,temp,0); }
+        uftx_putline(2,temp,0); }
 
     /* be sure we still have enough args (min 2) left over */
     if ((argc - i) < 2)
@@ -161,7 +160,7 @@ int main(int argc,char*argv[])
         if (uftcflag & UFT_VERBOSE) return 0;  /* exit from help okay */
                               else  return 1; }       /* missing args */
 
-    /* flag some known canonicalization types */
+    /* flag some known canonization types */
     switch (type[0])
       {
         case 'a':   case 'A':
@@ -208,9 +207,11 @@ int main(int argc,char*argv[])
         close(fda); } else
 
     /* see if we're running IDENT locally (long story!)               */
-      { (void) sprintf(temp,"%s:%d","localhost",IDENT_PORT);
-        s = tcpopen(temp,0,0);      /* simple test to see if it opens */
-        if (s >= 0) { auth = "IDENT"; close(s); } }
+    if (*proxy == 0x00 && auth[0] == '-')
+      { sprintf(temp,"%s:%d","localhost",IDENT_PORT);
+fprintf(stderr,"UFTC: trying IDENT\n");
+        fd[1] = tcpopen(temp,0,0);  /* simple test to see if it opens */
+        if (fd[1] >= 0) { auth = "IDENT"; close(fd[1]); } }
 
     /* open a socket to the server */
     (void) strcpy(targ,argv[argc-1]);
@@ -218,22 +219,12 @@ int main(int argc,char*argv[])
     while (*host != 0x00 && *host != '@') host++;
     if (*host == '@') *host++ = 0x00; else host = "localhost";
 
-    (void) sprintf(temp,"%s:%d",host,UFT_PORT);
-
-    /* open a connection to the UFT server - direct TCP or via proxy  */
-    if (*proxy != 0x00)
-      { int fd[2];
-        rc = uftx_proxy(temp,proxy,fd);
-        if (rc != 0) return rc;                        /* open failed */
-        r = fd[0]; s = fd[1];            /* r for read and s for send */
-      } else {
-        s = tcpopen(temp,0,0);
-        if (s < 0) { (void) perror(host); return 1; }  /* open failed */
-        r = s;                           /* r for read and s for send */
-      }
+    rc = uftc_open(host,proxy,fd);
+    if (rc != 0) { if (errno != 0) perror(host); return 1; }
+//  r = fd[0]; s = fd[1];                /* r for read and s for send */
 
     /* wait for the herald from the server */
-    i = tcpgets(r,temp,sizeof(temp));        /* all others uftc_wack() */
+    i = tcpgets(fd[0],temp,sizeof(temp));   /* all others uftc_wack() */
     if (i < 0)
       { (void) perror(host);              /* FIXME: remember to close */
         return 1; }              /* read of herald from server failed */
@@ -249,7 +240,8 @@ int main(int argc,char*argv[])
 
     /* identify this client to the server */
     (void) sprintf(temp,"#%s client %s",UFT_PROTOCOL,UFT_VERSION);
-    (void) tcpputs(s,temp);
+    /* FIXME: what about anonymous? */
+    (void) tcpputs(fd[1],temp);
     /* NO ACK FOR COMMENTS SO DON'T WAIT FOR ONE HERE */
     if (uftcflag & UFT_VERBOSE) (void) uftx_putline(2,temp,0);
 
@@ -257,8 +249,8 @@ int main(int argc,char*argv[])
 /*  (void) sprintf(temp,"FILE %d %s %s",size,uftx_user(),auth);       */
     (void) sprintf(temp,"FILE %d %s %s %s",size,uftx_user(),auth,akey);
     if (uftcflag & UFT_VERBOSE) (void) uftx_putline(2,temp,0);
-    (void) tcpputs(s,temp);
-    i = uftc_wack(r,temp,sizeof(temp));
+    (void) tcpputs(fd[1],temp);
+    i = uftc_wack(fd[0],temp,sizeof(temp));
     if (i < 0)
       { if (errno != 0) (void) perror(arg0);
         else (void) uftx_putline(2,temp,0);
@@ -269,8 +261,8 @@ int main(int argc,char*argv[])
     /* tell the server who it's for */
     (void) sprintf(temp,"USER %s",targ);
     if (uftcflag & UFT_VERBOSE) (void) uftx_putline(2,temp,0);
-    (void) tcpputs(s,temp);
-    i = uftc_wack(r,temp,sizeof(temp));
+    (void) tcpputs(fd[1],temp);
+    i = uftc_wack(fd[0],temp,sizeof(temp));
     if (i < 0)
       { if (errno != 0) (void) perror(arg0);
         else (void) uftx_putline(2,temp,0);
@@ -278,15 +270,15 @@ int main(int argc,char*argv[])
     if (uftcflag & UFT_VERBOSE || i == 5) (void) uftx_putline(2,temp,0);
     if (i == 5) { return 5; }           /* a 500 NAK here is terminal */
 
-    /* signal the type for canonicalization */
+    /* signal the type for canonization */
     if (type == 0x0000 || type[0] == 0x00)
       { if (uftcflag & UFT_BINARY) type = "I";
                 /* "applcation/octet-stream" */
         else type = "A";    /* "text/plain" */ }
     (void) sprintf(temp,"TYPE %s",type);
     if (uftcflag & UFT_VERBOSE) (void) uftx_putline(2,temp,0);
-    (void) tcpputs(s,temp);
-    i = uftc_wack(r,temp,sizeof(temp));
+    (void) tcpputs(fd[1],temp);
+    i = uftc_wack(fd[0],temp,sizeof(temp));
     if (i < 0)
       { if (errno != 0) (void) perror(arg0);
         else (void) uftx_putline(2,temp,0);
@@ -299,8 +291,8 @@ int main(int argc,char*argv[])
       { name = uftx_basename(name);
         sprintf(temp,"NAME %s",name);
         if (uftcflag & UFT_VERBOSE) (void) uftx_putline(2,temp,0);
-        i = tcpputs(s,temp);
-        i = uftc_wack(r,temp,sizeof(temp));
+        i = tcpputs(fd[1],temp);
+        i = uftc_wack(fd[0],temp,sizeof(temp));
         if (i < 0)
           { if (errno != 0) (void) perror(arg0);
             else (void) uftx_putline(2,temp,0);
@@ -320,8 +312,8 @@ int main(int argc,char*argv[])
                 gmtstamp->tm_mday, gmtstamp->tm_hour,
                 gmtstamp->tm_min, gmtstamp->tm_sec, tzname[0]);
         if (uftcflag & UFT_VERBOSE) (void) uftx_putline(2,temp,0);
-        i = tcpputs(s,temp);
-        i = uftc_wack(r,temp,sizeof(temp));
+        i = tcpputs(fd[1],temp);
+        i = uftc_wack(fd[0],temp,sizeof(temp));
         if (i < 0 && temp[0] != '4')
           { if (errno != 0) (void) perror(arg0);
             else (void) uftx_putline(2,temp,0);
@@ -330,8 +322,8 @@ int main(int argc,char*argv[])
 
         (void) sprintf(temp,"META XDATE %ld",mtime);
         if (uftcflag & UFT_VERBOSE) (void) uftx_putline(2,temp,0);
-        i = tcpputs(s,temp);
-        i = uftc_wack(r,temp,sizeof(temp));
+        i = tcpputs(fd[1],temp);
+        i = uftc_wack(fd[0],temp,sizeof(temp));
         if (i < 0 && temp[0] != '4')
           { if (errno != 0) (void) perror(arg0);
             else (void) uftx_putline(2,temp,0);
@@ -342,8 +334,8 @@ int main(int argc,char*argv[])
     if (prot != 0)
       { (void) sprintf(temp,"META PROT %s",uftcprot(prot));
         if (uftcflag & UFT_VERBOSE) (void) uftx_putline(2,temp,0);
-        i = tcpputs(s,temp);
-        i = uftc_wack(r,temp,sizeof(temp));
+        i = tcpputs(fd[1],temp);
+        i = uftc_wack(fd[0],temp,sizeof(temp));
         if (i < 0 && temp[0] != '4')
           { if (errno != 0) (void) perror(arg0);
             else (void) uftx_putline(2,temp,0);
@@ -354,8 +346,8 @@ int main(int argc,char*argv[])
     if (class != 0x0000 && class[0] != 0x00)
       { (void) sprintf(temp,"CLASS %s",class);
         if (uftcflag & UFT_VERBOSE) (void) uftx_putline(2,temp,0);
-        i = tcpputs(s,temp);
-        i = uftc_wack(r,temp,sizeof(temp));
+        i = tcpputs(fd[1],temp);
+        i = uftc_wack(fd[0],temp,sizeof(temp));
         if (i < 0)
           { if (errno != 0) (void) perror(arg0);
             else (void) uftx_putline(2,temp,0);
@@ -376,10 +368,10 @@ int main(int argc,char*argv[])
  if (i < 1) break; }
         (void) sprintf(temp,"DATA %d",i);
         if (uftcflag & UFT_VERBOSE) (void) uftx_putline(2,temp,0);
-        (void) tcpputs(s,temp);
-        rc = uftc_wack(r,temp,sizeof(temp));           /* expect 3 here */
-        (void) tcpwrite(s,b,i);   /* send the data - we live for this */
-        i = uftc_wack(r,temp,sizeof(temp));           /* expect 2 here */
+        (void) tcpputs(fd[1],temp);
+        rc = uftc_wack(fd[0],temp,sizeof(temp));     /* expect 3 here */
+        (void) tcpwrite(fd[1],b,i);   /* send data - we live for this */
+        i = uftc_wack(fd[0],temp,sizeof(temp));      /* expect 2 here */
         if (i < 0)
           { if (errno != 0) (void) perror(arg0);
             else (void) uftx_putline(2,temp,0);
@@ -395,8 +387,8 @@ int main(int argc,char*argv[])
     /* signal end-of-file to the server */
     (void) sprintf(temp,"EOF");
     if (uftcflag & UFT_VERBOSE) (void) uftx_putline(2,temp,0);
-    (void) tcpputs(s,temp);
-    i = uftc_wack(r,temp,sizeof(temp));
+    (void) tcpputs(fd[1],temp);
+    i = uftc_wack(fd[0],temp,sizeof(temp));
     if (i < 0)
       { if (errno != 0) (void) perror(arg0);
         else (void) uftx_putline(2,temp,0);
@@ -406,8 +398,8 @@ int main(int argc,char*argv[])
     /* tell the server we're done - should now close the connection   */
     (void) sprintf(temp,"QUIT");
     if (uftcflag & UFT_VERBOSE) (void) uftx_putline(2,temp,0);
-    (void) tcpputs(s,temp);
-    i = uftc_wack(r,temp,sizeof(temp));
+    (void) tcpputs(fd[1],temp);
+    i = uftc_wack(fd[0],temp,sizeof(temp));
     if (i < 0)
       { if (errno != 0) (void) perror(arg0);
         else (void) uftx_putline(2,temp,0);
@@ -418,7 +410,7 @@ int main(int argc,char*argv[])
     (void) sleep(2);
 
     /* close the socket */
-    (void) close(s);
+    close(fd[0]); close(fd[1]);
 
     /* get outta here */
     return 0;

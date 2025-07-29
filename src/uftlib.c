@@ -795,15 +795,19 @@ int uftc_wack(int s,char*b,int l)
 int uftc_open(char*peer,char*prox,int*pipe)
   { static char _eyecatcher[] = "uftc_open()";
     int s;
+    char temp[256];
 
     /* if the supplied peer is bogus then stop right here             */
     if (peer == NULL && *peer == 0x00) return -1; /* FIXME: set errno */
 
+    /* tack-on the TCP port number                                    */
+    snprintf(temp,sizeof(temp)-1,"%s:%d",peer,UFT_PORT);
+
     /* if a proxy string was provided then try connecting that way    */
-    if (prox != NULL && *prox != 0x00) return uftx_proxy(peer,prox,pipe);
+    if (prox != NULL && *prox != 0x00) return uftx_proxy(temp,prox,pipe);
 
     /* normal connection is direct TCP with built-in DNS resolution   */
-    s = tcpopen(peer,0,0);
+    s = tcpopen(temp,0,0);
 /*  if (s < 0) { perror(peer); return -1; }            ** open failed */
     if (s < 0) return s;                               /* open failed */
     pipe[0] = pipe[1] = s;      /* input and output are the same here */
@@ -926,6 +930,8 @@ char*uftx_parse1(char*s)
 /* --------------------------------------------------------------- PROXY
  *    Launch a proxy program with its stdin and stdout connected,
  *    something like ... ProxyCommand='netcat -x 127.0.0.1:9050 %h %p'
+ *
+ *    NOTE: this routine does *not* tack-on the TCP port number
  */
 int uftx_proxy(char*host,char*prox,int*fd)
   { static char _eyecatcher[] = "uftx_proxy()";
@@ -938,7 +944,7 @@ int uftx_proxy(char*host,char*prox,int*fd)
     while (*port != ':' && *port > ' ') port++;
     if (*port == ':') *port++ = 0x00;
     p = port; while (*p != ':' && *p > ' ') p++; if (*p == ':') *p = 0x00;
-    if (*port == 0x00) port = "608";
+    if (*port == 0x00) port = "608";       /* generic would be better */
 
     /* parse the proxy command into a traditional argc/argv pair      */
     strncpy(myprox,prox,sizeof(myprox)-1);
@@ -950,7 +956,6 @@ int uftx_proxy(char*host,char*prox,int*fd)
         if (strcmp(argv[argc],"%p") == 0) argv[argc] = port;
         argc++; }
     argv[argc] = NULL;
-
 
     rc = pipe(ds);                   /* establish the downstream pipe */
     /* proxy reads from ds[0] so application writes to ds[1]          */
@@ -967,10 +972,10 @@ int uftx_proxy(char*host,char*prox,int*fd)
     if (rc < 0) { rc = errno; if (rc == 0) rc = -1;
                         close(ds[0]); close(ds[1]);
                         close(us[0]); close(us[1]); return rc; }
-    if (rc > 0) { close(ds[0]); close(us[1]);
+    if (rc > 0) { close(ds[0]); close(us[1]); sleep(1);
                       fd[0] = us[0]; fd[1] = ds[1]; return 0; }
 
-    /* we are the child process */
+    /* if the return from for() is zero then we are the child process */
                   close(ds[1]); close(us[0]);
       close(0); dup(ds[0]); close(ds[0]);
       close(1); dup(us[1]); close(us[1]);
@@ -1035,8 +1040,8 @@ int uft_stat(char*sid,struct UFTSTAT*us)
 /*  us->uft_mode;       ** UFT "xperm" protection */
 
     us->uft_nlink = 1;       /* default is one copy (e.g., for print) */
-    p = uftx_getenv("COPY",cb); if (*p == 0x00 || p == 0x0000)
-    p = uftx_getenv("COPIES",cb); if (p != 0x0000)
+    p = uftx_getenv("COPY",cb); if (p == 0x0000 || *p == 0x00)
+    p = uftx_getenv("COPIES",cb); if (p != 0x0000 && *p != 0x00)
     us->uft_nlink = uftx_atoi(p);
 
     /* SIZE is taken from the FILE statement and is an estimate       */

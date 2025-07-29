@@ -332,6 +332,9 @@ void uftdstat(int,char*);
 int uftdcpq(char*,char*,int);
 int uftdl699(int,char*);
 
+int uftc_open(char*,char*,int*);
+int uftc_close(int*);
+
 #define         _UFT_HEADER_
 #endif
 

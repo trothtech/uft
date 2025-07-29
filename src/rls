@@ -41,7 +41,7 @@ if [ ! -d "$D" ]; then
     mkdir "$D" 2> /dev/null
     chmod 700 "$D" 2> /dev/null ; fi
 if [ ! -d "$D" ]; then
-    echo "$Z: UFT configuration problem: no spool directory" 1>&2
+    echo "$Z: configuration problem: no UFT spool directory" 1>&2
 #   exit 1
     exec ls -ld $D ; fi             # 'ls' here throws an informative error
 
@@ -55,8 +55,8 @@ if [ ! -d "$D" ]; then
 
 #
 # a simpler command:
-cat "$D"/*.lf
+exec cat "$D"/*.lf
 
-exit
+#exit
 
 
