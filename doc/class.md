@@ -1,17 +1,17 @@
 # [META] CLASS
 
-UFT protocol META CLASS command
+UFT protocol `CLASS` command
 
-The UFT `META CLASS` command is meaningful for print jobs. <br/>
+The UFT `CLASS` command is meaningful for print jobs. <br/>
 It tells the receiving system how to classify the file.
 For printing systems this can affect routing and/or priority.
 
 ## Command Format
 
-`META CLASS` takes one argument.
+`CLASS` takes one argument.
 The "class" is usually a single letter.
 
-`META CLASS` optionally takes a second argument. <br/>
+`CLASS` optionally takes a second argument. <br/>
 Systems with a native spooling system may recognize (and might utilize)
 a queuing device type.
 

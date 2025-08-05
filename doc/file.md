@@ -1,6 +1,6 @@
 # FILE
 
-UFT protocol FILE command
+UFT protocol `FILE` command
 
 This command indicates the start of a transaction to send a file.
 

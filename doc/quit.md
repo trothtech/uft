@@ -1,6 +1,6 @@
 # QUIT
 
-UFT protocol QUIT command
+UFT protocol `QUIT` command
 
 UFT clients should send a `QUIT` command to terminate a transaction.
 Any file-in-transit should be properly marked as complete by the
