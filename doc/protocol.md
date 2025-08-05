@@ -61,7 +61,7 @@ it acknowledges the command and closes the connection.
 `FILE`, `USER`, `TYPE`, and `DATA` are essential.
 
 Note that `TYPE` might seem to be a meta command,
-but it remains a primary command because canonicalization is a
+but it remains a primary command because canonization is a
 central feature of UFT.
 
 ## UFT Meta Verbs
@@ -109,7 +109,8 @@ for clarity and for simplifying implementations.
 * NOOP
 
 These are optional and not widely implemented.
-`CPQ` and `MSG` are specifically for emulating IBM "NJE" networking.
+`CPQ` and `MSG` are specifically for emulating
+some of the functions of IBM "NJE" networking.
 
 ## UFT Response Codes
 
@@ -124,7 +125,7 @@ The range of the code indicates any of a half dozen conditions.
 | range      | indication                                                |
 | ---------- | --------------------------------------------------------- |
 | 100s range | a spontaneous response from the server, an "info" message |
-| 200s range | acknowledgment (ACK)                                      |
+| 200s range | acknowledgment (ACK), success                             |
 | 300s range | more input required                                       |
 |            | the client must supply additional information or data     |
 | 400s range | temporary error (NAK), a client error                     |
@@ -137,17 +138,18 @@ When the server receives a connection, it immediately presents a
 replies with a 221 message and closes the connection. Both 222 and 221
 are success indications.
 
-## UFT File Types (canonicalizations)
+## UFT File Types (canonizations)
 
-| type       | canonicalization or translation                           |
-| ---------- | --------------------------------------------------------- |
-|  `TYPE A`  | ASCII, Internet plain text with CR/LF delimited lines     |
-|            | (0x0D/0x0A, see NVT format), alias `TYPE T`               |
-|  `TYPE I`  | IMAGE, image (binary), alias `TYPE B`                     |
-|            | above two types are in keeping with FTP semantics         |
-|  `TYPE N`  | NETDATA, an IBM encoding                                  |
+| type       | canonization or translation                             |
+| ---------- | ------------------------------------------------------- |
+|  `TYPE A`  | ASCII, Internet plain text with CR/LF delimited lines   |
+|            | (0x0D/0x0A, see NVT format), alias `TYPE T`             |
+|  `TYPE I`  | IMAGE, image (binary), alias `TYPE B`                   |
+|            | above two types are in keeping with FTP semantics       |
+|  `TYPE N`  | NETDATA, an IBM encoding                                |
 
-Types `A` and `I` are mandatory.
+Types `A` and `I` are mandatory. <br/>
+Any UFT implementation must support them.
 
 Type `N` is recommended, at least on receive, if you will be
 receiving files from IBM mainframe systems such as z/VM or z/OS.
@@ -155,14 +157,14 @@ receiving files from IBM mainframe systems such as z/VM or z/OS.
 The following types are rarely used but defined for the sake of
 developers and experimenters.
 
-| type       | canonicalization or translation                           |
-| ---------- | --------------------------------------------------------- |
-|  `TYPE V`  | variable length record-oriented                           |
+| type       | canonization or translation                             |
+| ---------- | ------------------------------------------------------- |
+|  `TYPE V`  | variable length record-oriented                         |
 |            | each record is preceeded by a 16-bit length in network byte order |
-|  `TYPE E`  | EBCDIC, IBM mainframe plain text                          |
-|            | with EBCDIC NL delimited lines (0x15)                     |
-|  `TYPE M`  | "mail", an RFC 822 message (canonicalized as `TYPE A`)    |
-|            | for those UFT server implementations which support it     |
+|  `TYPE E`  | EBCDIC, IBM mainframe plain text                        |
+|            | with EBCDIC NL delimited lines (0x15)                   |
+|  `TYPE M`  | "mail", an RFC 822 message (canonized as `TYPE A`)      |
+|            | for those UFT server implementations which support it   |
 
 Any type which a receiver does not recognize or implement should be
 treated as `TYPE I` or something which saves the data stream as-is.
