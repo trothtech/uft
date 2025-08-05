@@ -20,7 +20,7 @@ This is the documentation folder.
 `FILE`, `USER`, `TYPE`, and `DATA` are mandatory.
 
 Note that `TYPE` might seem to be a meta command,
-but it remains a primary command because canonicalization is a
+but it remains a primary command because canonization is a
 central feature of UFT.
 
 A sample sequence might be ...
@@ -96,15 +96,15 @@ meta commands nor secondary commands. Simplicity is the first objective.
 UFT response codes are unique, but the first digit indicates basic
 success/failure and flow control.
 
-## UFT File Types (canonicalizations)
+## UFT File Types (canonizations)
 
-| type       | canonicalization or translation                           |
-| ---------- | --------------------------------------------------------- |
-|  `TYPE A`  | ASCII, Internet plain text with CR/LF delimited lines     |
-|            | (0x0D/0x0A, see NVT format), alias `TYPE T`               |
-|  `TYPE I`  | IMAGE, image (binary), alias `TYPE B`                     |
-|            | above two types are in keeping with FTP semantics         |
-|  `TYPE N`  | NETDATA, an IBM encoding                                  |
+| type       | canonization or translation                             |
+| ---------- | ------------------------------------------------------- |
+|  `TYPE A`  | ASCII, Internet plain text with CR/LF delimited lines   |
+|            | (0x0D/0x0A, see NVT format), alias `TYPE T`             |
+|  `TYPE I`  | IMAGE, image (binary), alias `TYPE B`                   |
+|            | above two types are in keeping with FTP semantics       |
+|  `TYPE N`  | NETDATA, an IBM encoding                                |
 
 Types `A` and `I` are mandatory.
 
@@ -114,14 +114,14 @@ sending files to/from IBM mainframe systems such as z/VM or z/OS.
 The following types are rarely used but defined for the sake of
 developers and experimenters.
 
-| type       | canonicalization or translation                           |
-| ---------- | --------------------------------------------------------- |
-|  `TYPE V`  | variable length record-oriented                           |
+| type       | canonization or translation                             |
+| ---------- | ------------------------------------------------------- |
+|  `TYPE V`  | variable length record-oriented                         |
 |            | each record is preceeded by a 16-bit length in network byte order |
-|  `TYPE E`  | EBCDIC, IBM mainframe plain text                          |
-|            | with EBCDIC NL delimited lines (0x15)                     |
-|  `TYPE M`  | "mail", an RFC 822 message                                |
-|            | for those UFT server implementations which support it     |
+|  `TYPE E`  | EBCDIC, IBM mainframe plain text                        |
+|            | with EBCDIC NL delimited lines (0x15)                   |
+|  `TYPE M`  | "mail", an RFC 822 message                              |
+|            | for those UFT server implementations which support it   |
 
 Any type which a receiver does not recognize or implement should be
 treated as `TYPE I` or something which saves the data stream as-is.

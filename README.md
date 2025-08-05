@@ -11,7 +11,6 @@ a name with less baggage. There is also the title "Sender-Initiated
 File Transfer" or SIFT, which usually refers to an offline or batch
 variant of UFT protocol.
 
-
 This repository has both POSIX and VM/CMS components.
 
 ## UFT for POSIX Systems
@@ -29,6 +28,13 @@ The usual sequence of steps to build UFT on a POSIX system is ...
 The `configure` script is not very sophisticated.
 The only option it takes is `--prefix`.
 
+The `sf` UFT client command sends files to UFT servers. <br/>
+Use either "-a" for plain text files or "-i" for binary files.
+
+Files received by the UFT server are left in a sort of "loading dock"
+for disposition by the target user. There are two commands: `rls`
+to list files waiting on the dock, and `rcv` to receive selected files.
+
 ## UFT for VM/CMS
 
 UFT mimics the operation of IBM's RSCS and other IBM mainframe
@@ -37,6 +43,11 @@ VM/CMS implementation of UFT. The VM/CMS implementation was not
 originally maintained in this project but is now included in this new home.
 
 See the `cms` directory.
+
+The VM/CMS UFT implementation is intended to work with existing
+commands and utilities on the VM/CMS system. `rdrlist` and `receive`
+remain unchanged. There is a UFT-enabled `sf` command which can be used
+in place of stock `sendfile`.
 
 ## Download
 

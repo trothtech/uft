@@ -21,6 +21,8 @@ acknowledgement (success) or negative acknowledgement (error or failure).
 * ABORT
 * QUIT
 
+All UFT commands are unique in the first four characters.
+
 ## UFT Command Sequencing
 
 `FILE` must be the first command in a file transfer transaction.
@@ -129,7 +131,7 @@ The range of the code indicates any of a half dozen conditions.
 | 300s range | more input required                                       |
 |            | the client must supply additional information or data     |
 | 400s range | temporary error (NAK), a client error                     |
-| 500s range | permanent error (NAK), a server error (not always terminal)   |
+| 500s range | permanent error (NAK), a server error (not always terminal) |
 | 600s range | a required response from the server                       |
 |            | contrast with 100s range spontaneous responses            |
 
