@@ -1,6 +1,9 @@
 # ABORT
 
-UFT protocol ABORT command
+UFT protocol `ABORT` command
+
+This command signals an abort of the current transaction
+and indicates that the current file should be abandoned.
 
 ## Command Format
 
@@ -14,9 +17,9 @@ The `ABORT` command has no parameters, arguments, or options.
 
 The successful response to `ABORT` is a 200 ACK.
 
-While it is difficult to imaging a situation where `EOF`
+While it is difficult to imaging a situation where `ABORT`
 woule either fail or would be rejected, if somehow that happens,
-the response would be a 500 NAK.
+the response would be a 500 NAK (server error).
 
 ## Command Sequencing
 

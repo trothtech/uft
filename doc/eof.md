@@ -1,11 +1,11 @@
 # EOF
 
-UFT protocol EOF (end of file) command
+UFT protocol `EOF` command (end of file)
 
 This command signals the end of the current file. <br/>
 The UFT clients send an `EOF` command when a file has been sent
-in its entirety. The server closes all intermediate streams
-and/or files and makes the file available to the recipient.
+in its entirety. The server closes all intermediate streams and/or files
+on the receiving end and makes the file available to the recipient.
 
 ## Command Format
 

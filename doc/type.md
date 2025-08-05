@@ -1,6 +1,6 @@
 # TYPE
 
-UFT protocol TYPE command
+UFT protocol `TYPE` command
 
 The UFT `TYPE` command is very significant:
 it tells the remote system how to canonize the file being sent.

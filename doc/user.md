@@ -1,6 +1,6 @@
 # USER
 
-UFT protocol USER command
+UFT protocol `USER` command
 
 A UFT client sends the `USER` command to name intended recipient
 of the file being sent. The recipient is typically an end user,

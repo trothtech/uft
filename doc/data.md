@@ -1,6 +1,6 @@
 # DATA
 
-UFT protocol DATA command
+UFT protocol `DATA` command
 
 A UFT client uses the `DATA` command to signal "start of data".
 There are two flavors of `DATA` command: immediate and batch.
@@ -34,6 +34,6 @@ is only for UFT programs running on the same system.
 ## Command Sequencing
 
 `DATA` must come after all `META` commands,
-which in turn should come after `TYPE`.
+which in turn should come after the `TYPE` command.
 
 

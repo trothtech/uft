@@ -2,7 +2,7 @@
 
 UFT protocol `QUIT` command
 
-UFT clients should send a `QUIT` command to terminate a transaction.
+UFT clients should send a `QUIT` command to finish a transaction.
 Any file-in-transit should be properly marked as complete by the
 presence of a preceding `EOF` command. `QUIT` signals the server
 to close the TCP stream.
@@ -25,6 +25,6 @@ and the server then closes its end of the connection.
 `QUIT` should follow `EOF`.
 
 In absense of a proper `EOF`,
-`QUIT` clearly indicates that `EOF` actions should be applied.
+`QUIT` clearly indicates that `EOF` effects should be applied.
 
 
