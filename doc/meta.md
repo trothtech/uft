@@ -56,4 +56,12 @@ The following command verbs are not allowed to follow `META`:
     TYPE
     USER
 
+The following are not command verbs but are similarly
+not allowed following `META`:
+
+    AUTH
+    FROM
+    REMOTE
+    SIZE
+
 
