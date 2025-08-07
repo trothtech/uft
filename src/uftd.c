@@ -143,7 +143,7 @@ int main(int argc,char*argv[])
     mv[1] = temp;
     mv[2] = UFT_PROTOCOL;
     mv[3] = /* UFT_VERSION */ UFT_VRM;
-    sprintf(bss,"%d",BUFSIZ);
+    sprintf(bss,"%d",UFT_BUFSIZ);
     mv[4] = bss;
 
 #ifdef          UFT_ANONYMOUS
@@ -158,7 +158,7 @@ int main(int argc,char*argv[])
 /*  (void) sprintf(line,"112 %s %s %s %d ready.",                     */
 /*  (void) sprintf(line,"222 %s %s %s %d ; ready.",                // */
 /* 222 ibmisv.marist.edu UFT/2 VMCMSUFT/1.10.5 ; ready.               */
-/*              temp,UFT_PROTOCOL,UFT_VERSION,BUFSIZ);             // */
+/*              temp,UFT_PROTOCOL,UFT_VERSION,UFT_BUFSIZ);         // */
 
     p = line;
     while (*p != 0x00 && *p != ' ') p++;    /* skip past message code */
@@ -224,10 +224,32 @@ int main(int argc,char*argv[])
             /* q2 now points to the args (if any), and p2 to metaverb */
 
 /* FIXME: we need a safety scan both here and "traditional" (below)   */
+/* the following are explicitly okay:
+    CLASS
+    COPY
+    DATE
+    DEST
+    DIST
+    FCB
+    FORM
+    GROUP
+    HOLD
+    NAME
+    NOTIFY
+    OWNER
+    RECFMT
+    RECLEN
+    SEQ
+    TITLE
+    UCS
+    VERSION
+    XDATE
+    XPERM
+ */
 
 /*          if (abbrev("NAME",p,2)) ... then put it into the struct   */
 
-            /*  put this variable into the control file  */
+            /* put this variable into the control file (sans "META_") */
             (void) sprintf(temp,"%s='%s'",p2,q2);
             if (tf >= 0) (void) uftx_putline(tf,temp,0);   /* logging */
             if (cf >= 0) (void) uftx_putline(cf,temp,0);
@@ -301,15 +323,20 @@ int main(int argc,char*argv[])
             (void) tcpputs(1,"114 HELP: TYPE <filetype>");
             (void) tcpputs(1,"114 HELP: NAME <filename>");
             (void) tcpputs(1,"114 HELP: DATA <burst_size>");
+            (void) tcpputs(1,"114 HELP: EOF");
             (void) tcpputs(1,"114 HELP: QUIT");
             (void) tcpputs(1,"214 HELP: end of HELP");
             continue;                           /* continue after ACK */
           }
 
+        /* --------------------------------------------- NOOP command */
+        if (abbrev("NOOP",p,2) || abbrev("NOP",p,3))
+          { (void) tcpputs(1,"200 ACK");      /* do nothing, then ACK */
+            rc = 0; continue; }                 /* continue after ACK */
+
         /* --------------------------------------------- USER command */
         if (abbrev("USER",p,1))
-          { /* one at a time, please */
-            if (user[0] != 0x00)
+          { if (user[0] != 0x00)             /* one at a time, please */
               { (void) sprintf(temp,"403 protocol sequence error.");
                 (void) uftdstat(1,temp);  /* signal 4xx NAK to client */
                 continue; }                 /* continue after 4xx NAK */
@@ -366,7 +393,7 @@ int main(int argc,char*argv[])
             (void) uftdstat(1,temp);                   /* spontaneous */
 #endif
 
-            /* now open the *real* control file (meta file) */
+            /* now open the *real* control file (the metadata file)   */
             (void) sprintf(cffn,"%04d.cf",n);
             (void) sprintf(wffn,"%04d.wf",n);
             cf = open(wffn,O_WRONLY|O_CREAT,S_IRUSR);
@@ -391,14 +418,13 @@ int main(int argc,char*argv[])
             df = open(dffn,O_WRONLY|O_CREAT,S_IRUSR);
             if (df < 0)
               { (void) sprintf(temp,
-                        "535 %d; user data file error.",errno);
-/*                          FIXME: register this in the messages file */
+                        "551 %d; user data file error.",errno);
                 (void) uftdstat(1,temp);  /* signal 5xx NAK to client */
-                (void) close(cf);       (void) close(tf);
+                (void) close(cf); (void) close(tf);
 #ifdef _UFT_DEBUG
-    fprintf(stderr,"UFTD: 535 user data file error\n");
+    fprintf(stderr,"UFTD: 551 user data file error\n");
 #endif
-                continue; }          /* return df; ** should be errno */
+                rc = 551; continue; }          /* return 551 or errno */
 
             /* belt and suspenders: chown data file for AIX */
 /*          (void) chown(dffn,uuid);    */
@@ -409,15 +435,13 @@ int main(int argc,char*argv[])
             ef = open(effn,O_WRONLY|O_CREAT,S_IRUSR);
             if (ef < 0)
               { (void) sprintf(temp,
-                        "535 %d; user auxdata file error.",errno);
-/*                          FIXME: register this in the messages file */
+                        "555 %d; user auxdata file error.",errno);
                 (void) uftdstat(1,temp);  /* signal 5xx NAK to client */
-                (void) close(cf);       (void) close(tf);
-                (void) close(df);
+                (void) close(cf); (void) close(tf); (void) close(df);
 #ifdef _UFT_DEBUG
-    fprintf(stderr,"UFTD: 535 user auxdata file error\n");
+    fprintf(stderr,"UFTD: 555 user auxdata file error\n");
 #endif
-                continue; }          /* return ef; ** should be errno */
+                rc = 555; continue; }          /* return 555 or errno */
 
             /* belt and suspenders: chown file for AIX */
 /*          (void) chown(effn,uuid);    */
@@ -444,12 +468,12 @@ int main(int argc,char*argv[])
             if (i < 0)
               { (void) sprintf(temp,"513 %d; server data error.",errno);
                 (void) uftdstat(1,temp);  /* signal 5xx NAK to client */
-                (void) close(df);
-                (void) close(cf);
+                (void) close(ef); (void) close(df); (void) close(cf);
+                cf = df = ef = -1;
 #ifdef _UFT_DEBUG
     fprintf(stderr,"UFTD: 513 server data error\n");
 #endif
-              continue; } /* return n; ** should be errno */
+              continue; }             /* return n; ** should be errno */
 
             (void) sprintf(temp,"213 %d; received %d bytes of data.",i,i);
             (void) uftdstat(1,temp);       /* ACK -- stat and logging */
@@ -472,6 +496,7 @@ int main(int argc,char*argv[])
               { (void) sprintf(temp,"513 %d; server data error.",errno);
                 (void) uftdstat(1,temp);  /* signal 5xx NAK to client */
                 (void) close(ef); (void) close(df); (void) close(cf);
+                cf = df = ef = -1;
 #ifdef _UFT_DEBUG
     fprintf(stderr,"UFTD: 513 server data error\n");
 #endif

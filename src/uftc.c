@@ -29,7 +29,7 @@ extern int uftcflag;
 int main(int argc,char*argv[])
   { static char _eyecatcher[] = "uftc.c main()";
     int         i, fd0, size, copy, fda, rc, fd[2];
-    char        temp[256], targ[256], b[BUFSIZ], akey[256],
+    char        temp[256], targ[256], b[UFT_BUFSIZ], akey[256],
                *host, *name, *type, *auth, *class, *proxy;
     struct  stat    uftcstat;
     time_t      mtime;
@@ -47,10 +47,8 @@ int main(int argc,char*argv[])
     /* process command-line options */
     for (i = 1; i < argc && argv[i][0] == '-' &&
                             argv[i][1] != 0x00; i++)
-      {
-        switch (argv[i][1])
-          {
-            case '?':   argc = i;       /* help                       */
+      { switch (argv[i][1])
+          { case '?':   argc = i;       /* help                       */
             case 'v':   case 'V':       /* verbose                    */
                         uftcflag |= UFT_VERBOSE;
                         break;
@@ -320,6 +318,7 @@ fprintf(stderr,"UFTC: trying IDENT\n");
             return 1; }
         if (uftcflag & UFT_VERBOSE) (void) uftx_putline(2,temp,0);
 
+        /* also send it as number-of-seconds Unix epoch offset value  */
         (void) sprintf(temp,"META XDATE %ld",mtime);
         if (uftcflag & UFT_VERBOSE) (void) uftx_putline(2,temp,0);
         i = tcpputs(fd[1],temp);
@@ -333,6 +332,17 @@ fprintf(stderr,"UFTC: trying IDENT\n");
     /* do we have a protection bit pattern on this file? */
     if (prot != 0)
       { (void) sprintf(temp,"META PROT %s",uftcprot(prot));
+        if (uftcflag & UFT_VERBOSE) (void) uftx_putline(2,temp,0);
+        i = tcpputs(fd[1],temp);
+        i = uftc_wack(fd[0],temp,sizeof(temp));
+        if (i < 0 && temp[0] != '4')
+          { if (errno != 0) (void) perror(arg0);
+            else (void) uftx_putline(2,temp,0);
+            return 1; }
+        if (uftcflag & UFT_VERBOSE) (void) uftx_putline(2,temp,0);
+
+        /* also send it as bits in octal format                       */
+        (void) sprintf(temp,"META XPERM %lo",prot);
         if (uftcflag & UFT_VERBOSE) (void) uftx_putline(2,temp,0);
         i = tcpputs(fd[1],temp);
         i = uftc_wack(fd[0],temp,sizeof(temp));
@@ -359,12 +369,12 @@ fprintf(stderr,"UFTC: trying IDENT\n");
     /* now send the file down the pipe */
     while (1)
       { if (uftcflag & UFT_BINARY)
-          { i = uft_readspan(fd0,b,BUFSIZ); if (i == 0)
-            i = uft_readspan(fd0,b,BUFSIZ);
+          { i = uft_readspan(fd0,b,UFT_BUFSIZ); if (i == 0)
+            i = uft_readspan(fd0,b,UFT_BUFSIZ);
  if (i < 1) break; }
         else
-          { i = uftctext(fd0,b,BUFSIZ); if (i == 0)
-            i = uftctext(fd0,b,BUFSIZ);
+          { i = uftctext(fd0,b,UFT_BUFSIZ); if (i == 0)
+            i = uftctext(fd0,b,UFT_BUFSIZ);
  if (i < 1) break; }
         (void) sprintf(temp,"DATA %d",i);
         if (uftcflag & UFT_VERBOSE) (void) uftx_putline(2,temp,0);

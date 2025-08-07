@@ -7,14 +7,11 @@
  *
  */
 
-#include        <string.h>
-#include        <stdio.h>
+#include <string.h>
+#include <stdio.h>
+#include <errno.h>
 
-#include        "uft.h"
-
-#ifndef         BUFSIZ
-#define         BUFSIZ          4096
-#endif
+#include "uft.h"
 
 extern int uftcflag;
 
@@ -23,14 +20,14 @@ int main(argc,argv)
   int     argc;
   char   *argv[];
   {
-    char        temp[BUFSIZ], cpqs[BUFSIZ], *host, *proxy, *arg1;
-    int         s, i, j;
+    char        temp[UFT_BUFSIZ], cpqs[UFT_BUFSIZ], *host, *proxy, *arg1;
+    int         rc, i, j, fd[2];
     char       *arg0, *p;
 
-    /*  establish defaults  */
+    /* note command name and set defaults */
+    arg0 = uftx_basename(argv[0]);
     host = "localhost";
-
-    arg0 = argv[0];
+    proxy = "";
 
     /* process command-line options */
     for (i = 1; i < argc && argv[i][0] == '-' &&
@@ -72,52 +69,50 @@ int main(argc,argv)
           }
       }
 
-/*
-                    sprintf(temp,"%s: %s Remote CPQUERY client",
+/*                  sprintf(temp,"%s: %s Remote CPQUERY client",
                                 arg0,UFT_VERSION);
-                    uftx_putline(2,temp,0);
- */
+                    uftx_putline(2,temp,0);                           */
 
-    /*  verify sufficient arguments (1)  */
+    /* verify sufficient arguments */
     if ((argc - i) < 1)
-      { (void) sprintf(temp,
+      { sprintf(temp,
                 "Usage: %s [-h <host>] <something>",argv[0]);
         uftx_putline(2,temp,0);
         return 24; }
 
-    /*  connect  */
-    (void) sprintf(temp,"%s:%d",host,608);
-    s = tcpopen(temp,0,0);
-    if (s < 0)
-      { (void) perror(host);
-        return s; }
+    /* connect */
+    sprintf(temp,"%s:%d",host,608);
+    rc = uftc_open(temp,proxy,fd);
+    if (rc != 0) { if (errno != 0) perror(temp); return 1; }
+    /* r = fd[0] for read and s = fd[1] for send */
 
-    /*  read and discard the herald  */
-     uftx_getline(s,temp,BUFSIZ);
+    /* read and discard the herald */
+     uftx_getline(fd[0],temp,UFT_BUFSIZ);
 
-    /*  join commandline args into CPQuery string  */
+    /* join commandline args into one CPQuery string */
     cpqs[0] = 0x00;
     for (j = i; j < argc; j++)
-      {
-        strcat(cpqs,argv[j]);
+      { strcat(cpqs,argv[j]);
         strcat(cpqs," "); }
 /*  uftx_putline(1,cpqs,0);  */
 
-    /*  send the CPQ request  */
-    (void) sprintf(temp,"CPQ %s",cpqs);
-    (void) tcpputs(s,temp);
+    /* send the CPQ request to the remote UFT server */
+    sprintf(temp,"CPQ %s",cpqs);
+    tcpputs(fd[1],temp);
 
-    /*  and wait for the ACK  */
+    /* ... and wait for the ACK */
     while (1)
-      { uftx_getline(s,temp,BUFSIZ);
+      { uftx_getline(fd[0],temp,UFT_BUFSIZ);
         p = temp;  while (*p > ' ') p++;  while (*p <= ' ') p++;
         if (temp[0] == '6') uftx_putline(1,p,0);
-//      else if (temp[0] != '2') uftx_putline(2,p,0);
+/*      else if (temp[0] != '2') uftx_putline(2,p,0);              // */
         if (temp[0] != '1' && temp[0] != '6') break; }
 
-    /*  exit cleanly  */
-    (void) tcpputs(s,"QUIT");
-    uftc_wack(s,temp,BUFSIZ);
+    /* exit cleanly */
+    tcpputs(fd[1],"QUIT");
+    uftc_wack(fd[0],temp,UFT_BUFSIZ);
+
+    uftc_close(fd);
 
     return 0;
   }

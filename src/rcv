@@ -56,7 +56,7 @@ if [ -z "$T" ] ; then
 echo "$Z: receiving UFT file $S as '$T'"
 
 #
-# be selective about canonicalization
+# be selective about canonization
 case "$UFT_TYPE" in
     a*|A*|t*|T*)                # "ASCII" or plain text
         cat $D/$S.df | sed 's#\r$##' > $T

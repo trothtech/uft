@@ -507,7 +507,7 @@ int msglocal(char*user,char*text)
   { static char _eyecatcher[] = "msglocal()";
 
     int         fd, i, j;
-    char        temp[BUFSIZ], *from;
+    char        temp[UFT_BUFSIZ], *from;
 
     /*  a 'mknod' with 622 perms (writable) might work too  */
 

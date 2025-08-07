@@ -19,10 +19,12 @@
 
 /* the version number and copyright */
 #define         UFT_PROTOCOL    "UFT/2"
-#define         UFT_VERSION     "POSIXUFT/2.0.7"
+#ifndef         UFT_VERSION
+ #define        UFT_VERSION     "POSIXUFT/2.0.8"
+#endif
 #define         UFT_COPYRIGHT   "© Copyright 1995-2025 Richard M. Troth"
-#define         UFT_VRM         "2.0.7"
-#define    UFT_VERINT    (((2) << 24) + ((0) << 16) + ((7) << 8) + (0))
+#define         UFT_VRM         "2.0.8"
+#define    UFT_VERINT    (((2) << 24) + ((0) << 16) + ((8) << 8) + (0))
 
 /* server constants follow */
 
@@ -62,9 +64,7 @@
 #define         UFT_PORT        608
 #define         IDENT_PORT      113
 
-#ifndef         BUFSIZ
-#define         BUFSIZ          64512
-#endif
+#define         UFT_BUFSIZ      64512
 
 #define         UFT_SYSLOG_FACILITY     LOG_UUCP
 

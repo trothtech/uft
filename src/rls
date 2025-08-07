@@ -47,14 +47,6 @@ if [ ! -d "$D" ]; then
 
 #
 # a simple command:
-#cd "$D"
-#for F in `ls -t *.cf | sed 's/.cf//'` ; do
-#       if [ ! -f $F.cf ]; then continue; fi
-#       ls -l $F.df | sed 's/.df//'
-#       done
-
-#
-# a simpler command:
 exec cat "$D"/*.lf
 
 #exit

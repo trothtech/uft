@@ -4,11 +4,12 @@
 #               make file source for UFTD and UFTC (Internet SENDFILE)
 #               to be modified by 'configure' and written as "makefile"
 #         Date: 1995-Jan-10, Oct-05, 1997-Feb-02, 2024-03-17
+#         Note: this makefile configured for %SYSTEM%
 #
 
 APPLID          =       uft
-VERSION         =       2.0.7
-DELIVERABLES    =       uftd sf rls rcv uftcndd tell cpq
+VERSION         =       2.0.8
+DELIVERABLES    =       uftd sf rls rcv rstat uftcndd tell cpq
 SOURCEURL       =       https://raw.githubusercontent.com/trothtech/uft/refs/heads/main
 #                       https://raw.githubusercontent.com/trothtech/uft/master
 
@@ -251,7 +252,7 @@ homedir.o:	makefile homedir.c
 install:	$(DELIVERABLES)
 		mkdir -p $(PREFIX)/bin $(PREFIX)/etc/xinetd.d \
 			$(PREFIX)/share/locale/$(LOCALE) $(PREFIX)/libexec
-		cp -p sf rls rcv uftcndd tell cpq $(PREFIX)/bin/.
+		cp -p sf rls rcv rstat uftcndd tell cpq $(PREFIX)/bin/.
 #		cp -p uftd $(PREFIX)/sbin/.
 		cp -p uftd $(PREFIX)/libexec/.
 		cp -p uft.inet $(PREFIX)/etc/xinetd.d/uft

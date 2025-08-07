@@ -17,7 +17,7 @@
 int uftddata(int o,int i,int n)
   { static char _eyecatcher[] = "uftddata()";
     int         j, k, l;
-    char        b[BUFSIZ];
+    char        b[UFT_BUFSIZ];
     l = n;
     while (n > 0)
       {
