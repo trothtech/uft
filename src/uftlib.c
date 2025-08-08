@@ -1203,8 +1203,7 @@ void uftdstat(int sock,char*zlda)
 /* ------------------------------------------------------------ MSGWRITE
  *  Try stock UNIX 'write' command if local user.                DEFUNCT
  */
-int msgwrite(user,text)
-  char   *user, *text;
+int msgwrite(char*user,char*text)
   { char        temp[256];
     (void) sprintf(temp,"echo \"%s\" | write %s",text,user);
     return system(temp); }

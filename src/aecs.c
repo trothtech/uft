@@ -11,41 +11,29 @@
 /* ------------------------------------------------------------- CHRATOE
  * Translate an ASCII character into EBCDIC.
  */
-int chratoe(c)
-  int     c;
-  {
-    return (ebc8859[c]);
-  }
+int chratoe(int c)
+  { return (ebc8859[c]); }
  
 /* ------------------------------------------------------------- STRATOE
  * Translate an ASCII string into EBCDIC in place. Return length.
  */
-int stratoe(string)
-  unsigned char *string;
-  {
-    int i;
- 
+int stratoe(unsigned char *string)
+  { int i;
     for (i = 0; (string[i] = ebc8859[string[i]]) != 0x00; i++);
-    return (i);
-  }
+    return (i); }
  
 /* ------------------------------------------------------------- CHRETOA
  * Translate an EBCDIC character into ASCII.
  */
-int chretoa(c)
-  int     c;
-  {
-    return (asc8859[c]);
-  }
+int chretoa(int c)
+  { return (asc8859[c]); }
  
 /* ------------------------------------------------------------- STRETOA
  * Translate an EBCDIC string into ASCII in place. Return length.
  */
-int stretoa(string)
-  unsigned char *string;
-  {
-    int i;
- 
+int stretoa(unsigned char *string)
+  { int i;
     for (i = 0; (string[i] = asc8859[string[i]]) != 0x00; i++);
-    return (i);
-  }
+    return (i); }
+
+

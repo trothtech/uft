@@ -16,9 +16,7 @@
 extern int uftcflag;
 
 /* ------------------------------------------------------------------ */
-int main(argc,argv)
-  int     argc;
-  char   *argv[];
+int main(int argc,char*argv[])
   {
     char        temp[UFT_BUFSIZ], cpqs[UFT_BUFSIZ], *host, *proxy, *arg1;
     int         rc, i, j, fd[2];

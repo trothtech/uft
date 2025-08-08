@@ -81,7 +81,8 @@ fi
 
 #
 # dump the heavy lifting on the 'rpmbuild' command
-rpmbuild -bb --nodeps $APPLID.spec
+echo "+ rpmbuild -bb --nodeps $APPLID.spec"
+        rpmbuild -bb --nodeps $APPLID.spec # --noprep
 RC=$? ; if [ $RC -ne 0 ] ; then exit $RC ; fi
 
 #

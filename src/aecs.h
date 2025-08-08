@@ -81,9 +81,11 @@
          0x30, 0x31, 0x32, 0x33,  0x34, 0x35, 0x36, 0x37,
          0x38, 0x39, 0xB3, 0xDB,  0xDC, 0xD9, 0xDA, 0x9F};
  
-extern int chratoe();
-extern int stratoe();
-extern int chretoa();
-extern int stretoa();
+int chratoe(int);
+int stratoe(unsigned char*);
+int chretoa(int);
+int stretoa(unsigned char*);
  
 #endif
+
+
