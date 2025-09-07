@@ -19,7 +19,19 @@
 #include <fcntl.h>
 #include <errno.h>
 
-#include <syslog.h>
+#if defined(_WIN32) || defined(_WIN64)
+ #define  LOG_EMERG     0   /* system is unusable */
+ #define  LOG_ALERT     1   /* action must be taken immediately */
+ #define  LOG_CRIT      2   /* critical conditions */
+ #define  LOG_ERR       3   /* error conditions */
+ #define  LOG_WARNING   4   /* warning conditions */
+ #define  LOG_NOTICE    5   /* normal but significant condition */
+ #define  LOG_INFO      6   /* informational */
+ #define  LOG_DEBUG     7   /* debug-level messages */
+#else
+ #include <syslog.h>
+ #define XMM_POSIX
+#endif
 
 #include <libgen.h>
 #include <ctype.h>
@@ -312,11 +324,13 @@ int xmopen(unsigned char*file,int opts,struct MSGSTRUCT*ms)
     for (i = 0; i < 3 && *p != 0x00; i++) ms->pfxmin[i] = toupper((int)*p++);
     ms->pfxmin[i] = 0x00;
 
+#ifdef XMM_POSIX
     /* handle SYSLOG and record other options */
     ms->msgopts = opts;
     if (ms->msgopts & MSGFLAG_SYSLOG) {
       /* figure out syslog identity */
       openlog(ms->applid,LOG_PID,LOG_USER); }
+#endif
 
     /* default "caller" is the user, but is better as a function name */
 
@@ -393,6 +407,7 @@ int xmmake(struct MSGSTRUCT*ms)
       }
     ms->msglen = i;
 
+#ifdef XMM_POSIX
     /* optional syslogging */
     if (ms->msgopts & MSGFLAG_SYSLOG) {
       if (ms->msglevel == 0) {
@@ -409,6 +424,7 @@ int xmmake(struct MSGSTRUCT*ms)
         default:                 ms->msglevel = LOG_INFO;              break;
                            } }
                                       }
+#endif
 
     return 0;
   }
@@ -444,8 +460,10 @@ int xmprint(int msgnum,int msgc,unsigned char*msgv[],int msgopts,struct MSGSTRUC
     rc = xmmake(ms);                              /* make the message */
     if (rc != 0) return xm_negative(rc);    /* if error then negative */
 
+#ifdef XMM_POSIX
     /* optionally route to SYSLOG */
     if (ms->msgopts & MSGFLAG_SYSLOG) syslog(ms->msglevel,"%s",ms->msgbuf);
+#endif
 
     if (ms->msgopts & MSGFLAG_NOPRINT) ; else
     if (ms->msglevel > 5)
@@ -487,8 +505,10 @@ int xmwrite(int fd,int msgnum,int msgc,unsigned char*msgv[],int msgopts,struct M
     rc = xmmake(ms);                              /* make the message */
     if (rc != 0) return xm_negative(rc);    /* if error then negative */
 
+#ifdef XMM_POSIX
     /* optionally route to SYSLOG */
     if (ms->msgopts & MSGFLAG_SYSLOG) syslog(ms->msglevel,"%s",ms->msgbuf);
+#endif
 
     ms->msgbuf[ms->msglen++] = '\n';
     rc = write(fd,ms->msgbuf,ms->msglen);
@@ -539,7 +559,9 @@ int xmclose(struct MSGSTRUCT*ms)
     /* release any allocated storage for this MSGSTRUCT */
     if (ms->msgdata != NULL) { (void) free(ms->msgdata); ms->msgdata = NULL; }
     if (ms->msgtable != NULL) { (void) free(ms->msgtable); ms->msgtable = NULL; }
+#ifdef XMM_POSIX
     if (ms->msgopts & MSGFLAG_SYSLOG) closelog();
+#endif
     ms->msgopts = 0;
 
     /* clear character fields */

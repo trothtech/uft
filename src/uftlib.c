@@ -29,14 +29,22 @@ int uftc_close(int*);
 #include <unistd.h>
 #include <stdio.h>
 
-#include <errno.h>
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <pwd.h>
 
-#include <sys/socket.h>
-#include <sys/un.h>
+#if defined(_WIN32) || defined(_WIN64)
+ #include <winsock2.h>
+ typedef int uid_t;
+ typedef int gid_t;
+#else
+ #include <sys/socket.h>
+ #include <sys/un.h>
+ #include <arpa/inet.h>
+ #include <pwd.h>
+ #include <errno.h>
+ #define UFT_POSIX
+#endif
 
 #include <ctype.h>
 
@@ -138,6 +146,7 @@ int uftd_message(char*user,char*text)
  */
 int msgd_xmsg_sock(char*user,char*buff,int bl)
   { static char _eyecatcher[] = "msgd_xmsg_sock()";
+#ifdef UFT_POSIX
     int rc, sd;
     char fn[256];
     struct sockaddr_un msgsockst;
@@ -173,6 +182,9 @@ int msgd_xmsg_sock(char*user,char*buff,int bl)
     rc = write(sd,buff,bl);
     close(sd);
     return rc;
+#else
+    return -1;
+#endif
   }
 
 /* ---------------------------------------------------------------------
@@ -184,7 +196,11 @@ int msgd_xmsg_fifo(char*user,char*buff,int bl)
     char fn[256];
 
     snprintf(fn,sizeof(fn),"%s/%s/.msgpipe",UFT_SPOOLDIR,user);
+#ifdef UFT_POSIX
     rc = fd = open(fn,O_WRONLY|O_NDELAY);
+#else
+    rc = fd = open(fn,O_WRONLY);
+#endif
 
 #ifdef _MSG_TRY_HOMEDIR
     if (rc < 0) {
@@ -381,6 +397,7 @@ int uftd_fann(char*user,char*spid,char*from)
  */
 char *uftx_user()
   { static char _eyecatcher[] = "uftx_user()";
+#ifdef UFT_POSIX
     int i;
     char *u;
     static char ut[64];
@@ -414,8 +431,12 @@ char *uftx_user()
         i++; u++;
       } ut[i] = 0x00;
     return ut;
+#else
+    return "";
+#endif
   }
 
+#ifdef UFT_POSIX
 #ifndef _OE_SOCKETS
 /* ------------------------------------------------------------- USERIDG
  *    "g" for GECOS field, return personal name string, if available
@@ -440,6 +461,7 @@ char *useridg()
     /*  give up!  */
     return uftx_user();
   }
+#endif
 #endif
 
 /* © Copyright 1996, Richard M. Troth, all rights reserved.  <plaintext>
@@ -505,7 +527,6 @@ int sendimsg ( char *user , char *text )
  */
 int msglocal(char*user,char*text)
   { static char _eyecatcher[] = "msglocal()";
-
     int         fd, i, j;
     char        temp[UFT_BUFSIZ], *from;
 
@@ -515,7 +536,11 @@ int msglocal(char*user,char*text)
     if (fd < 0 && errno == ENXIO)
       {
         /*  launch our special application to listen  */
+#ifdef UFT_POSIX
         fd = open(temp,O_WRONLY|O_NDELAY);
+#else
+        fd = open(temp,O_WRONLY);
+#endif
         /*  ... or NOT ...  */
       }
     if (fd < 0) return fd;
@@ -526,6 +551,7 @@ int msglocal(char*user,char*text)
  */
 char*uftx_home(char*user)
   { static char _eyecatcher[] = "uftx_home()";
+#ifdef UFT_POSIX
     int         i, uuid;
     struct passwd *pwdent;
     static char homedir[256];
@@ -536,6 +562,9 @@ char*uftx_home(char*user)
     else strncpy(homedir,pwdent->pw_dir,sizeof(homedir)-1);
 
     return homedir;
+#else
+    return "";
+#endif
   }
 
 /* ------------------------------------------------------------- GETLINE
@@ -668,7 +697,6 @@ int msgc_uft(char*user,char*text)
     int rc, mysock, i;
     char buffer[4096], agentkey[256], un[256], *p, hn[256];
 
-
     /* open /var/run/uft/agent.key for the magical AGENT string       */
     rc = mysock = open("/var/run/uft/agent.key",O_RDONLY);
     if (rc >= 0)
@@ -751,6 +779,7 @@ int msgc_uft(char*user,char*text)
  *              UFT Client "Wait for ACK" function
  *      Author: Rick Troth, Houston, Texas, USA
  *        Date: 1995-Mar-09, Nov-21 (Decatur)
+ *              2025-09-03 for Windoze
  * Copyright 1995-2025 Richard M. Troth, all rights reserved.
  */
 int uftc_wack(int s,char*b,int l)
@@ -759,8 +788,11 @@ int uftc_wack(int s,char*b,int l)
     char       *p;
 
     while (1)
-      { errno = 0;
-        i = tcpgets(s,b,l);
+      { i = tcpgets(s,b,l);
+//      b[i] = 0x00;
+//      if (i > 2) if (b[i-1] == 0x0a) b[--i] = 0x00;
+//      if (i > 1) if (b[i-1] == 0x0d) b[--i] = 0x00;
+//fprintf(stderr,"WACK: '%s'\n",b);
         if (i < 0)
           { /* broken pipe or network error */
             b[0] = 0x00; return i; }
@@ -771,7 +803,10 @@ int uftc_wack(int s,char*b,int l)
             case '6':                   /* write to stdout, then loop */
                 p = b;
                 while (*p != ' ' && *p != 0x00) p++;
-                if (*p != 0x00) (void) uftx_putline(1,++p,0);
+//              if (*p != 0x00) uftx_putline(1,++p,0);
+                                 if (*p == ' ') p++;
+                if (*p != 0x00) fprintf(stdout,"%s\n",p);
+                break;
             case '1':   case '#':   case '*':   /* discard, then loop */
                 break;
             case '2':                          /* simple ACK, is okay */
@@ -785,7 +820,8 @@ int uftc_wack(int s,char*b,int l)
             default:                                /* protocol error */
                 return -1;
           }
-        if (uftcflag & UFT_VERBOSE) if (b[0] != 0x00) uftx_putline(2,b,0);
+        if (uftcflag & UFT_VERBOSE) if (b[0] != 0x00) /* uftx_putline(2,b,0); */
+                                               fprintf(stderr,"%s\n",b);
       }
   }
 
@@ -935,6 +971,7 @@ char*uftx_parse1(char*s)
  */
 int uftx_proxy(char*host,char*prox,int*fd)
   { static char _eyecatcher[] = "uftx_proxy()";
+#ifdef UFT_POSIX
     int rc, us[2], ds[2], argc;
     char myhost[256], *port, myprox[256], *p, *argv[32];
 
@@ -984,6 +1021,7 @@ int uftx_proxy(char*host,char*prox,int*fd)
     rc = execvp(argv[0],argv);
 
     if (rc < 0) { rc = errno; if (rc == 0) rc = -1; return rc; }
+#endif
     return -1;
   }
 
@@ -998,6 +1036,7 @@ int uftx_proxy(char*host,char*prox,int*fd)
  */
 int uft_stat(char*sid,struct UFTSTAT*us)
   { static char _eyecatcher[] = "uft_stat()";
+#ifdef UFT_POSIX
     int rc, fd, i, e, cl;
     char sn[256], cb[4096], *p, *q;
     struct  stat  statbuf;
@@ -1125,6 +1164,9 @@ int uft_stat(char*sid,struct UFTSTAT*us)
     us->title[0] = 0x00;
 
     return 0;
+#else
+    return -1;
+#endif
   }
 
 /* ----------------------------------------------------------- UFTX_ATOI

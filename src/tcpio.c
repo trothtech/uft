@@ -17,11 +17,16 @@
  *
  */
 
+#if defined(_WIN32) || defined(_WIN64)
+ #include <winsock2.h>
+#else
+ #include <sys/socket.h>
+ #include <netdb.h>
+#endif
+
 #include <string.h>
 #include <sys/types.h>
-#include <sys/socket.h>
 #include <stdio.h>
-#include <netdb.h>
 #include <stdlib.h>
 #include <unistd.h>
 
@@ -31,7 +36,7 @@
 #define         TCPLARGE        4096
 
 int     tcp_ubuf[TCPLARGE];
-int     tcp_uoff, tcp_uend;
+//int   tcp_uoff, tcp_uend;
 char    tcp_umsg[TCPSMALL];
 
 /* if we're on IBM OpenVM, define OECS */
@@ -179,13 +184,14 @@ int tcpclose(int fd)
  *              into buffer b.  Returns the length of that string.
  *      Author: Rick Troth, Houston, Texas, USA
  *        Date: 1995-Apr-19
+ *              2025-09-03 for Windoze
  *
  *    See also: getline.c, putline.c
  */
 int tcpgets(int s,char*b,int l)
   { static char _eyecatcher[] = "tcpgets()";
     char       *p;
-    int         i;
+    int         i, rc;
 
 #ifdef  OECS
     char        snl;
@@ -194,9 +200,11 @@ int tcpgets(int s,char*b,int l)
 
     p = b;
     for (i = 0; i < l; i++)
-      {
-        if (read(s,p,1) != 1)           /*  get a byte  */
-        if (read(s,p,1) != 1) return -1;/*  try again  */
+      { rc = read(s,p,1); if (rc != 1)                  /* get a byte */
+        rc = recv(s,p,1,0); if (rc != 1)                  /* Win hack */
+        rc = read(s,p,1); if (rc != 1)                   /* try again */
+        rc = recv(s,p,1,0); if (rc != 1) return -1;       /* Win hack */
+        /* above worked fine with read() til Windows demanded recv()  */
         switch (*p)
           {
 #ifdef  OECS
@@ -231,8 +239,8 @@ int tcpgets(int s,char*b,int l)
         *p = 0x00;      /*  remove trailing CR  */
       }
 
-    tcp_uoff = 0;
-    tcp_uend = 0;
+//  tcp_uoff = 0;
+//  tcp_uend = 0;
     return i;
   }
 

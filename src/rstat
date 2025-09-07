@@ -1,0 +1,77 @@
+#!/bin/sh
+# Copyright 2025 Richard M. Troth, all rights reserved. <plaintext>
+#
+#         Name: rstat (shell script)
+#               'stat' files in the user's UFT "receive pool"
+#       Author: Rick Troth, Cedarville, Ohio, USA
+#         Date: 2025-08-06
+#
+
+#
+# get basename of this script for reporting
+Z=`basename "$0"`
+
+#
+# some environments have a non-POSIX side:
+case `uname -s` in
+    VM/ESA|z/VM) # this section depends on the CMS implementation
+        cms " pipe rls | > /tmp/$$.rls "
+        cat /tmp/$$.rls ; RC="$?"
+        rm -f /tmp/$$.rls
+        exit $RC
+        ;;
+#   OS/390)
+#       echo "$Z: operation not supported" 1>&2
+#       exit 28
+#       ;;
+esac
+
+#
+# get username to know which UFT spool space sub-directory to use
+U=`id | awk -F\( '{print $2}' | awk -F\) '{print $1}'`
+
+#
+# set some variables:
+if [ -z "$LOGNAME" ] ; then LOGNAME=$USER ; fi
+if [ -z "$LOGNAME" ] ; then LOGNAME=$USERNAME ; fi
+D=/usr/spool/uft/$LOGNAME
+if [ ! -d $D ] ; then D=/var/spool/uft/$U ; fi
+if [ -n "$UFT_SPOOLDIR" ]; then D="$UFT_SPOOLDIR"; fi
+
+#
+# here's hoping that per-user sub-dir does in fact exist
+if [ ! -d $D ] ; then
+    echo "$Z: UFT configuration problem: no spool directory" 1>&2
+    exec ls -ld $D ; fi          # 'ls' here throws an informative error
+
+#
+# clean-up the spool ID .. four digits for historical reasons
+S="$1"
+if [ -z "$S" ] ; then S=1 ; fi
+S=`echo "0000$S" | awk '{print substr($0,length($0)-3,4)}'`
+
+#
+# extract the metadata and load it into this shell
+grep -v '^#' $D/$S.cf | awk '{print "UFT_" $0}' | grep -v '=$' \
+    | grep -v '`' | grep -v ';' | grep -v '(' | grep -v ')' \
+    | grep -v '^$' > /tmp/$$.set
+RC=$? ; if [ $RC -ne 0 ] ; then rm -f /tmp/$$.set ; exit $RC ; fi
+. /tmp/$$.set
+rm /tmp/$$.set
+
+set | grep '^UFT_'
+
+exit
+
+# some example UFT file attributes:
+UFT_REMOTE=''                           # the sending user@host if available
+UFT_SIZE='36K'                          # estimated size reported by sender
+UFT_FROM='ltroth3'                      # sending user per the FILE command
+UFT_USER='rmt'                          # intended recipient
+UFT_TYPE='I'                            # text? binary? or something else?
+UFT_NAME='uftcreqs.tar'                 # the name of the file, if available
+UFT_DATE='2024-04-19 20:22:31'          # date stamp on the file being sent
+UFT_RECFM='F'                           # record format, if applicable
+UFT_LRECL='512'                         # record length, if applicable
+
+

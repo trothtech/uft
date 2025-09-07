@@ -95,12 +95,21 @@ case "$US" in
         US="CYGWIN"
         SHFLAGS="$LDFLAGS -shared"
         ;;
+    MINGW*)
+        US="MINGW"
+        if [ "$UM" = "x86_64" ] ; then CFLAGS="$CFLAGS -m64"
+                                  else CFLAGS="$CFLAGS -m32" ; fi
+        LIBS="-lwsock32"
+        LDFLAGS="$LDFLAGS -lwsock32"
+        SHFLAGS="$LDFLAGS -shared"
+        ;;
     AIX)
         UM=`uname -p`
         ;;
     Sun*|Sol*)
         UM=`uname -p`
         LIBS="-lsocket -lnsl"
+        LDFLAGS="$LDFLAGS -lsocket -lnsl"
         SHFLAGS="$LDFLAGS -shared -Wl,-h"
         ;;
     OS390)              # OS/390, z/OS
@@ -117,6 +126,7 @@ case "$US" in
         CC="xlc"
         CFLAGS="-DOECS -D_OE_SOCKETS -D__UU"
         LIBS="-l//posxsock -l//vmmtlib"
+        LDFLAGS="$LDFLAGS -l//posxsock -l//vmmtlib"
         ;;
 esac
 
@@ -175,6 +185,7 @@ echo "PREFIX=#$PREFIX#"   >> configure.tmp
 echo "SYSTEM=#$SYSTEM#"   >> configure.tmp
 echo "LDFLAGS=#$LDFLAGS#" >> configure.tmp
 echo "SHFLAGS=#$SHFLAGS#" >> configure.tmp
+echo "LIBS=#$LIBS#"       >> configure.tmp
 echo "LOCDIR=#$LOCDIR#"   >> configure.tmp                    # xmitmsgx
 echo "LOCALE=#$LOCALE#"   >> configure.tmp                    # xmitmsgx
 sed 's/#/"/g' < configure.tmp | awk '{print "#define" , $0}' | sed 's/=/ /' > configure.h
