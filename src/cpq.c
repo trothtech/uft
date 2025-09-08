@@ -9,9 +9,12 @@
 
 #include <string.h>
 #include <stdio.h>
-#include <errno.h>
 
 #include "uft.h"
+ #include <errno.h>
+#ifdef UFT_POSIX
+
+#endif
 
 extern int uftcflag;
 
@@ -81,7 +84,11 @@ int main(int argc,char*argv[])
     /* connect */
     sprintf(temp,"%s:%d",host,608);
     rc = uftc_open(temp,proxy,fd);
+#ifdef UFT_POSIX
     if (rc != 0) { if (errno != 0) perror(temp); return 1; }
+#else
+    if (rc != 0) { perror(temp); return 1; }
+#endif
     /* r = fd[0] for read and s = fd[1] for send */
 
     /* read and discard the herald */

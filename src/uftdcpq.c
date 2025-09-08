@@ -12,11 +12,12 @@
  */
 
 #include <stdio.h>
-#include <sys/utsname.h>
 #include <fcntl.h>
 #include <string.h>
 #include <time.h>
 #include <ctype.h>
+
+#include <sys/utsname.h>
 
 #include "uft.h"
 
@@ -36,8 +37,13 @@ int uftdcpq_cplevel(char*cpqstr,int cpqsl)                 /* CPLEVEL */
 #else
 
     cpqstr[0] = 0x00;
+#ifdef UFT_POSIX
     rc = uname(&cpquts);
     if (rc < 0) return rc;
+#else
+    cpquts.sysname[0] = cpquts.nodename[0] = cpquts.release[0] = cpquts.version[0] = cpquts.machine[0] = '-';
+    cpquts.sysname[1] = cpquts.nodename[1] = cpquts.release[1] = cpquts.version[1] = cpquts.machine[1] = 0x00;
+#endif
 
     snprintf(cpqstr,cpqsl,"%s %s %s %s %s",
              cpquts.sysname,    /* -s, --kernel-name */
@@ -169,7 +175,7 @@ int uftdcpq_time(char*cpqstr,int cpqsl)                       /* TIME */
     tmstamp->tm_mon = tmstamp->tm_mon + 1;
 
     /* the tm_zone member is preferred but not all systems have it    */
-#if !defined(__sun) && !defined(sun) && !defined(__SUNPRO_C) && !defined(__SUNPRO_CC)
+#if !defined(__sun) && !defined(sun) && !defined(__SUNPRO_C) && !defined(__SUNPRO_CC) && !defined(_WIN32) && !defined(_WIN64)
     tz = (char*) tmstamp->tm_zone;        /* <bits/types/struct_tm.h> */
 #else
     tz = tzname[0];                         // timezone name <time.h> */

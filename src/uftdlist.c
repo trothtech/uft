@@ -20,6 +20,15 @@
 #include        <sys/stat.h>
 #include        <time.h>
 
+#if defined(_WIN32) || defined(_WIN64)
+ #include <winsock2.h>
+#else
+ #include <sys/socket.h>
+ #include <netdb.h>
+ #include <pwd.h>
+ #include <errno.h>
+#endif
+
 #include        "uft.h"
 
 /*  there's gotta be a better way to do this than to hard-code it!  */

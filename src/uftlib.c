@@ -35,15 +35,12 @@ int uftc_close(int*);
 
 #if defined(_WIN32) || defined(_WIN64)
  #include <winsock2.h>
- typedef int uid_t;
- typedef int gid_t;
 #else
  #include <sys/socket.h>
  #include <sys/un.h>
  #include <arpa/inet.h>
  #include <pwd.h>
  #include <errno.h>
- #define UFT_POSIX
 #endif
 
 #include <ctype.h>

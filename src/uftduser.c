@@ -12,11 +12,18 @@
  *        NOTE: This source is due for merge into UFTD or UFTLIB.
  */
 
-#include <pwd.h>
-#include <errno.h>
 extern	int	errno;
 #include <unistd.h>
 #include <sys/stat.h>
+
+#if defined(_WIN32) || defined(_WIN64)
+ #include <winsock2.h>
+#else
+ #include <sys/socket.h>
+ #include <netdb.h>
+ #include <pwd.h>
+ #include <errno.h>
+#endif
 
 #include "uft.h"
 
@@ -26,6 +33,7 @@ extern	int	errno;
  */
 int uftduser(char*user)
   { static char _eyecatcher[] = "uftduser()";
+#ifdef UFT_POSIX
     int 	i, uuid;
     struct passwd *pwdent;
 
@@ -71,6 +79,13 @@ int uftduser(char*user)
 
     /* return the uid (non-negative) on success */
     return uuid;
+
+#else
+    int rc;
+    /* does the directory exist already? */
+    rc = chdir(user);
+    return rc;
+#endif
   }
 
 

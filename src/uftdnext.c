@@ -13,6 +13,13 @@
 #include <errno.h>
 #include <stdlib.h>
 
+#if defined(_WIN32) || defined(_WIN64)
+ #include <winsock2.h>
+#else
+ #include <sys/socket.h>
+ #include <netdb.h>
+#endif
+
 #include "uft.h"
 
 /* ------------------------------------------------------------ UFTDNEXT

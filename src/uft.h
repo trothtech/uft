@@ -11,6 +11,13 @@
 #include <time.h>
 #include <sys/types.h>
 
+#if defined(_WIN32) || defined(_WIN64)
+ typedef int uid_t;
+ typedef int gid_t;
+#else
+ #define UFT_POSIX
+#endif
+
 #include "tcpio.h"
 
 /*        Note: define UFT_ANONYMOUS to use 'uftd' via Tor            *

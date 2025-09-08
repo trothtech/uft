@@ -10,8 +10,16 @@
 
 #include        <stdio.h>
 #include        <fcntl.h>
-#include        <errno.h>
-#include        <pwd.h>
+
+#if defined(_WIN32) || defined(_WIN64)
+ #include <winsock2.h>
+#else
+ #include <sys/socket.h>
+ #include <netdb.h>
+ #include <pwd.h>
+ #include <errno.h>
+#endif
+
 #include        "uft.h"
 
 /* ------------------------------------------------------------------ */
@@ -28,9 +36,14 @@ int uftdimsg(char*user,char*file,char*from,char*type)
 
     /*  first try  /tmp/$USER.msgpipe  */
     (void) sprintf(pipe,"/tmp/%s.msgpipe",user);
+#ifdef UFT_POSIX
     fd = open(pipe,O_WRONLY|O_NDELAY);
+#else
+    fd = open(pipe,O_WRONLY);
+#endif
 
     /*  if that didn't work,  then try other locations  */
+#ifdef UFT_POSIX
     if (fd < 0 && errno == ENOENT)
       {
         /*  a 'mknod' with 622 perms (writable) might work too  */
@@ -42,6 +55,7 @@ int uftdimsg(char*user,char*file,char*from,char*type)
 
         fd = open(pipe,O_WRONLY|O_NDELAY);
       }
+#endif
 
     /*  if there's no listener ...  */
     if (fd < 0 && errno == ENXIO)
@@ -49,7 +63,11 @@ int uftdimsg(char*user,char*file,char*from,char*type)
         /*  launch our special application to listen  */
         /*  (but we don't have one!)  */
         /*  then re-try the open of the FIFO  */
+#ifdef UFT_POSIX
         fd = open(pipe,O_WRONLY|O_NDELAY);
+#else
+        fd = open(pipe,O_WRONLY);
+#endif
       }
     if (fd < 0) return fd;
 

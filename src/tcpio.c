@@ -54,7 +54,7 @@ char    tcp_umsg[TCPSMALL];
 #endif
 
 /* ------------------------------------------------------------- TCPOPEN
- *  Tries to mimick  open(path,flags[,mode])
+ *  Tries to mimick open(path,flags[,mode])
  *  but connects to a TCP port,  not a local file.
  */
 int tcpopen(char*host,int flag,int mode)
@@ -64,6 +64,20 @@ int tcpopen(char*host,int flag,int mode)
     struct hostent *hent, myhent;
     char       *myhental[2], myhenta0[4], myhenta1[4];
     char        temp[TCPSMALL], *p, *q;
+
+//fprintf(stderr,"tcpopen(): hello, world\n");
+
+
+#if defined(_WIN32) || defined(_WIN64)
+    WSADATA wsa;
+    rc = WSAStartup(MAKEWORD(2,2),&wsa);
+    if (rc != 0) {
+        fprintf(stderr,"Windows socket subsytsem could not be initialized.\n");
+        fprintf(stderr,"Error Code: %d. Exiting..\n", WSAGetLastError());
+        return -1; }
+//fprintf(stderr,"tcpopen(): Windoze hack worked\n");
+#endif
+
 
     /*  parse host address and port number by colon  */
     p = host; host = temp; i = 0;
@@ -77,6 +91,7 @@ int tcpopen(char*host,int flag,int mode)
             temp[i++] = *q++; temp[i++] = 0x00;
         port = atoi(p);
       }
+//fprintf(stderr,"tcpopen(): port %d\n",port);
 
     /*  figure out where to connect  */
     hent = gethostbyname(host);
@@ -115,6 +130,7 @@ int tcpopen(char*host,int flag,int mode)
         /*  should probably call gethostbyaddr()
             at this point;  maybe in the next rev  */
       }
+//fprintf(stderr,"tcpopen(): DNS tinkering done\n");
 
     /*  gimme a socket  */
     s = socket(AF_INET,SOCK_STREAM,0);
@@ -125,6 +141,7 @@ int tcpopen(char*host,int flag,int mode)
  */
         return s;
       }
+//fprintf(stderr,"tcpopen(): we have a socket!\n");
 
     /*  build that structure  */
     name.sa_family = AF_INET;
@@ -149,8 +166,10 @@ int tcpopen(char*host,int flag,int mode)
 
         /*  can we talk?  */
         rc = connect(s, &name, 16);
+//fprintf(stderr,"tcpopen(): connect() returned %d\n",rc);
         if (rc == 0) return s;
       }
+//fprintf(stderr,"tcpopen(): somehow we did not connect\n");
 
     /*  can't seem to reach this host on this port  :-(  */
     (void) close(s);
@@ -276,8 +295,10 @@ int tcpputs(int s,char*b)
     temp[i+1] = '\n';
 #endif
 
-    /*  write entire string, WITH line interpolation,  at once  */
+    /* write entire string, WITH line interpolation, at once          */
     j = write(s,temp,i+2);
+    if (j < 0) j = send(s,temp,i+2,0);
+    /* above worked fine with write() until Windows demanded send()   */
 
     if (j != i+2) return -1;
     return i;

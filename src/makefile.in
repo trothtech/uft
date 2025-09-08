@@ -199,24 +199,24 @@ msgcat: 	makefile msgpipe
 
 msgpipe:	makefile msgpipe.o
 		$(CC) -o msgpipe msgpipe.o
-		strip msgpipe
+#		strip msgpipe
 
 msgd:		makefile msgd.o msgdlmsg.o \
 			tcpio.o aecs.o homedir.o
 		$(CC) -o msgd msgd.o msgdlmsg.o \
 			tcpio.o aecs.o homedir.o
-		strip msgd
+#		strip msgd
 
 tell:		makefile msgc.o uftlib.o tcpio.o xmitmsgx.o \
 		  uftctext.o uftcprot.o aecs.o abbrev.o
 	$(CC) $(LDFLAGS) -o tell msgc.o uftlib.o tcpio.o xmitmsgx.o \
 		  uftctext.o uftcprot.o aecs.o abbrev.o $(LIBS)
-	strip tell
+#	strip tell
 # msgcmsp.o msgcuftd.o msglocal.o homedir.o
 
 imsg:		makefile imsg.o aecs.o
 		$(CC) -o imsg imsg.o aecs.o
-		strip imsg
+#		strip imsg
 
 imsg.o: 	makefile uft.h imsg.c
 		$(CC) -c imsg.c

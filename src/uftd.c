@@ -19,6 +19,14 @@
 #include <unistd.h>
 
 #include "uft.h"
+
+#ifdef UFT_POSIX
+ #include <sys/socket.h>
+ #include <netdb.h>
+#else
+ #include <winsock2.h>
+#endif
+
 char           *arg0;
 int             tf, cf, df;     /* temp, meta, and data file handles */
 char            tffn[64], cffn[64], dffn[64];
@@ -96,7 +104,9 @@ int main(int argc,char*argv[])
     /* If we're not running as root (or if we don't at least           *
      * own the UFT spooling directory) then we're hopeless.            *
      * But we might also want to be in the UFT_GROUP (typically 0).    */
+#ifdef UFT_POSIX
     (void) setgid(UFT_GID);
+#endif
 
     /* work from the UFT spool directory */
     n = chdir(UFT_SPOOLDIR);
@@ -305,7 +315,10 @@ int main(int argc,char*argv[])
         /* --------------------------------------------- EXIT command */
         /* --------------------------------------------- QUIT command */
         if (abbrev("EXIT",p,2) || abbrev("QUIT",p,3))
-          { (void) seteuid(0);
+          {
+#ifdef UFT_POSIX
+ (void) seteuid(0);
+#endif
             if (df >= 0 && cf >= 0) unlink(tffn);       /* QUIT, EXIT */
             break; }         /* "221 goodbye" follows outside of loop */
 
@@ -373,12 +386,19 @@ int main(int argc,char*argv[])
             /* get the next sequence number for this user */
             n = uftdnext();
             if (n < 0 && errno == EACCES)
-              { (void) seteuid(0);
+              {
+#ifdef UFT_POSIX
+ (void) seteuid(0);
+#endif
                 n = uftdnext(); }
             if (n < 0)
               { (void) sprintf(temp,
+#ifdef UFT_POSIX
                           "527 user slot error UID=%d EUID=%d ERRNO=%d",
                                getuid(),geteuid(),errno);
+#else
+                          "527 user slot error");
+#endif
                 (void) uftdstat(1,temp);  /* signal 5xx NAK to client */
 #ifdef _UFT_DEBUG
     fprintf(stderr,"UFTD: 527 user slot error %d\n",n);
@@ -407,9 +427,11 @@ int main(int argc,char*argv[])
                 continue; }          /* return cf; ** should be errno */
 
             /* belt and suspenders: chown meta file for AIX */
+#ifdef UFT_POSIX
 /*          (void) chown(cffn,uuid);    */
 /*          (void) chown(wffn,uuid);    */
             (void) chown(wffn,uuid,UFT_GID);
+#endif
             /* and move previously stored statements into it */
             (void) uftdmove(cf,tf);
 
@@ -427,8 +449,10 @@ int main(int argc,char*argv[])
                 rc = 551; continue; }          /* return 551 or errno */
 
             /* belt and suspenders: chown data file for AIX */
+#ifdef UFT_POSIX
 /*          (void) chown(dffn,uuid);    */
             (void) chown(dffn,uuid,UFT_GID);
+#endif
 
             /* open AUX data file (extended attr or "resource fork")  */
             (void) sprintf(effn,"%04d.ef",n);
@@ -444,8 +468,10 @@ int main(int argc,char*argv[])
                 rc = 555; continue; }          /* return 555 or errno */
 
             /* belt and suspenders: chown file for AIX */
+#ifdef UFT_POSIX
 /*          (void) chown(effn,uuid);    */
             (void) chown(effn,uuid,UFT_GID);
+#endif
 
             /* all okay! */
             (void) sprintf(temp,"208 %s; user %s okay",user,user);
@@ -518,9 +544,11 @@ int main(int argc,char*argv[])
             (void) rename(wffn,cffn);
 
             /* belt and suspenders for AIX: chown the user files      */
+#ifdef UFT_POSIX
             (void) chown(cffn,uuid,UFT_GID);
             (void) chown(dffn,uuid,UFT_GID);
             (void) chown(effn,uuid,UFT_GID);
+#endif
 
             /* and clear filenames */
             effn[0] = 0x00;  dffn[0] = 0x00;
@@ -534,7 +562,9 @@ int main(int argc,char*argv[])
 /*          (void) uftdlmsg(user,seqs,from,type);           // SYSLOG */
             (void) uftdlist(atoi(seqs),from);             /* ala 'ls' */
 
+#ifdef UFT_POSIX
             seteuid(0);                      /* go back to being root */
+#endif
             uftd_fann(user,seqs,from);       /* this is a better IMSG */
 
             /* now lose the spoolid number and clear username         */
@@ -584,7 +614,9 @@ int main(int argc,char*argv[])
             /* now lose the spoolid number, clear user, reset eUID    */
             n = -1;                    /* now lose the spoolid number */
             user[0] = 0x00;           /* now reset the user value ... */
+#ifdef UFT_POSIX
             (void) seteuid(0);       /* ... and go back to being root */
+#endif
 
             /* get back into the UFT spool directory */
             if (chdir(UFT_SPOOLDIR) < 0) break;   /* FIXME: should be 5xx */
