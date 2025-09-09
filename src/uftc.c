@@ -18,6 +18,13 @@
 #include <unistd.h>
 #include <errno.h>
 
+#if defined(_WIN32) || defined(_WIN64)
+ typedef int uid_t;
+ typedef int gid_t;
+#else
+ #define UFT_POSIX
+#endif
+
 #include "uft.h"
 
 char   *arg0;
@@ -31,7 +38,7 @@ int main(int argc,char*argv[])
     int         i, fd0, size, copy, fda, rc, fd[2];
     char        temp[256], targ[256], b[UFT_BUFSIZ], akey[256],
                *host, *name, *type, *auth, *class, *proxy;
-    struct  stat    uftcstat;
+    struct  stat  uftcstat;
     time_t      mtime;
     mode_t      prot;
     struct tm *gmtstamp;
@@ -145,6 +152,7 @@ int main(int argc,char*argv[])
       { sprintf(temp,"%s: %s Internet SENDFILE client",
                 arg0,UFT_VERSION);
         uftx_putline(2,temp,0); }
+    temp[0] = 0x00;
 
     /* be sure we still have enough args (min 2) left over */
     if ((argc - i) < 2)
@@ -157,6 +165,7 @@ int main(int argc,char*argv[])
         (void) uftx_putline(2,temp,0);
         if (uftcflag & UFT_VERBOSE) return 0;  /* exit from help okay */
                               else  return 1; }       /* missing args */
+    temp[0] = 0x00;
 
     /* flag some known canonization types */
     switch (type[0])
@@ -192,6 +201,7 @@ int main(int argc,char*argv[])
         prot = uftcstat.st_mode; }
     else
       { size = 0;  mtime = 0;  prot = 0; }
+//fprintf(stderr,"UFTC: input file size %d\n",size);
 
     /* better peer authentication than IDENT is AGENT (see protocol)  */
     if (*proxy == 0x00) fda = open("/var/run/uft/agent.key",O_RDONLY);
@@ -207,7 +217,7 @@ int main(int argc,char*argv[])
     /* see if we're running IDENT locally (long story!)               */
     if (*proxy == 0x00 && auth[0] == '-')
       { sprintf(temp,"%s:%d","localhost",IDENT_PORT);
-fprintf(stderr,"UFTC: trying IDENT\n");
+//fprintf(stderr,"UFTC: trying IDENT\n");
         fd[1] = tcpopen(temp,0,0);  /* simple test to see if it opens */
         if (fd[1] >= 0) { auth = "IDENT"; close(fd[1]); } }
 
@@ -223,6 +233,7 @@ fprintf(stderr,"UFTC: trying IDENT\n");
 
     /* wait for the herald from the server */
     i = tcpgets(fd[0],temp,sizeof(temp));   /* all others uftc_wack() */
+//fprintf(stderr,"UFTC: tcpgets() returned %d\n",i);
     if (i < 0)
       { (void) perror(host);              /* FIXME: remember to close */
         return 1; }              /* read of herald from server failed */
@@ -230,6 +241,7 @@ fprintf(stderr,"UFTC: trying IDENT\n");
 
     /* figure out what protocol version the server likes */
     uftv = temp[0] & 0x0F;
+//fprintf(stderr,"UFTC: herald '%s'\n",temp);
     if (uftv < 1) uftv = 1;
     if (uftcflag & UFT_VERBOSE)
       { (void) sprintf(temp,"%s: UFT protocol %d",arg0,uftv);
@@ -367,6 +379,7 @@ fprintf(stderr,"UFTC: trying IDENT\n");
     /* -------------------------------------------------------------- */
 
     /* now send the file down the pipe */
+//fprintf(stderr,"UFTC: buffer size %d\n",UFT_BUFSIZ);
     while (1)
       { if (uftcflag & UFT_BINARY)
           { i = uft_readspan(fd0,b,UFT_BUFSIZ); if (i == 0)

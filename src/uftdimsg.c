@@ -8,8 +8,8 @@
  *        NOTE: This source is due for merge into UFTD or UFTLIB.
  */
 
-#include        <stdio.h>
-#include        <fcntl.h>
+#include <stdio.h>
+#include <fcntl.h>
 
 #if defined(_WIN32) || defined(_WIN64)
  #include <winsock2.h>
@@ -20,7 +20,7 @@
  #include <errno.h>
 #endif
 
-#include        "uft.h"
+#include "uft.h"
 
 /* ------------------------------------------------------------------ */
 int uftdimsg(char*user,char*file,char*from,char*type)
@@ -100,7 +100,7 @@ int uftdimsg(char*user,char*file,char*from,char*type)
     /* terminate the message buffer (double NULL) */
     imsg[i++] = 0x00;   imsg[i++] = 0x00;
 
-    (void) write(fd,imsg,i);
+    (void) tcpwrite(fd,imsg,i);
     (void) close(fd);
 
     return 0;

@@ -38,6 +38,7 @@
 /* the SPOOLDIR has a sub-directory for each recipient */
 #ifndef         UFT_SPOOLDIR
  #define        UFT_SPOOLDIR    "/var/spool/uft"
+             /*                 "C:/ProgramData/uft" */
 #endif
 
 #ifndef         UFT_GID

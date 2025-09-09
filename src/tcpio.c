@@ -308,14 +308,26 @@ int tcpputs(int s,char*b)
  */
 int tcpwrite(int fd,char*s,int n)
   { static char _eyecatcher[] = "tcpwrite()";
-    return write(fd,s,n);
+    int rc;
+
+    rc = write(fd,s,n);
+    if (rc < 0) rc = send(fd,s,n,0);
+    /* above worked fine with write() until Windows demanded send()   */
+
+    return rc;
   }
 
 /* ------------------------------------------------------------- TCPREAD
  */
 int tcpread(int fd,char*s,int n)
   { static char _eyecatcher[] = "tcpread()";
-    return read(fd,s,n);
+    int rc;
+
+    rc = read(fd,s,n);
+    if (rc < 0) recv(fd,s,n,0);
+    /* above worked fine with read() until Windows demanded recv()    */
+
+    return rc;
   }
 
 /* ------------------------------------------------------------ TCPIDENT
@@ -355,10 +367,6 @@ int tcpident(int sock,char*buff,int size)
     int         plcl, prmt;
     char       *p;
 
-/*
-(void) netline(2,">>>>>>>>");
- */
-
     /*  preload a few storage areas  */
     host[0] = 0x00;
     user[0] = 0x00;
@@ -367,10 +375,7 @@ int tcpident(int sock,char*buff,int size)
     slen = sizeof(sadr);
     rc = getsockname(sock,&sadr,&slen);
     if (rc != 0)
-      {
-/*
-        (void) perror("getsockname()");
- */
+      { /* perror("getsockname()"); */
         if (rc < 0) return rc;
                 else return -1;
       }
@@ -399,10 +404,7 @@ int tcpident(int sock,char*buff,int size)
     slen = sizeof(sadr);
     rc = getpeername(sock,&sadr,&slen);
     if (rc != 0)
-      {
-/*
-        (void) perror("getpeername()");
- */
+      { /* perror("getpeername()"); */
         if (rc < 0) return rc;
                 else return -1;
       }
@@ -433,10 +435,7 @@ int tcpident(int sock,char*buff,int size)
     /*  what host is at that address?  */
     hent = gethostbyaddr(hadd,slen,styp);
     if (hent == NULL)
-      {
-/*
-        (void) perror("gethostbyaddr()");
- */
+      { /* perror("gethostbyaddr()"); */
         if (rc < 0) return rc;
                 else return -1;
       }
@@ -482,14 +481,10 @@ int tcpident(int sock,char*buff,int size)
 
     (void) sprintf(buff,"%s@%s",user,host);
 
-/*
-(void) netline(2,"<<<<<<<<");
- */
-
     return 0;
   }
 
-/* include the following code only if supporting IBM OpenEdition */
+/* include the following code only if supporting IBM OpenEdition/USS  */
 #ifdef          OECS
 #include        "aecs.h"
 

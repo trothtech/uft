@@ -176,7 +176,7 @@ int msgd_xmsg_sock(char*user,char*buff,int bl)
 #endif
     if (rc < 0) { close(sd); return rc; }
 
-    rc = write(sd,buff,bl);
+    rc = tcpwrite(sd,buff,bl);
     close(sd);
     return rc;
 #else
@@ -476,7 +476,7 @@ char *useridg()
  *              are meaningless unles host is the local system.
  *
  */
-  
+
 /* ------------------------------------------------------------ SENDIMSG
  */
 int sendimsg ( char *user , char *text )
@@ -582,8 +582,8 @@ char*uftx_home(char*user)
  */
 int uftx_getline(int s,char*b,int l)
   { static char _eyecatcher[] = "uftx_getline()";
-    char       *p;
-    int         i;
+    char *p;
+    int i, rc;
 
 #ifdef  OECS
     char        snl;
@@ -592,8 +592,11 @@ int uftx_getline(int s,char*b,int l)
 
     p = b; i = 0;
     while (i < l)
-      { if (read(s,p,1) != 1)                           /* get a byte */
-        if (read(s,p,1) != 1) return -1;                 /* try again */
+      { rc = read(s,p,1); if (rc != 1)                  /* get a byte */
+        rc = recv(s,p,1,0); if (rc != 1)                  /* Win hack */
+        rc = read(s,p,1); if (rc != 1)                   /* try again */
+        rc = recv(s,p,1,0); if (rc != 1) return -1;       /* Win hack */
+        /* above worked fine with read() til Windows demanded recv()  */
         switch (*p)
           {
 #ifdef  OECS
@@ -656,7 +659,10 @@ int uftx_putline(int s,char*b,int l)
     for (i = 0; b[i] != 0x00 && i < l; i++) temp[i] = b[i];
     /* apply newline and [re]terminate the string */
     temp[i++] = '\n'; temp[i] = 0x00;
+
     j = write(s,temp,i);
+    if (j < 0) j = send(s,temp,i,0);
+    /* above worked fine with write() until Windows demanded send()   */
 
     /* normal return code is number of bytes written (incl newline)   */
     if (j != i) return -1;

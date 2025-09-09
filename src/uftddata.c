@@ -15,7 +15,7 @@
  #include <netdb.h>
 #endif
 
-#include        "uft.h"
+#include "uft.h"
 
 /* ------------------------------------------------------------ UFTDDATA
  *  Similar calling syntax to read(),
@@ -27,13 +27,11 @@ int uftddata(int o,int i,int n)
     char        b[UFT_BUFSIZ];
     l = n;
     while (n > 0)
-      {
-        j = read(i,b,n);
+      { j = tcpread(i,b,n);
         if (j < 0) return j;
-        k = write(o,b,j);
+        k = tcpwrite(o,b,j);
         if (k < 0) return k;
-        n -= j;
-      }
+        n -= j; }
     return l;
   }
 
