@@ -1,8 +1,13 @@
+.cm Copyright 1997-2025 Richard M. Troth, all rights reserved. <plaintext>
+.cm
+.cm       Name: DATA HELPUFT
+.cm     Author: Rick Troth, Cedarville, Ohio, USA
+.cm
 .cs 1 on
  UFT protocol DATA command
 
  A UFT client uses the DATA command to signal "start of data".
- There are two flavors of DATA command:  immediate and batch.
+ There are two flavors of DATA command: immediate and batch.
  The batch version is a special case that only applies to use
  between UFT programs running on the same system.
 

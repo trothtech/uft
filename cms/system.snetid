@@ -1,0 +1,28 @@
+* © Copyright 1995, 1997, Richard M. Troth, all rights reserved.
+*		(casita sourced) <plaintext>
+*
+*         Name: SYSTEM SNETID (source NETID file)
+*               Example statements for your SYSTEM NETID file.
+*               Modify this to match your own system,
+*               include any production SYSTEM NETID contents,
+*               then rename this to SYSTEM NETID
+*       Author: Rick Troth, Houston, Texas, USA
+*         Date: 1995-Dec-05, 1996-Jan-08, 1997-Feb-21
+*
+*cpuid hostname svm-id
+FFFFFF MYVMHOST RSCS
+FFFFFF MYVMHOST UFTD
+FFFFFF MYVMHOST MSGD
+*
+*        Notes: It turns out that CMS is smart.
+*               If you do an  IDENTIFY,  you get the first matching entry.
+*               But if you  IDENTIFY (ALL,  you get all matching entries.
+*               Many programs and macros take advantage of this
+*               to learn of alternative network service v-machines
+*               and can thus recognize UFTD without modification.
+*
+*               With DIAGD4, UFTD will try to masquerade as RSCS.
+*               If you choose to not give it that option,  then include
+*               UFTD in your SYSTEM NETID file so that RDRLIST and
+*               programs like it will recodnize it as a network SVM.
+*

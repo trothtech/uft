@@ -1,0 +1,13 @@
+      UFTC     FILELIST *  -- this file
+      SF       EXEC     *  -- UFTC
+      UFTCTCP  REXX     *  -- UFTC
+      UFTCFILE REXX     *  -- UFTC
+      UFTCMAIL REXX     *  -- UFTC
+      UFTCUSER REXX     *  -- UFTC
+      UFTULIST REXX     *  -- UFTC
+      UFTCHOST REXX     *  -- UFTC
+      UFTCMAIN REXX     *  -- UFTC
+      64ENCODE REXX     *  -- UFTC
+      64DECODE REXX     *  -- UFTC
+      MAKETEXT REXX     *  -- UFTC
+      UFTCRSCS REXX     *  -- UFTC

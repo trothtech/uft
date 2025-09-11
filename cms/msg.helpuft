@@ -1,8 +1,13 @@
+.cm Copyright 1997-2025 Richard M. Troth, all rights reserved. <plaintext>
+.cm
+.cm       Name: MSG HELPUFT
+.cm     Author: Rick Troth, Cedarville, Ohio, USA
+.cm
 .cs 1 on
  UFT protocol MSG command
 
  The MSG command of UFT is similar in function to the MSG command
- known in RSCS.   Use the MSG command to send messages to users
+ known in IBM RSCS. Use the MSG command to send messages to users
  on the remote system via the UFT server there.
 
 .cs 1 off
@@ -23,7 +28,7 @@ Usage Notes:
 
         The local system (client system) must be running an IDENT
         server for the remote UFT server to determine from whom
-        the message(s) came.   Without an IDENT server on your system,
+        the message(s) came. Without an IDENT server on your system,
         the target UFT server may reject your messages.
 
 .cs 5 off

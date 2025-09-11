@@ -1,0 +1,14 @@
+/*                                                                    *
+ *                                                                    *
+ *        Name: RLS EXEC                                              *
+ *        Date: 2025-09-09 (Tuesday)                                  *
+ *              This EXEC is just a wrapper for the Pipelines gem.    *
+ *                                                                    *
+ *                                                                    */
+
+Parse Arg args
+Parse Source . . . . . arg0 .
+'pipe' arg0 args
+Exit rc
+
+

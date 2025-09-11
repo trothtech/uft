@@ -1,8 +1,13 @@
+.cm Copyright 1997-2025 Richard M. Troth, all rights reserved. <plaintext>
+.cm
+.cm       Name: USER HELPUFT
+.cm     Author: Rick Troth, Cedarville, Ohio, USA
+.cm
 .cs 1 on
  UFT protocol USER command
 
  A UFT client sends the USER command to name intended recipient of the
- file being sent.   The recipient is typically an end user,  but may be
+ file being sent. The recipient is typically an end user, but may be
  a robot or simply a queue.
 
 .cs 1 off

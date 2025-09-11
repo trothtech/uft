@@ -29,7 +29,7 @@
 0000      2.0
 0001      UFT/2.0 client (CMS)
 0002      UFT/2.0 server (z/VM)
-0003    E Invalid option: &1
+0003    E invalid option &1
 0004      UFT/&1
 0005      UFT/&1 client
 0006      UFT/&1 server
@@ -39,11 +39,12 @@
 *010    X ........
 0011      VMCMSUFT/&1
 0012      POSIXUFT/&1
-*013    X ........
+0013      UFT/redacted
 *014    X ........
 *
   15    E Unknown &1 command
   16    E Missing operand(s)
+  22    E file &1 not found
   42    E User &1 spoolid &2 does not exist
   50    E Invalid spoolid &1
   53    E &1 not in CP directory
@@ -54,6 +55,7 @@
   94    I File &1 spooled to &2 origin &3
   95      Note &1 received from &2
   96    I From &1(&2): &3
+  97    I From &1: &2
 *
 * spontaneous info messages (including deprecated UFT/1 herald)
 0100      100 &1 UFT/1 VMCMSUFT/1.2.2 ready.
@@ -128,6 +130,8 @@
 0221      221 Service closing control connection.
 0222      222 &1 UFT/2 VMCMSUFT/&3 &4 ; ready.
 0223      223 &1 UFT/2 POSIXUFT/&3 &4 ; ready.
+0224      224 *anonymous UFT/2 UFT/redacted 0 ; ready.
+0225      225 &1 UFT/2 &3 &4 ; ready.
 0230      230 Local username okay, proceed.
 0250      250 Requested file action okay, completed.
 *
@@ -148,10 +152,11 @@
 0404      404 Document not found
 0407      407 Proxy Authentication Required
 *411      411 protocol sequence error
+0416      416 Missing operand(s)
 *421      421 (see 521)
 0426      426 Connection closed; transfer aborted.
 *432      432 No such local user &1
-0433    E 433 Invalid option &1
+0433    E 433 invalid option &1
 0449      449 protocol sequence error
 *450      450 Requested file action pending further information.
 0470    E 470 Invalid parameter &1
@@ -179,8 +184,6 @@
 0533      533 server temp file error
 0534      534 user meta file error.
 0535    T 535 This server is not in the required VM CP environment.
-*   fprintf(stderr,"UFTD: 535 user data file error\n");
-*   fprintf(stderr,"UFTD: 535 user auxdata file error\n");
 0536      536 No entries were found that matched your search criteria
 0541      541 server data error (user over quota)
 0542    E 542 This server lacks the privilege class for MSGTYPE MSGNOH.
@@ -188,10 +191,11 @@
 0547    E 547 Userid not specified for &1 in &2 &3 file
 0548    E 548 Userid &1 not found; check the &2 NAMES file
 0549      549 workspace sequence error
-0550    E 550 &1 ; &1 ... User unknown
-0551      551 server data file error
+0550    E 550 &1 ; &1 ... user unknown
+0551    E 551 &1 ; server data file error &1
 0552      552 spool directory unavailable
 0553    E 553 &1 ; &1 not in CP directory
+0555    E 555 &1 ; user auxdata file error &1
 0557      557 &1 not receiving
 0559      559 server data error (physical space)
 0567    E 567 User &1 is not enrolled

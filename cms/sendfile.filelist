@@ -77,6 +77,8 @@
       FORWARD  HELPCMS  *  --
       SENDMAIL REXX     *  -- client, include this
       HOSTNAME EXEC     *  --
+      RLS      EXEC     *  -- 'rls' (from the POSIX version) work-alike
+      RLS      REXX     *  --
 *
 *     UFTCINMR REXX     *  -- replaced by UFTXINMR REXX
 *     UFTD     HELPABBR *  -- IBM

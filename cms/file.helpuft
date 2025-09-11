@@ -1,3 +1,8 @@
+.cm Copyright 1997-2025 Richard M. Troth, all rights reserved. <plaintext>
+.cm
+.cm       Name: FILE HELPUFT
+.cm     Author: Rick Troth, Cedarville, Ohio, USA
+.cm
 .cs 1 on
  UFT protocol FILE command
 
@@ -13,7 +18,7 @@
  where
 
         size    is the estimated size of the file about to be sent
-                The size specified need not be exact.   (see below)
+                The size specified need not be exact. (see below)
 
         from    is the sign-on name of the sending user
 
@@ -24,12 +29,12 @@
 
 Usage Notes:
 
-        The size value is used to answer the question  "is there room
-        for the file about to be sent?".   The server should reject
+        The size value is used to answer the question "is there room
+        for the file about to be sent?". The server should reject
         the file with a NAK if there is not sufficient space for it.
-        Clients,  however,  are not required to supply accurate
-        information,  especially if it is not available.
+        Clients,  however, are not required to supply accurate
+        information, especially if it is not available.
 
-        The only supported authentication token at this time is IDENT.
-
+.cm     The only supported authentication token at this time is IDENT.
+.cm
 .cs 5 off

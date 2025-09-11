@@ -1,3 +1,8 @@
+.cm Copyright 1997-2025 Richard M. Troth, all rights reserved. <plaintext>
+.cm
+.cm       Name: EOF HELPUFT
+.cm     Author: Rick Troth, Cedarville, Ohio, USA
+.cm
 .cs 1 on
  UFT protocol EOF (end of file) command
 
@@ -20,15 +25,7 @@
 Usage Notes:
 
  Any file in progress should be properly marked as complete by the
- presence of an EOF.   A following QUIT command signals the server to
- close the TCP stream.   Results where QUIT preceeds EOF are not defined.
+ presence of an EOF. A following QUIT command signals the server to
+ close the TCP stream. Results where QUIT preceeds EOF are not defined.
 
 .cs 3 off
-
-
-
-
-
-
-
-

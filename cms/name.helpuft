@@ -1,8 +1,13 @@
+.cm Copyright 1997-2025 Richard M. Troth, all rights reserved. <plaintext>
+.cm
+.cm       Name: NAME HELPUFT
+.cm     Author: Rick Troth, Cedarville, Ohio, USA
+.cm
 .cs 1 on
  UFT protocol NAME command
 
  A UFT client uses the NAME command to name the file being sent.
- Unlike for FTP,  in practice,  UFT does not require files to be named.
+ Unlike for FTP, in practice, UFT does not require files to be named.
 
 .cs 1 off
 .cs 2 on
@@ -15,7 +20,7 @@
 
  where
 
-        filename    is the name of the file about to be sent
+        filename    is the name of the file being sent
                     Quoting of special characters is not discussed.
 
 .cs 2 off
