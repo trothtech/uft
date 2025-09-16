@@ -35,6 +35,7 @@
       UFTCHOST REXX     *  -- client, IBM also                         y
       UFTXINMR REXX     *  -- client, IBM also                         y
       UFTCTCP  REXX     *  -- client, IBM also
+      UFTCTCP2 REXX     *  -- client, replaces UFTCTCP REXX
       UFTCRSCS REXX     *  -- client, for sending via RSCS             y
       UFTCMAIL REXX     *  -- client, IBM also, for sending via email
       MAKETEXT REXX     *  -- client and server

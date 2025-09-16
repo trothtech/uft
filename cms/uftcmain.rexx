@@ -116,7 +116,7 @@ Select /* host */
         Trace "OFF"
         /* First, try using TCP directly.                             *
          * If that does't work, then try sending it as mail.          */
-        'ADDPIPE (END !) *.OUTPUT.SIFT: | UFTCTCP' user ,
+        'ADDPIPE (END !) *.OUTPUT.SIFT: | UFTCTCP2' user ,
             '| Q: FANINANY | *.OUTPUT.0: ! *.OUTPUT.0: | Q:'
         If rc ^= 0 Then Exit rc            /* if the 'ADDPIPE' failed */
         'OUTPUT' file                 /* if the TCP connection failed */

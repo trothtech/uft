@@ -62,7 +62,7 @@ End /* If .. Do */
 
 'CALLPIPE CP QUERY USERID | XLATE LOWER | VAR FROM'
 Parse Var from from .
-'OUTPUT' "FILE" size from
+'OUTPUT' "FILE" size from "-"
 /* 'OUTPUT' "USER" user */
 
 Select /* type */

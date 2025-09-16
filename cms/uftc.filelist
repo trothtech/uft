@@ -1,6 +1,7 @@
       UFTC     FILELIST *  -- this file
       SF       EXEC     *  -- UFTC
       UFTCTCP  REXX     *  -- UFTC
+      UFTCTCP2 REXX     *  -- UFTC
       UFTCFILE REXX     *  -- UFTC
       UFTCMAIL REXX     *  -- UFTC
       UFTCUSER REXX     *  -- UFTC

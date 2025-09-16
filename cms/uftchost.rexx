@@ -7,7 +7,7 @@
  *              Rick Troth, Houston, TX (METRO)
  *        Date: 1993-Feb-20, Oct-20
  *              2025-02-11
- *       Calls: UFTCRSCS, UFTCTCP, UFTCMAIL
+ *       Calls: UFTCRSCS, UFTCTCP2, UFTCMAIL
  *
  *        Note: UFTCHOST is not a user-level pipeline stage.
  */
@@ -43,7 +43,7 @@ If Index(host,".") = 0 & rscsid ^= "" Then ,
 Else Do
     Trace "OFF"
     /* First try sending the file using TCP directly. */
-    'CALLPIPE *: | UFTCTCP'  host '| *:'
+    'CALLPIPE *: | UFTCTCP2'  host '| *:'
     /* If that fails, and we know SMTPD, then try sending as mail. */
     If rc ^= 0 & smtpid ^= "" Then ,
     'CALLPIPE *: | UFTCMAIL' host '| *:'
