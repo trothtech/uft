@@ -1,6 +1,6 @@
 /* Copyright 1995-2025 Richard M. Troth, all rights reserved. <plaintext>
  *
- *        Name: uftdlist.c
+ *        Name: uftdlist.c (C program source)
  *              list a network file after arrival
  *      Author: Rick Troth, Decatur, Alabama, USA
  *        Date: 1995-Nov-22

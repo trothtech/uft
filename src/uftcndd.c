@@ -1,4 +1,4 @@
-/*
+/* Copyright 2025 Richard M. Troth, all rights reserved. <plaintext>
  *
  *        Name: uftcndd.c (C program source)
  *              UFT Client NETDATA Decoder

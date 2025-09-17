@@ -1,6 +1,6 @@
 /* © Copyright 1995-2025, Richard M. Troth, all rights reserved. <plaintext>
  *
- *        Name: cpq.c
+ *        Name: cpq.c (C program source)
  *              for BITNET folks with a habit, CPQuery <something>
  *      Author: Rick Troth, Houston, Texas, USA
  *        Date: 1995-Oct-15 and following

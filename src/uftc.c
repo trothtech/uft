@@ -1,6 +1,6 @@
 /* Copyright 1994-2025 Richard M. Troth, all rights reserved. <plaintext>
  *
- *        Name: uftc.c, sendfile.c
+ *        Name: uftc.c, sendfile.c (C program source)
  *              Unsolicited File Transfer client
  *              *finally* an Internet SENDFILE for Unix
  *      Author: Rick Troth, Houston, Texas, USA

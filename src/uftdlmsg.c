@@ -1,6 +1,6 @@
 /* © Copyright 1996-2025 Richard M. Troth, all rights reserved. <plaintext>
  *
- *        Name: uftdlmsg.c
+ *        Name: uftdlmsg.c (C program source)
  *              syslog the arrival of this file
  *      Author: Rick Troth, Houston, Texas, USA
  *        Date: 1996-Dec-10

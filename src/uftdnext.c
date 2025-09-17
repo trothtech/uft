@@ -1,6 +1,6 @@
 /* Copyright 1995-2025 Richard M. Troth, all rights reserved. <plaintext>
  *
- *        Name: uftdnext.c
+ *        Name: uftdnext.c (C program source)
  *              Unsolicited File Transfer daemon "next" routine
  *              returns next available SEQuence number
  *

@@ -1,6 +1,6 @@
-/* © Copyright 1995, Richard M. Troth, all rights reserved.  <plaintext>
+/* © Copyright 1995-2025, Richard M. Troth, all rights reserved.  <plaintext>
  *
- *        Name: uftdimsg.c
+ *        Name: uftdimsg.c (C program source)
  *              signal the user that a file has arrived
  *      Author: Rick Troth, Houston, Texas, USA
  *        Date: 1995-Oct-21

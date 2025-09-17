@@ -1,6 +1,6 @@
-/* © Copyright 1995, Richard M. Troth, all rights reserved.  <plaintext>
+/* © Copyright 1995-2025, Richard M. Troth, all rights reserved.  <plaintext>
  *
- *        Name: tcpiolib.c
+ *        Name: tcpio.c (C program source)
  *              various TCP utility functions
  *      Author: Rick Troth, Houston, Texas, USA
  *        Date: 1995-Apr-19
@@ -204,6 +204,7 @@ int tcpclose(int fd)
  *      Author: Rick Troth, Houston, Texas, USA
  *        Date: 1995-Apr-19
  *              2025-09-03 for Windoze
+ *     Returns: length of string or negative on error
  *
  *    See also: getline.c, putline.c
  */

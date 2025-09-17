@@ -1,6 +1,6 @@
 /* Copyright 1995-2025 Richard M. Troth, all rights reserved. <plaintext>
  *
- *        Name: uftd.c
+ *        Name: uftd.c (C program source)
  *              Universal File Transfer daemon
  *              Unsolicited File Transfer daemon
  *      Author: Rick Troth, Houston, Texas, USA (concerto)

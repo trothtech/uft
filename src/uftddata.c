@@ -1,6 +1,6 @@
 /* © Copyright 1995-2025 Richard M. Troth, all rights reserved. <plaintext>
  *
- *        Name: uftddata.c
+ *        Name: uftddata.c (C program source)
  *              Unsolicited File Transfer daemon "data" routine
  *
  *        NOTE: This source is due for merge into UFTD or UFTLIB.

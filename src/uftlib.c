@@ -1,6 +1,6 @@
 /* Copyright 2025 Richard M. Troth, all rights reserved. <plaintext>
  *
- *        Name: uftlib.c
+ *        Name: uftlib.c (C program source)
  *              Unsolicited File Transfer client/server library
  *      Author: Rick Troth, Cedarville, Ohio, USA
  *        Date: 2025-04-08 (Tuesday)
@@ -28,8 +28,8 @@ int uftc_close(int*);
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>
-
 #include <fcntl.h>
+
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -677,7 +677,6 @@ int uftx_putline(int s,char*b,int l)
  *              home directory which can be attached from any listener.
  */
 
-
 /**********************************************************************/
 
 /* Copyright 1994, 1996, 2025 Richard M. Troth, all rights reserved. <plaintext>
@@ -855,11 +854,11 @@ int uftc_open(char*peer,char*prox,int*pipe)
 
 /* ---------------------------------------------------------- UFTC_WRITE
  */
-int uftc_write() { }
+int uftc_write() { return 0; }
 
 /* ----------------------------------------------------------- UFTC_READ
  */
-int uftc_read() { }
+int uftc_read() { return 0; }
 
 /* ---------------------------------------------------------- UFTC_CLOSE
  *    close the pair of file descriptors talking to the server
@@ -1049,26 +1048,24 @@ int uft_stat(char*sid,struct UFTSTAT*us)
     us->uft_ino = atoi(uftx_basename(sid));
 
     /* process the spool ID into a pathname, ultimately absolute      */
-    if (*sid == '/') strncpy(us->sidp,sid,sizeof(us->sidp)-1);
-               else snprintf(us->sidp,sizeof(us->sidp)-1,
+    if (*sid == '/') strncpy(us->uft_sidp,sid,sizeof(us->uft_sidp)-1);
+               else snprintf(us->uft_sidp,sizeof(us->uft_sidp)-1,
                      "%s/%s/%04d",UFT_SPOOLDIR,uftx_user(),us->uft_ino);
 
     /* construct the full path to the name of the control file        */
-    snprintf(sn,sizeof(sn)-1,"%s.cf",us->sidp);
+    snprintf(sn,sizeof(sn)-1,"%s.cf",us->uft_sidp);
 
     /* try to open the control file and load it into memory           */
     rc = fd = open(sn,O_RDONLY);
-    if (rc < 0) { us->sidp[0] = 0x00; return rc; }
-    fstat(fd,&statbuf);
+    if (rc < 0) { us->uft_sidp[0] = 0x00; return rc; }
+    rc = fstat(fd,&statbuf);
+    if (rc < 0) { close(fd); us->uft_sidp[0] = 0x00; return rc; }
     rc = cl = read(fd,cb,sizeof(cb)-1);
     e = errno; close(fd); errno = e;
-    if (rc < 0) { us->sidp[0] = 0x00; return rc; }
+    if (rc < 0) { us->uft_sidp[0] = 0x00; return rc; }
     cb[cl] = 0x00;
-    us->uft_stime = statbuf.st_mtime;
-
-    /* dummy out all single-byte fields in the struct                 */
-    us->uft_type = us->uft_cc = us->uft_class = us->uft_rudev =
-                   us->uft_hold = us->uft_keep = us->uft_msg = '-';
+    us->uft_stime = statbuf.st_mtime;     /* time stamp of spool file */
+               /* see us->uft_mtime for time stamp of file being sent */
 
     /* process the control file into a POSIX-like "environment" block */
     i = 0; p = q = cb;
@@ -1079,33 +1076,39 @@ int uft_stat(char*sid,struct UFTSTAT*us)
     *q++ = 0x00;
     *q++ = 0x00;        /* double null marks end of environment block */
 
-/*  us->uft_mode;       ** UFT "xperm" protection */
+    /* dummy out all single-byte fields in the struct                 */
+    us->uft_type = us->uft_cc = us->uft_class = us->uft_rudev =
+                   us->uft_hold = us->uft_keep = us->uft_msg = '-';
+
+    /* TYPE is the most important attribute and may be followed by cc */
+    p = uftx_getenv("TYPE",cb);
+    us->uft_type = *p;
+    while (*p > ' ') p++; while (*p == ' ') p++;
+    us->uft_cc = *p;
+    /* FIXME: we should vet the us->uft_type for known legit values   */
+
+    /* try to get the file size based on the data component           */
+    sprintf(sn,"%s.df",us->uft_sidp);
+    rc = stat(sn,&statbuf);
+    if (rc == 0) us->uft_size = statbuf.st_size;
+    /* or SIZE is taken from the FILE statement and is an estimate    */
+    else us->uft_size = uftx_atoi(uftx_getenv("SIZE",cb));
+
+    us->uft_mtime = us->uft_stime;
+/*  us->uft_mtime       ** time stamp (of the original, if provided)  */
+    p = uftx_getenv("DATE",cb);
+    if (p != 0x0000) if (*p != 0x00)
+/*          { strptime(p,"%F %T %Z",&uft_stat_time);    not universal */
+      { strptime(p,"%Y-%m-%d %T %Z",&uft_stat_time);
+        us->uft_mtime = mktime(&uft_stat_time); }
+    /* FIXME: we also need XDATE                                      */
 
     us->uft_nlink = 1;       /* default is one copy (e.g., for print) */
     p = uftx_getenv("COPY",cb); if (p == 0x0000 || *p == 0x00)
     p = uftx_getenv("COPIES",cb); if (p != 0x0000 && *p != 0x00)
     us->uft_nlink = uftx_atoi(p);
 
-    /* SIZE is taken from the FILE statement and is an estimate       */
-    us->uft_size = uftx_atoi(uftx_getenv("SIZE",cb));
-    /* we should change this to stat() the .df file for more accuracy */
-
 /*  us->uft_blksize     ** akin to LRECL */
-
-    us->uft_mtime = us->uft_stime;
-/*  us->uft_mtime       ** time stamp (of the original, if provided)  */
-    p = uftx_getenv("DATE",cb);
-    if (p != 0x0000 && *p != 0x00)
-/*    { strptime(p,"%F %T %Z",&uft_stat_time);                        */
-      { strptime(p,"%Y-%m-%d %T %Z",&uft_stat_time);
-        us->uft_mtime = mktime(&uft_stat_time); }
-
-    /* TYPE is the most important attribute and may be followed by cc */
-    p = uftx_getenv("TYPE",cb);
-    us->uft_type = *p;
-    while (*p > ' ') p++;
-    while (*p == ' ') p++;
-    us->uft_cc = *p;
 
     /* CLASS may optionally also indicate a unit-record device type   */
     p = uftx_getenv("CLASS",cb);
@@ -1113,40 +1116,44 @@ int uft_stat(char*sid,struct UFTSTAT*us)
       { us->uft_class = *p++;
         if (*p == ' ') p++;
         if (*p == 'P' && *p == 'p') p++;   /* PRT ==> R and PUN ==> U */
-        us->uft_rudev = *p; }
+        us->uft_rudev = *p; }              /* PRT ==> R and PUN ==> U */
 
     /* us->uft_hold         ** mostly a VM or other mainframe concept */
     p = uftx_getenv("HOLD",cb);
-    if (p != 0x0000 && *p != 0x00) us->uft_hold = *p;
+    if (p != 0x0000) if (*p != 0x00) us->uft_hold = *p;
 
     /* us->uft_keep         ** mostly a VM or other mainframe concept */
     p = uftx_getenv("KEEP",cb);
-    if (p != 0x0000 && *p != 0x00) us->uft_keep = *p;
+    if (p != 0x0000) if (*p != 0x00) us->uft_keep = *p;
 
     /* us->uft_msg          ** mostly a VM or other mainframe concept */
     p = uftx_getenv("MSG",cb);
-    if (p != 0x0000 && *p != 0x00) us->uft_msg = *p;
+    if (p != 0x0000) if (*p != 0x00) us->uft_msg = *p;
 
     /* NAME is optional (but needed when you actually receive)        */
-    strncpy(us->name,uftx_getenv("NAME",cb),sizeof(us->name)-1);
+    strncpy(us->uft_name,uftx_getenv("NAME",cb),sizeof(us->uft_name)-1);
 
-    p = uftx_getenv("DATE",cb);
-/*  strncpy(us->date,,sizeof(us->date)-1);                            */
+/*  us->uft_mode;       ** UFT "xperm" protection */
     p = uftx_getenv("PROT",cb);
 /*  strncpy(                                                          */
-    p = uftx_getenv("USER",cb);
-/*  strncpy(us->date,,sizeof(us->date)-1);                            */
-    p = uftx_getenv("XDATE",cb);
-/*  strncpy(                                                          */
+
+    /* USER is who the file is *to*                                   */
+    p = uftx_getenv("USER",cb); if (p != 0x0000) if (*p != 0x00)
+        strncpy(us->uft_user,p,sizeof(us->uft_user));
+           else us->uft_user[0] = 0x00;
 
     /* best figuring of sending user and sending host using several   */
-    strncpy(us->from,uftx_getenv("REMOTE",cb),sizeof(us->from)-1);
-    p = us->from;
-    while (*p != '@' && *p != 0x00) p++;
-    if (*p == '@') *p++ = 0x00;
-    strncpy(us->host,p,sizeof(us->host)-1);
-    if (us->from[0] != 0x00) strncpy(us->user,us->from,sizeof(us->user)-1);
-                        else strncpy(us->user,uftx_getenv("FROM",cb),sizeof(us->user)-1);
+us->uft_from[0] = 0x00;
+    p = uftx_getenv("REMOTE",cb);
+    if (p != 0x0000) if (*p != 0x00)
+      { if (*p == '@')
+          { q = uftx_getenv("FROM",cb);
+            if (q != 0x0000) if (*q != 0x00)
+            snprintf(us->uft_from,sizeof(us->uft_from),"%s%s",q,p); }
+        else strncpy(us->uft_from,p,sizeof(us->uft_from)); }
+    else { q = uftx_getenv("FROM",cb);
+            if (q != 0x0000) if (*q != 0x00)
+            strncpy(us->uft_from,q,sizeof(us->uft_from)); }
 
 /*
       TYPE              uft_type        TYPE
@@ -1163,8 +1170,22 @@ int uft_stat(char*sid,struct UFTSTAT*us)
       SID               uft_ino
       NAME              name            NAME
  */
-    us->form[0] = 0x00; us->dist[0] = 0x00; us->dest[0] = 0x00;
-    us->title[0] = 0x00;
+
+    p = uftx_getenv("FORM",cb); if (p != 0x0000) if (*p != 0x00)
+        strncpy(us->uft_form,p,sizeof(us->uft_form));
+           else us->uft_form[0] = 0x00;
+
+    p = uftx_getenv("DIST",cb); if (p != 0x0000) if (*p != 0x00)
+        strncpy(us->uft_dist,p,sizeof(us->uft_dist));
+           else us->uft_dist[0] = 0x00;
+
+    p = uftx_getenv("DEST",cb); if (p != 0x0000) if (*p != 0x00)
+        strncpy(us->uft_dest,p,sizeof(us->uft_dest));
+           else us->uft_dest[0] = 0x00;
+
+    p = uftx_getenv("TITLE",cb); if (p != 0x0000) if (*p != 0x00)
+        strncpy(us->uft_title,p,sizeof(us->uft_title));
+           else us->uft_title[0] = 0x00;
 
     return 0;
 #else
@@ -1243,6 +1264,102 @@ void uftdstat(int sock,char*zlda)
     if (uftlogfd >= 0) uftx_putline(uftlogfd,buff,0);   /* and log it */
 
     return;
+  }
+
+/* © Copyright 1995-2025, Richard M. Troth, all rights reserved.  <plaintext>
+ *
+ *        Name: uftctext.c (C program source)
+ *              Unsolicited File Transfer client text clarifier
+ *              Converts NL (UNIX) delimited lines to CR/LF
+ *              delimited (Internet NVT) lines in a buffer.
+ *      Author: Rick Troth, Houston, Texas, USA (METRO)
+ *        Date: 1995-Apr-13
+ *
+ *        NOTE: This source merged into UFTLIB 2025-09-12.
+ */
+
+/* ------------------------------------------------------------ UFTCTEXT
+ */
+int uftctext(int s,char*b,int l)
+  { static char _eyecatcher[] = "uftctext()";
+    char        t[UFT_BUFSIZ] /* , *p */ ;
+    int         i, j, k;
+
+    k = l / 2;
+    if (k > UFT_BUFSIZ) k = UFT_BUFSIZ;
+
+    j = read(s,t,k);
+    if (j < 1)
+    j = read(s,t,k);
+    if (j < 0) return i;
+
+/*  OLD CODE  **
+    p = t;
+    for (i = 0; i < j; i++)
+      {
+        if (*p == '\n')
+          {
+            b[i] = '\r';
+            i++;  j++;
+          }
+        b[i] = *p++;
+      }
+ */
+    j = htonb(b,t,j);
+
+    return j;
+  }
+
+/* © Copyright 1997-2025 Richard M. Troth, all rights reserved.  <plaintext>
+ *
+ *        Name: uftcprot.c / uftcperm.c (C program source)
+ *              converts a stat() st_mode value into a
+ *              U:RWX, G:RWX, W:RWX, S:RWED formatted string
+ *
+ *        NOTE: This source merged into UFTLIB 2025-09-12.
+ */
+
+/* ------------------------------------------------------------ UFTCPROT
+ *    Note: this routine uses a static buffer thus is not thread safe.
+ */
+char *uftcprot(mode_t prot)
+  { static char _eyecatcher[] = "uftcprot()";
+    static char buffer[256];
+    char        *p;
+
+    p = buffer;
+
+    /*  user permissions  */
+    if (prot & (S_IRUSR | S_IWUSR | S_IXUSR))
+      { *p++ = 'U';  *p++ = ':';
+        if (prot & S_IRUSR) *p++ = 'R';
+        if (prot & S_IWUSR) *p++ = 'W';
+        if (prot & S_IXUSR) *p++ = 'X'; }
+/*
+        if (prot & S_IREAD) *p++ = 'R';
+        if (prot & S_IWRITE) *p++ = 'W';
+        if (prot & S_IEXEC) *p++ = 'X';
+ */
+
+    /*  group permissions  */
+    if (prot & (S_IRGRP | S_IWGRP | S_IXGRP))
+      { if (p != buffer) *p++ = ',';
+        *p++ = 'G';  *p++ = ':';
+        if (prot & S_IRGRP) *p++ = 'R';
+        if (prot & S_IWGRP) *p++ = 'W';
+        if (prot & S_IXGRP) *p++ = 'X'; }
+
+    /*  world permissions  */
+    if (prot & (S_IROTH | S_IWOTH | S_IXOTH))
+      { if (p != buffer) *p++ = ',';
+        *p++ = 'W';  *p++ = ':';
+        if (prot & S_IROTH) *p++ = 'R';
+        if (prot & S_IWOTH) *p++ = 'W';
+        if (prot & S_IXOTH) *p++ = 'X'; }
+
+    /*  terminate the string and return  */
+    *p++ = 0x00;
+    return buffer;
   }
 
 /* ------------------------------------------------------------ MSGWRITE

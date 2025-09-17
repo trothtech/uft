@@ -8,8 +8,8 @@
 #
 
 APPLID          =       uft
-VERSION         =       2.0.10
-DELIVERABLES    =       uftd sf rls rcv rstat uftcndd tell cpq
+VERSION         =       2.0.11
+DELIVERABLES    =       uftd sf rls rcv rstat uftcndd tell cpq uftxdspl uftctcp2
 SOURCEURL       =       https://raw.githubusercontent.com/trothtech/uft/refs/heads/main
 #                       https://raw.githubusercontent.com/trothtech/uft/master
 
@@ -67,22 +67,20 @@ uftd.o: 	makefile uft.h uftd.c
 		$(CC) $(CFLAGS) -o uftd.o -c uftd.c
 
 sf:		makefile uftc.o \
-			uftctext.o uftcprot.o \
 			uftlib.o tcpio.o xmitmsgx.o \
 			aecs.o abbrev.o
 		$(CC) $(LDFLAGS) -o sf uftc.o \
-			uftctext.o uftcprot.o \
 			uftlib.o tcpio.o xmitmsgx.o \
 			aecs.o abbrev.o $(LIBS)
 
 uftc.o: 	makefile uft.h uftc.c
 		$(CC) $(CFLAGS) -c uftc.c
 
-uftctext.o:	makefile uft.h uftctext.c
-		$(CC) $(CFLAGS) -c uftctext.c
+#uftctext.o:	makefile uft.h uftctext.c
+#		$(CC) $(CFLAGS) -c uftctext.c
 
-uftcprot.o:	makefile uft.h uftcprot.c
-		$(CC) $(CFLAGS) -c uftcprot.c
+#uftcprot.o:	makefile uft.h uftcprot.c
+#		$(CC) $(CFLAGS) -c uftcprot.c
 
 uftcnote.h:	makefile uftcnote.txt
 		cat uftcnote.txt > uftcnote.tmp
@@ -114,16 +112,35 @@ cpqu:		makefile cpqu.o \
 		$(CC) $(LDFLAGS) -o cpqu cpqu.o \
 			tcpio.o aecs.o $(LIBS)
 
+uftxdspl:       uftxdspl.o makefile \
+			uftlib.o tcpio.o xmitmsgx.o abbrev.o $(LIBS)
+		$(CC) $(LDFLAGS) -o uftxdspl uftxdspl.o \
+			uftlib.o tcpio.o xmitmsgx.o abbrev.o $(LIBS)
+
+uftxdspl.o:     uftxdspl.c uft.h makefile
+		$(CC) $(CFLAGS) -o uftxdspl.o -c uftxdspl.c
+
+uftctcp2:       uftctcp2.o makefile \
+			uftlib.o tcpio.o xmitmsgx.o abbrev.o $(LIBS)
+		$(CC) $(LDFLAGS) -o uftctcp2 uftctcp2.o \
+			uftlib.o tcpio.o xmitmsgx.o abbrev.o $(LIBS)
+
+uftctcp2.o:     uftctcp2.c uft.h makefile
+		$(CC) $(CFLAGS) -o uftctcp2.o -c uftctcp2.c
+
+
 clean:
 		rm -f core a.out *.o *.a *.lst CEEDUMP.* \
 			uftd sf maketext cpq cpqu uftcmime \
-			tell msgpipe msgcat msgd imsg uftcndd ufta
+			tell msgpipe msgcat msgd imsg uftcndd \
+			uftxdspl uftctcp2 ufta
 		sh -c ' cd xmitmsgx ; exec $(MAKE) clean '
 
 distclean:
 		rm -f core a.out *.o *.a *.lst CEEDUMP.* \
 			uftd sf maketext cpq cpqu uftcmime \
-			tell msgpipe msgcat msgd imsg uftcndd ufta \
+			tell msgpipe msgcat msgd imsg uftcndd \
+			uftxdspl uftctcp2 ufta \
 			*:* *';'* makefile Makefile makefile.old \
 			uft.spec uft.dctl configure.sh configure.h \
 			*.rpm *.deb *.log .rpmseq
@@ -208,9 +225,9 @@ msgd:		makefile msgd.o msgdlmsg.o \
 #		strip msgd
 
 tell:		makefile msgc.o uftlib.o tcpio.o xmitmsgx.o \
-		  uftctext.o uftcprot.o aecs.o abbrev.o
+		  aecs.o abbrev.o
 	$(CC) $(LDFLAGS) -o tell msgc.o uftlib.o tcpio.o xmitmsgx.o \
-		  uftctext.o uftcprot.o aecs.o abbrev.o $(LIBS)
+		  aecs.o abbrev.o $(LIBS)
 #	strip tell
 # msgcmsp.o msgcuftd.o msglocal.o homedir.o
 

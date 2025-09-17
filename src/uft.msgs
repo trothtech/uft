@@ -42,20 +42,40 @@
 0013      UFT/redacted
 *014    X ........
 *
+ 384    E Missing modifier keyword(s).
+ 386    E Missing operand(s).
+ 388    E Invalid keyword: &1
+ 389    E Invalid operand: &1
+ 391    E Unexpected operand(s): &1
+ 394    E Invalid option: &1
+ 395    E Invalid value &1 for &2 option
+*
   15    E Unknown &1 command
   16    E Missing operand(s)
   22    E file &1 not found
+  26    E socket or stream closed without a QUIT command
   42    E User &1 spoolid &2 does not exist
+  45    E protocol sequence error
   50    E Invalid spoolid &1
   53    E &1 not in CP directory
   54    E Incomplete fileid specified
   70    E Invalid parameter &1
+  81    E &1 command not supported in batch mode
+  90    E Invalid value &1 for &2 parameter
   92    I File (&1) spooled to &2 -- origin &3(&4) &5 &6 &7
-  93      File &1 received from &2 sent as &3
+  93    I File &1 received from &2 sent as &3
   94    I File &1 spooled to &2 origin &3
-  95      Note &1 received from &2
+  95    I Note &1 received from &2
   96    I From &1(&2): &3
   97    I From &1: &2
+*304    E Invalid operand value &1
+*387    E Missing value for &1 operand
+*390    E Invalid value &1 for &2 operand
+*393    E Missing value for &1 option
+*395    E Invalid value &1 for &2 option
+*116    E Invalid value &1 for &2 in &3
+
+
 *
 * spontaneous info messages (including deprecated UFT/1 herald)
 0100      100 &1 UFT/1 VMCMSUFT/1.2.2 ready.
