@@ -27,11 +27,11 @@
 /* the version number and copyright */
 #define         UFT_PROTOCOL    "UFT/2"
 #ifndef         UFT_VERSION
- #define        UFT_VERSION     "POSIXUFT/2.0.11"
+ #define        UFT_VERSION     "POSIXUFT/2.0.12"
 #endif
 #define         UFT_COPYRIGHT   "© Copyright 1995-2025 Richard M. Troth"
-#define         UFT_VRM         "2.0.11"
-#define    UFT_VERINT    (((2) << 24) + ((0) << 16) + ((11) << 8) + (0))
+#define         UFT_VRM         "2.0.12"
+#define    UFT_VERINT    (((2) << 24) + ((0) << 16) + ((12) << 8) + (0))
 
 #ifndef         UFT_TAG
  #define        UFT_TAG         "UFT"
@@ -364,6 +364,7 @@ int uftd_agck(char*);
 
 int uftx_proxy(char*,char*,int*);
 int uft_stat(char*,struct UFTSTAT*);
+int uft_purge(struct UFTSTAT*);
 int uftx_atoi(char*);
 
 void uftdstat(int,char*);

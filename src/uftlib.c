@@ -1193,6 +1193,39 @@ us->uft_from[0] = 0x00;
 #endif
   }
 
+/* ---------------------------------------------------------------------
+ *    Remove all files (per known extensions) for this spool file.
+ */
+int uft_purge(struct UFTSTAT*us)
+  { static char _eyecatcher[] = "uft_purge()";
+    int rc, i;
+    char sidn[64];
+    struct  stat  statbuf;
+    char *exts[] = {  UFT_EXT_CONTROL,  /*    ".cf" ** control/meta   */
+                      UFT_EXT_DATA,     /*    ".df" ** data           */
+                      UFT_EXT_EXTRA,    /*    ".ef" ** resource fork  */
+                      UFT_EXT_LIST,     /*    ".lf" ** 'ls -l' format */
+                      UFT_EXT_WORK,     /*    ".wf" ** work file      */
+                      ""   };       /* empty string marks end of list */
+
+    /* loop through the standard filename extensions deleting all     */
+    i = 0;
+    while (*exts[i] != 0x00) {
+        /* name the physical file */
+        snprintf(sidn,sizeof(sidn)-1,"%s%s",us->uft_sidp,exts[i]);
+        /* does it exist? */
+        rc = stat(sidn,&statbuf); if (rc == 0)
+        /* set owner write permission */
+        rc = chmod(sidn,statbuf.st_mode|S_IWUSR); if (rc == 0)
+        /* delete it */
+        rc = unlink(sidn);
+        /* next */
+        i++;                 }
+    /* ignoring failed unlink() calls ... at least for the time being */
+
+    return 0;
+  }
+
 /* ----------------------------------------------------------- UFTX_ATOI
  *    Convert string to integer recognizing K or M qualifiers.
  */

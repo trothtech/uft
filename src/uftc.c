@@ -27,24 +27,25 @@
 
 #include "uft.h"
 
-char   *arg0;
-int     uftv;           /* protocol level (1 or 2) */
-
 extern int uftcflag;
 
 /* ------------------------------------------------------------------ */
 int main(int argc,char*argv[])
   { static char _eyecatcher[] = "uftc.c main()";
     int         i, fd0, size, copy, fda, rc, fd[2];
-    char        temp[256], targ[256], b[UFT_BUFSIZ], akey[256],
-               *host, *name, *type, *auth, *class, *proxy;
+    char        temp[256], targ[256], b[UFT_BUFSIZ], akey[256], *mv[16],
+               *host, *name, *type, *auth, *class, *proxy, *ptitle;
     struct  stat  uftcstat;
     time_t      mtime;
     mode_t      prot;
     struct tm *gmtstamp;
+char   *arg0;
+int     uftv;           /* protocol level (1 or 2) */
+
+    ptitle = "Internet SENDFILE client";             /* program title */
 
     /* note command name and set defaults */
-    arg0 = uftx_basename(argv[0]);
+            arg0 = uftx_basename(argv[0]);
     uftcflag = UFT_BINARY;      /* default */
     name = type = class = "";
     auth = "-";         /* no particular authentication scheme */
@@ -98,10 +99,11 @@ int main(int argc,char*argv[])
 /* ------------------------------------------------------------------ */
             case '-':                          /* long format options */
                 if (abbrev("--version",argv[i],6) > 0)
-                  { sprintf(temp,"%s: %s Internet SENDFILE client",
-                                arg0,UFT_VERSION);
+                  { sprintf(temp,"%s: %s %s",arg0,UFT_VERSION,ptitle);
                     uftx_putline(2,temp,0);
                     return 0; } else           /* exit from help okay */
+                if (abbrev("--verbose",argv[i],6) > 0)
+                  { uftcflag |= UFT_VERBOSE; } else
                 if (abbrev("--ascii",argv[i],5) > 0 ||
                     abbrev("--text",argv[i],6) > 0)
                   { uftcflag &= ~UFT_BINARY; type = "A"; } else
@@ -132,16 +134,18 @@ int main(int argc,char*argv[])
                 if (abbrev("--copy",argv[i],4) > 0 ||
                     abbrev("--copies",argv[i],4) > 0)
                   { i++; copy = atoi(argv[i]); } else
-                  { sprintf(temp,"%s: invalid option %s",
-                                arg0,argv[i]);
-                    uftx_putline(2,temp,0);
+                  {     mv[1] = argv[i];
+                rc = uftx_message(temp,sizeof(temp)-1,3,"CLI",2,mv);
+                if (rc >= 0) fprintf(stderr,"%s\n",temp); else
+                fprintf(stderr,"%s: invalid option %s",arg0,argv[i]);
                     return 1; }             /* exit on invalid option */
                     break;
 /* ------------------------------------------------------------------ */
 
-            default:    (void) sprintf(temp,"%s: invalid option %s",
-                                arg0,argv[i]);
-                        (void) uftx_putline(2,temp,0);
+            default:    mv[1] = argv[i];
+                rc = uftx_message(temp,sizeof(temp)-1,3,"CLI",2,mv);
+                if (rc >= 0) fprintf(stderr,"%s\n",temp); else
+                fprintf(stderr,"%s: invalid option %s",arg0,argv[i]);
                         return 1;           /* exit on invalid option */
                         break;
           }
@@ -149,8 +153,7 @@ int main(int argc,char*argv[])
 
     /* announcement (iff verbose option requested) */
     if (uftcflag & UFT_VERBOSE)
-      { sprintf(temp,"%s: %s Internet SENDFILE client",
-                arg0,UFT_VERSION);
+      { sprintf(temp,"%s: %s %s",arg0,UFT_VERSION,ptitle);
         uftx_putline(2,temp,0); }
     temp[0] = 0x00;
 
@@ -254,6 +257,13 @@ int main(int argc,char*argv[])
     (void) tcpputs(fd[1],temp);
     /* NO ACK FOR COMMENTS SO DON'T WAIT FOR ONE HERE */
     if (uftcflag & UFT_VERBOSE) (void) uftx_putline(2,temp,0);
+
+        /* the normal sequence for a UFT transaction is ...           */
+        /* ------------ 1 ------------------------------ FILE command */
+        /* ------------ 2 ------------------------------ USER command */
+        /* ------------ 3 ------------------------------ TYPE command */
+        /* ------------ 4 ----------------------------- META commands */
+        /* ------------ 5 ------------------------------ DATA command */
 
     /* start the transaction */
 /*  (void) sprintf(temp,"FILE %d %s %s",size,uftx_user(),auth);       */
@@ -376,64 +386,57 @@ int main(int argc,char*argv[])
             return 1; }
         if (uftcflag & UFT_VERBOSE) (void) uftx_putline(2,temp,0); }
 
-    /* -------------------------------------------------------------- */
+    /* process the data - everything goes down the pipe as it is      */
 
     /* now send the file down the pipe */
-//fprintf(stderr,"UFTC: buffer size %d\n",UFT_BUFSIZ);
     while (1)
-      { if (uftcflag & UFT_BINARY)
-          { i = uft_readspan(fd0,b,UFT_BUFSIZ); if (i == 0)
-            i = uft_readspan(fd0,b,UFT_BUFSIZ);
- if (i < 1) break; }
-        else
-          { i = uftctext(fd0,b,UFT_BUFSIZ); if (i == 0)
-            i = uftctext(fd0,b,UFT_BUFSIZ);
- if (i < 1) break; }
-        (void) sprintf(temp,"DATA %d",i);
-        if (uftcflag & UFT_VERBOSE) (void) uftx_putline(2,temp,0);
-        (void) tcpputs(fd[1],temp);
+      { if (uftcflag & UFT_BINARY)              /* get binary content */
+          { rc = i = uft_readspan(fd0,b,UFT_BUFSIZ); if (rc == 0)
+            rc = i = uft_readspan(fd0,b,UFT_BUFSIZ); if (rc < 1) break; }
+        else                                   /* get textual content */
+          { rc = i = uftctext(fd0,b,UFT_BUFSIZ); if (rc == 0)
+            rc = i = uftctext(fd0,b,UFT_BUFSIZ); if (rc < 1) break; }
+
+        sprintf(temp,"DATA %d",i); tcpputs(fd[1],temp);
+        if (uftcflag & UFT_VERBOSE) uftx_putline(2,temp,0);
         rc = uftc_wack(fd[0],temp,sizeof(temp));     /* expect 3 here */
-        (void) tcpwrite(fd[1],b,i);   /* send data - we live for this */
-        i = uftc_wack(fd[0],temp,sizeof(temp));      /* expect 2 here */
-        if (i < 0)
-          { if (errno != 0) (void) perror(arg0);
-            else (void) uftx_putline(2,temp,0);
-            return 1; }
-        if (uftcflag & UFT_VERBOSE || i == 5) (void) uftx_putline(2,temp,0);
-        if (i == 5) { return 5; } }     /* a 500 NAK here is terminal */
+        if (rc != 3) break;
+        rc = tcpwrite(fd[1],b,i); /* send the data - we live for this */
+        rc = uftc_wack(fd[0],temp,sizeof(temp));     /* expect 2 here */
+        if (rc != 2) break;
+        if (uftcflag & UFT_VERBOSE) uftx_putline(2,temp,0); }
 
     /* -------------------------------------------------------------- */
 
     /* close the file handle */
     (void) close(fd0);
 
-    /* signal end-of-file to the server */
-    (void) sprintf(temp,"EOF");
-    if (uftcflag & UFT_VERBOSE) (void) uftx_putline(2,temp,0);
-    (void) tcpputs(fd[1],temp);
-    i = uftc_wack(fd[0],temp,sizeof(temp));
-    if (i < 0)
-      { if (errno != 0) (void) perror(arg0);
-        else (void) uftx_putline(2,temp,0);
-        return 1; }
-    if (uftcflag & UFT_VERBOSE) (void) uftx_putline(2,temp,0);
+    /* send an "EOF" command to indicate clean end-of-file            */
+    if (uftcflag & UFT_VERBOSE) uftx_putline(2,"EOF",0);
+    rc = tcpputs(fd[1],"EOF");
+    if (rc < 0) { uftc_close(fd); return 1; }
 
-    /* tell the server we're done - should now close the connection   */
-    (void) sprintf(temp,"QUIT");
-    if (uftcflag & UFT_VERBOSE) (void) uftx_putline(2,temp,0);
-    (void) tcpputs(fd[1],temp);
-    i = uftc_wack(fd[0],temp,sizeof(temp));
-    if (i < 0)
-      { if (errno != 0) (void) perror(arg0);
-        else (void) uftx_putline(2,temp,0);
-        return 1; }
-    if (uftcflag & UFT_VERBOSE) (void) uftx_putline(2,temp,0);
+    /* wait for ACK */
+    rc = uftc_wack(fd[0],temp,sizeof(temp)-1);
+    if (rc < 0) { uftc_close(fd); return 1; }
+    if (rc != 2) fprintf(stderr,"%s\n",temp);
+
+    /* tell the server we're done - send a "QUIT" command to close    */
+    if (uftcflag & UFT_VERBOSE) uftx_putline(2,"QUIT",0);
+    rc = tcpputs(fd[1],"QUIT");
+    if (rc < 0) { uftc_close(fd); return 1; }
+
+    /* wait for ACK */
+    rc = uftc_wack(fd[0],temp,sizeof(temp)-1);
+    if (rc < 0) { uftc_close(fd); return 1; }
+    if (rc != 2) fprintf(stderr,"%s\n",temp);
 
     /* arbitrary delay so the server can catch up if needed */
-    (void) sleep(2);
+    sleep(2);
 
     /* close the socket */
-    close(fd[0]); close(fd[1]);
+//  close(fd[0]); close(fd[1]);
+    uftc_close(fd);
 
     /* get outta here */
     return 0;

@@ -95,7 +95,7 @@ static struct MSGSTRUCT *msglobal = NULL, msstatic;
  * Open the messages file, read it, get ready for service.
  * Returns: zero upon successful operation, or 813 if cannot open the repository file
  * The VM/CMS counterpart does 'SET LANG' to load the messages file.
- * See also the catopen() call on many POSIX systems.
+ * See also: the catopen() call on many POSIX systems
  *
  * The first thing we must do is find and open the message repository.
  * This routine looks in several places using a variety of names.
@@ -105,8 +105,10 @@ int xmopen(unsigned char*file,int opts,struct MSGSTRUCT*ms)
   {
     int rc, fd, memsize, i, j;
     char filename[256]; int filesize;
-    unsigned char *p, *q, *escape, *locale;
+    unsigned char *p, *q, *locale;
     struct stat statbuf;
+
+    static char ampersand[2] = "&";       /* default escape character */
 
     /* NULL struct pointer means to use global static storage         *
      * unless it was already established, in which case "busy".       */
@@ -285,6 +287,7 @@ int xmopen(unsigned char*file,int opts,struct MSGSTRUCT*ms)
     /* parse the file */
     p = ms->msgdata;
     ms->msgmax = 0;
+    ms->escape = NULL;
     while (*p != 0x00)
       {
         /* mark off and measure this line */
@@ -324,9 +327,9 @@ int xmopen(unsigned char*file,int opts,struct MSGSTRUCT*ms)
     for (i = 0; i < 3 && *p != 0x00; i++) ms->pfxmin[i] = toupper((int)*p++);
     ms->pfxmin[i] = 0x00;
 
-#ifdef XMM_POSIX
     /* handle SYSLOG and record other options */
     ms->msgopts = opts;
+#ifdef XMM_POSIX
     if (ms->msgopts & MSGFLAG_SYSLOG) {
       /* figure out syslog identity */
       openlog(ms->applid,LOG_PID,LOG_USER); }
@@ -343,12 +346,15 @@ int xmopen(unsigned char*file,int opts,struct MSGSTRUCT*ms)
     ms->msgfmt = 0;   ms->msgline = 0;  /* neither is yet implemented */
     ms->letter = NULL;
 
+    /* if no escape character set then make it an ampersand           */
+    if (ms->escape == NULL) ms->escape = ampersand;
+
     /* return success */
     return 0;
   }
 
 /* ---------------------------------------------------------------- MAKE
- * This is the central function: make a message.
+ * This is the central function: make a message
  * All other print, string, and write functions are derivatives.
  * Returns: zero upon successful operation, ENOENT or 814 if no message
  * The VM/CMS counterpart is the APPLMSG macro (high level assembler).
@@ -369,13 +375,18 @@ int xmmake(struct MSGSTRUCT*ms)
 
     i = rc = snprintf(ms->msgbuf,ms->msglen,"%s%s%03d%c ",
       ms->pfxmaj,ms->pfxmin,ms->msgnum,*p);
+//write(2,ms->pfxmaj,3); write(2,ms->pfxmin,3); write(2,p,1); write(2,"\n",1);
 
     p++; if (*p == ' ') p++;
     ms->msgtext = p;
 
+    /* perform token replacement, the main purpose of this library    */
     while (i < ms->msglen)
-      { if (*p == *ms->escape)
-          { p++;
+//    { if (*p == *ms->escape)
+      { if (*p == '&')
+          {
+//write(2,p,2); write(2,"\n",1);
+            p++;
             j = 0;
             while ('0' <= *p && *p <= '9')
               { j = j * 10;
@@ -547,7 +558,7 @@ int xmstring(unsigned char*output,int outlen,int msgnum,int msgc,unsigned char*m
   }
 
 /* --------------------------------------------------------------- CLOSE
- * Close (figuratively): free common storage and reset static variables.
+ * Close (figuratively): free common storage and reset static variables
  * Returns: zero upon successful operation
  */
 int xmclose(struct MSGSTRUCT*ms)

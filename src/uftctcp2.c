@@ -1,8 +1,8 @@
 /* Copyright 2025 Richard M. Troth, all rights reserved. <plaintext>
  *
  *        Name: uftctcp2.c (C program source)
- *              Unsolicited File Transfer "SIFT" utility
- *              follows the behavior of UFTCTCP2 from CMS
+ *              Unsolicited File Transfer file [re]sending utility
+ *              follows the behavior of the UFTCTCP2 REXX gem from CMS
  *      Author: Rick Troth, Cedarville, Ohio, USA
  *        Date: 2025-09-09
  *
@@ -65,7 +65,7 @@ int _sift_file(int fd[],UFTSTAT*us)
   }
 
 /* --------------------------------------------------------------- ABORT
- *    Something went wrong.
+ *    This routine gets called when something went wrong.
  *    If the connection is open then try an orderly "ABORT".
  *    Note: this routine does NOT close the socket.
  */
@@ -108,13 +108,12 @@ int main(int argc,char*argv[])
 
     ptitle = "Internet SENDFILE 'SIFT' processor";   /* program title */
 
-    /* initialize a few variables */
+    /* note command name and set defaults */
     mv[0] = arg0 = uftx_basename(argv[0]);
     mn = mc = rc = 0; mv[1] = "";
     user[0] = host[0] = 0x00;
 
-/* ------ command line arguments and option processing go here ------ */
-/* ------ command line arguments and option processing go here ------ */
+    /* process command-line options */
     for (i = 1; i < argc && argv[i][0] == '-' &&
                             argv[i][1] != 0x00; i++)
       { switch (argv[i][1])
@@ -131,22 +130,22 @@ int main(int argc,char*argv[])
                     return 0; } else           /* exit from help okay */
                 if (abbrev("--verbose",argv[i],6) > 0)
                   { uftcflag |= UFT_VERBOSE; } else
-                  { snprintf(buff,sizeof(buff),"%s: invalid option %s",
-                                arg0,argv[i]);
-                    uftx_putline(1,buff,0);
+                  { mv[1] = argv[i];
+                rc = uftx_message(buff,sizeof(buff)-1,3,"TCP",2,mv);
+                if (rc >= 0) fprintf(stderr,"%s\n",buff); else
+                fprintf(stderr,"%s: invalid option %s",arg0,argv[i]);
                     return 1; }             /* exit on invalid option */
                     break;
 /* ------------------------------------------------------------------ */
 
-            default:    snprintf(buff,sizeof(buff),"%s: invalid option %s",
-                                arg0,argv[i]);
-                        uftx_putline(1,buff,0);
+            default:    mv[1] = argv[i];
+                rc = uftx_message(buff,sizeof(buff)-1,3,"TCP",2,mv);
+                if (rc >= 0) fprintf(stderr,"%s\n",buff); else
+                fprintf(stderr,"%s: invalid option %s",arg0,argv[i]);
                         return 1;           /* exit on invalid option */
                         break;
           }
       }
-/* ------ command line arguments and option processing go here ------ */
-/* ------ command line arguments and option processing go here ------ */
 
     /* announcement (iff verbose option requested) */
     if (uftcflag & UFT_VERBOSE)
@@ -168,12 +167,13 @@ int main(int argc,char*argv[])
         uftx_putline(1,buff,0); buff[0] = 0x00;
                                     return 1; }        /* excess args */
 
+    /* our one and only command line argument is optional user@host   */
     if ((argc - i) == 1)
       { p = argv[i]; q = user;
         while (*p != 0x00 && *p != ' ' && *p != '@') *q++ = *p++;
         *q = 0x00; if (*p == '@') p++;
                      q = host;
-        while (*p != 0x00 && *p != ' ') *q++ = *p++; }
+        while (*p != 0x00 && *p != ' ') *q++ = *p++; *q = 0x00; }
 
     /* begin actual processing */
 
@@ -205,7 +205,6 @@ int main(int argc,char*argv[])
         if (*q != 0x00) *q++ = 0x00;            /* terminate the verb */
         /* q now points to the args (if any) and p points to the verb */
 
-
         meta = 0;        /* not a META command unless prefixed (next) */
 
         /* --------------------------------------------- META command */
@@ -231,6 +230,7 @@ int main(int argc,char*argv[])
             /* q now points to the args (if any) and p to the verb    */
             meta = 1; }  /* set meta flag but do NOT skip next checks */
 
+        /* the normal sequence for a UFT transaction is ...           */
         /* ------------ 1 ------------------------------ FILE command */
         /* ------------ 2 ------------------------------ USER command */
         /* ------------ 3 ------------------------------ TYPE command */
@@ -288,17 +288,14 @@ int main(int argc,char*argv[])
 
             /* USER statement drives an OPEN if not already open      */
             rc = uftc_open(q,NULL,fd);
-            if (rc != 0)
-              { mv[1] = q; mc = 2; mn = 22;              /* wrong msg */
-                break; }
+            if (rc != 0) { mv[1] = q; mc = 2; mn = 1049; break; }
+// 1049    E Unable to connect to remote UFT server &1
 
             /* wait for herald from server - the rest via uftc_wack() */
             rc = tcpgets(fd[0],buff,sizeof(buff));
-            if (rc < 0) { mc = 0; mn = 16; break; }      /* wrong msg */
+            if (rc < 0) { mc = 0; mn = 26; break; }      /* wrong msg */
             /* should we retain anything from the herald?             */
 
-//          sprintf(buff,"FILE %d %s -",us.uft_size,p);
-//          rc = _sift_send(fd,buff,0);           /* send this record */
             rc = _sift_file(fd,&us);         /* send the FILE command */
 
             if (*user != 0x00) p = user;    /* command line overrides */
@@ -375,25 +372,28 @@ int main(int argc,char*argv[])
 
       }                                 /* end of header-loading loop */
 
-//fprintf(stderr,"done with metadata\n");
-
     /* generic error handler */
     if (rc < 0)  {
         if (fd[0] >= 0 && fd[1] >= 0) { _sift_abort(fd); uftc_close(fd); }
-        rc = uftx_message(line,sizeof(line)-1,mn,"SFT",mc,mv);
+        rc = uftx_message(line,sizeof(line)-1,mn,"TCP",mc,mv);
         if (rc >= 0) fprintf(stderr,"%s\n",line);
         if (*copy != 0x00) fprintf(stderr,"%s\n",copy);
         return 1; }
 
     /* process the data (everything following the "DATA" statement)   */
+
+    /* switch TYPE=A versus TYPE=I ---------------------------------- */
     switch (us.uft_type)
       {
         case 'A': case 'a': uftcflag &= ~UFT_BINARY;
+            if (uftcflag & UFT_VERBOSE) fprintf(stderr,"UFTCTCP2: plain text\n");
             break;
         case 'N': case 'n':
         case 'I': case 'i': uftcflag |= UFT_BINARY;
+            if (uftcflag & UFT_VERBOSE) fprintf(stderr,"UFTCTCP2: binary\n");
             break;
         default:
+            fprintf(stderr,"UFTCTCP2: bogus canonization '%c'\n",us.uft_type);
             break;
       }
 
@@ -411,19 +411,12 @@ int main(int argc,char*argv[])
           { rc = i = uftctext(0,buff,sizeof(buff)); if (rc == 0)
             rc = i = uftctext(0,buff,sizeof(buff)); if (rc < 1) break;
             sprintf(line,"DATA %d",i); tcpputs(fd[1],line);
+//      if (uftcflag & UFT_VERBOSE || i == 5) uftx_putline(2,line,0);
             rc = uftc_wack(fd[0],line,sizeof(line));      /* expect 3 */
             if (rc != 3) break;
             tcpwrite(fd[1],buff,i);     /* send it - we live for this */
             rc = uftc_wack(fd[0],line,sizeof(line));      /* expect 2 */
             if (rc != 2) break; }
-
-//        { if (errno != 0) perror(arg0);  else uftx_putline(2,temp,0);
-//      if (uftcflag & UFT_VERBOSE || i == 5) uftx_putline(2,temp,0);
-//      if (rc == 5) { return 5; } }    /* a 500 NAK here is terminal */
-    /* process the data (everything following the "DATA" statement)   */
-    /* process the data (everything following the "DATA" statement)   */
-
-//fprintf(stderr,"done with data\n");
 
     /* send an "EOF" command to indicate clean end-of-file            */
     rc = tcpputs(fd[1],"EOF");
@@ -448,8 +441,6 @@ int main(int argc,char*argv[])
 
     /* close the socket */
     uftc_close(fd);
-
-//fprintf(stderr,"done with session\n");
 
     /* get outta here */
     return 0;
