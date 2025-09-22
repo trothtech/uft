@@ -287,7 +287,8 @@ int xmopen(unsigned char*file,int opts,struct MSGSTRUCT*ms)
     /* parse the file */
     p = ms->msgdata;
     ms->msgmax = 0;
-    ms->escape = NULL;
+//  ms->escape = NULL;
+    ms->escape = ampersand;               /* default escape character */
     while (*p != 0x00)
       {
         /* mark off and measure this line */
@@ -382,8 +383,8 @@ int xmmake(struct MSGSTRUCT*ms)
 
     /* perform token replacement, the main purpose of this library    */
     while (i < ms->msglen)
-//    { if (*p == *ms->escape)
-      { if (*p == '&')
+      { if (*p == *ms->escape)
+//    { if (*p == '&')
           {
 //write(2,p,2); write(2,"\n",1);
             p++;
