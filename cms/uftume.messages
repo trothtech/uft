@@ -43,17 +43,23 @@
 *014    X ........
 *
   15    E Unknown &1 command
-  16    E Missing operand(s)
+  16    E missing operand(s)
   22    E file &1 not found
+  26    E socket or stream closed without a QUIT command
   42    E User &1 spoolid &2 does not exist
+  45    E protocol sequence error
   50    E Invalid spoolid &1
   53    E &1 not in CP directory
   54    E Incomplete fileid specified
   70    E Invalid parameter &1
+  81    E &1 command not supported in batch mode
+  88    E invalid keyword &1
+  89    E invalid operand &1
+  90    E invalid value &1 for &2 parameter
   92    I File (&1) spooled to &2 -- origin &3(&4) &5 &6 &7
-  93      File &1 received from &2 sent as &3
+  93    I File &1 received from &2 sent as &3
   94    I File &1 spooled to &2 origin &3
-  95      Note &1 received from &2
+  95    I Note &1 received from &2
   96    I From &1(&2): &3
   97    I From &1: &2
 *
@@ -67,7 +73,6 @@
 0113      113 SEND &1 bytes of data.
 *         (for SEND, recommend 313 below)
 0114      114 HELP follows:
-*214  02  114-End of HELP.
 0115      115 &1 system type.
 0118      118 SEQ=&1 (server)
 0119      119 SEQ=&1 (user)
@@ -117,10 +122,10 @@
 0200      200 ACK
 0201      201 Command okay.
 0202      202 Command not implemented, superfluous at this site.
-0208      208 user &1 okay
+0208      208 &1; user &1 okay
 0211      211 System status, or system help reply.
 0213      213 received &1 bytes of data.
-0214      214 End of HELP.
+0214      214 HELP: end of HELP
 0216      216 ABORT/ROLLBACK
 0225      225 Data connection already open; transfer starting.
 0226      226 ABORT/ROLLBACK
@@ -152,7 +157,7 @@
 0404      404 Document not found
 0407      407 Proxy Authentication Required
 *411      411 protocol sequence error
-0416      416 Missing operand(s)
+0416      416 missing operand(s)
 *421      421 (see 521)
 0426      426 Connection closed; transfer aborted.
 *432      432 No such local user &1
@@ -207,7 +212,15 @@
  999      © Copyright 1995, 1997, 2025 Richard M. Troth, all rights reserved.
 *
 * from the CMS implementation:
+1004      File &1 spooled to &2 origin &3
+*DMTNTR147I Sent file 0716 (1995) on link NYNJGATE to NEWYORK(MATTHEW)
+1047    E Server &1 is not operational
+1049    E Unable to connect to remote UFT server &1
 1200    E Code level mis-match: expected &1 but found &2
+1349    I Unable to connect to remote UFT server, file sent via SMTP instead
+2451    W Server &1 is not active
+2455    E Designated server or servers are not active
+3228    W Communication with server &1 is not possible
 8416      From &1(&2): &3
 8712      File &1 sent to &2 at &3 on &4
 *DMTNTR147I Sent file 0716 (1995) on link NYNJGATE to NEWYORK(MATTHEW)
@@ -221,8 +234,6 @@
 *         File (*UFT) spooled to user -- origin host(from) date time tz
 *002      File (*UFT) spooled to &1 -- origin &2(&3) &4 &5 &6
 9002      File (&1) spooled to &2 -- origin &3(&4) &5 &6 &7
-1004      File &1 spooled to &2 origin &3
-*DMTNTR147I Sent file 0716 (1995) on link NYNJGATE to NEWYORK(MATTHEW)
 *
 * the following is for SIFT-via-MIME and should be renumbered lower
 9822  01  Sender Initiated File Transfer
@@ -244,8 +255,7 @@
 *
 9999      © Copyright 1995, 1997, 2025 Richard M. Troth, all rights reserved.
 *
-* for 386 go to 16
-*385    E Invalid modifier keyword: &1
+*385    E Invalid modifier keyword &1
 *740    I Execution begins...
 *440    E RXSOCKET requires TCPIP Version 2 or higher               1440
 *606    E No primary input specified                                1606
@@ -256,5 +266,18 @@
 *958    E Required resources not available                          3958
 *201    I &1 has been started                                       8201
 *205    E Non-numeric value specified                               8205
+*
+*304    E Invalid operand value &1
+*384    E Missing modifier keyword(s).
+*386    E Missing operand(s).                              see 16 or 416
+*387    E Missing value for &1 operand
+*388    E invalid keyword &1                                      see 88
+*389    E Invalid operand: &1                                     see 89
+*390    E Invalid value &1 for &2 operand
+*391    E Unexpected operand(s): &1
+*393    E Missing value for &1 option
+*394    E Invalid option: &1                               see 3 and 433
+*395    E Invalid value &1 for &2 option                          see 90
+*116    E Invalid value &1 for &2 in &3                           see 90
 *
 *

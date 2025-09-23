@@ -43,7 +43,7 @@ If Index(host,".") = 0 & rscsid ^= "" Then ,
 Else Do
     Trace "OFF"
     /* First try sending the file using TCP directly. */
-    'CALLPIPE *: | UFTCTCP2'  host '| *:'
+    'CALLPIPE *: | UFTCTCP2' host '| *:'
     /* If that fails, and we know SMTPD, then try sending as mail. */
     If rc ^= 0 & smtpid ^= "" Then ,
     'CALLPIPE *: | UFTCMAIL' host '| *:'

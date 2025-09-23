@@ -1,0 +1,27 @@
+* © Copyright 2025 Richard M. Troth, all rights reserved. <plaintext>
+.cm hand crafted
+
+UFT042E
+
+User uuuuuuuu spoolid nnnn does not exist
+
+Explanation:
+
+The indicated "spool file" (nnnn) for the indicated user (uuuuuuuu)
+either does not exist or has been corrupted. For UFT, a "spool file"
+consists of at least two physical files: nnnn.cf and nnnn.df.
+If either of these are missing then the file cannot be processed.
+
+System action:
+
+The command terminates with a non-zero return code.
+System operation continues.
+
+User response:
+
+If the spool ID was simply mis-typed, re-try the command
+with the correct spool ID. UFT spool IDs are numeric up to four digits.
+
+If one of the two physical files is missing, you migth be able to
+recover either metadata (from nnnn.cf) or content (from nnnn.df)
+in the per-user directory where they are placed by the server.

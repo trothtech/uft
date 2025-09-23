@@ -67,6 +67,9 @@
       MSG      HELPUFT  *  -- server "MSG" command, mimics RSCS
       UFTTYPES HELPUFT  *  -- recognized canonicalizations
 *
+      UFT003E  HELPMSG  *  -- explanatory help for message number 3
+      UFT042E  HELPMSG  *  -- explanatory help for message number 42
+*
       UFTD     EXEC     *  -- server program
       UFTD     REXX     *  -- server pipeline stage (the real server)
       UFTD     HELPCMS  *  -- brief help for the UFT server itself

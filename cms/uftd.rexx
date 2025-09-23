@@ -103,11 +103,6 @@ If rc ^= 0 Then Exit rc
 If verbose Then ,
 'ADDPIPE *.INPUT.LINE: | CONSOLE | *.INPUT.LINE:'
 
-/*  find a free virtual address  */
-Address CMS 'GETFMADR 200'
-If rc ^= 0 Then Exit rc
-Parse Pull . . addr .
-
 /*  send a "hello" to our client  */
 If uft > 1 Then ,
 'CALLPIPE COMMAND XMITMSG 222 "' || localhost || '" "' || uft || '"' ,
@@ -655,8 +650,20 @@ Select /* type */
 
 End /* Select type */
 
+/* find a free virtual address */
+Address CMS 'GETFMADR 200'
+If rc ^= 0 Then Exit rc
+Parse Pull . . addr .
+
 /* create a temporary virtual unit-record device */
 Parse Value DiagRC(08,'DEFINE' dev addr) With 1 rc 10 . 17 rs
+Do While rc = 92                 /* HCPDFN092E device already defined */
+    addr = D2X(X2D(addr)+16)           /* increment address by 10 hex */
+    Address CMS 'GETFMADR' addr       /* try again to find an opening */
+    If rc = 0 Then Parse Pull . . addr .
+    Parse Value DiagRC(08,'DEFINE' dev addr) With 1 rc 10 . 17 rs
+    If X2D(addr) > 4095 Then Leave        /* arbitrary stopping point */
+End /* Do While */
 If rc ^= 0 Then Do ; open = 0 ; Return ; End
 
 /* we don't do forwarding */

@@ -1,0 +1,21 @@
+* © Copyright 2025 Richard M. Troth, all rights reserved. <plaintext>
+.cm hand crafted
+
+UFT003E
+
+invalid option oooooooo
+
+Explanation:
+
+Should be self-explanatory: the command was entered with an incorrect
+or unrecognized option. Options in POSIX speak are indicated with a dash
+followed by a single letter or a double-dash and a multi-letter string.
+
+System action:
+
+The command terminates with a non-zero return code.
+System operation continues.
+
+User response:
+
+Retry the command with correct options.
