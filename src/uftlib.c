@@ -540,7 +540,7 @@ int msglocal(char*user,char*text)
 #endif
         /*  ... or NOT ...  */
       }
-    if (fd < 0) return fd;
+    /* if (fd < 0) */ return fd;
   }
 
 /* ----------------------------------------------------------- UFTX_HOME
@@ -722,10 +722,14 @@ int msgc_uft(char*user,char*text)
 
     /* connect to the UFT server */
     rc = mysock = tcpopen(hn,0,0);
-    if (rc < 0) { perror("tcpopen()"); return rc; }
+    if (rc < 0) { if (errno != 0) perror("tcpopen()"); return rc; }
 
     /* look for the herald */
     rc = tcpgets(mysock,buffer,sizeof(buffer)-1);
+    if (rc < 0)
+      { if (errno != 0) perror("tcpgets():");
+fprintf(stderr,"msgc_uft(): failed to fetch herald; RC = %d\n",rc);
+        return rc; }
 
     /* send a "FILE 0 from auth" command */
     if (*agentkey == 0x00)
@@ -736,7 +740,8 @@ int msgc_uft(char*user,char*text)
 
     /* wait for ACK */
     rc = uftc_wack(mysock,buffer,sizeof(buffer)-1);
-    if (rc < 0) { perror("uftc_wack()"); close(mysock); return rc; }
+    if (rc < 0) { if (errno != 0) perror("uftc_wack()");
+                  close(mysock); return rc; }
     if (rc != 2) { fprintf(stderr,"%s\n",buffer); close(mysock); return rc; }
 
     /* send a "MSG user text" command */
@@ -746,7 +751,8 @@ int msgc_uft(char*user,char*text)
 
     /* wait for ACK */
     rc = uftc_wack(mysock,buffer,sizeof(buffer)-1);
-    if (rc < 0) { perror("uftc_wack()"); close(mysock); return rc; }
+    if (rc < 0) { if (errno != 0) perror("uftc_wack()");
+                  close(mysock); return rc; }
     if (rc != 2) { fprintf(stderr,"%s\n",buffer); close(mysock); return rc; }
 
     /* send an "ABORT" command (because we're not sending a file */
@@ -755,7 +761,8 @@ int msgc_uft(char*user,char*text)
 
     /* wait for ACK */
     rc = uftc_wack(mysock,buffer,sizeof(buffer)-1);
-    if (rc < 0) { perror("uftc_wack()"); close(mysock); return rc; }
+    if (rc < 0) { if (errno != 0) perror("uftc_wack()");
+                  close(mysock); return rc; }
     if (rc != 2) { fprintf(stderr,"%s\n",buffer); close(mysock); return rc; }
 
     /* send a "QUIT" command to close the session */
@@ -764,7 +771,8 @@ int msgc_uft(char*user,char*text)
 
     /* wait for ACK */
     rc = uftc_wack(mysock,buffer,sizeof(buffer)-1);
-    if (rc < 0) { perror("uftc_wack()"); close(mysock); return rc; }
+    if (rc < 0) { if (errno != 0) perror("uftc_wack()");
+                  close(mysock); return rc; }
     if (rc != 2) { fprintf(stderr,"%s\n",buffer); close(mysock); return rc; }
 
     /* give a little lag time ... just in case */
@@ -805,7 +813,6 @@ int uftc_wack(int s,char*b,int l)
             case '6':                   /* write to stdout, then loop */
                 p = b;
                 while (*p != ' ' && *p != 0x00) p++;
-//              if (*p != 0x00) uftx_putline(1,++p,0);
                                  if (*p == ' ') p++;
                 if (*p != 0x00) fprintf(stdout,"%s\n",p);
                 break;
@@ -1279,6 +1286,7 @@ int uftdl699(int s,char*b)
         uftdstat(s,pb);
         if (*b != 0x00) b++;
       }
+    return 0;
   }
 
 /* ------------------------------------------------------------ UFTDSTAT

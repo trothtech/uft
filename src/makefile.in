@@ -8,7 +8,7 @@
 #
 
 APPLID          =       uft
-VERSION         =       2.0.11
+VERSION         =       2.0.12
 DELIVERABLES    =       uftd sf rls rcv rstat uftcndd tell cpq uftxdspl uftctcp2
 SOURCEURL       =       https://raw.githubusercontent.com/trothtech/uft/refs/heads/main
 #                       https://raw.githubusercontent.com/trothtech/uft/master
