@@ -167,7 +167,7 @@ abbrev.o:	makefile abbrev.c
 		$(CC) $(CFLAGS) -c abbrev.c
 
 tcpio.o:	makefile tcpio.c
-		$(CC) $(CFLAGS) -c tcpio.c
+		$(CC) $(CFLAGS) -o tcpio.o -c tcpio.c
 
 maketext.o:	makefile maketext.c
 		$(CC) $(CFLAGS) -c maketext.c

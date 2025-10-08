@@ -317,7 +317,8 @@ int uftd_fann(char*user,char*spid,char*from)
 
     mv[0] = "";
     mv[1] = spid; mv[2] = user; mv[3] = from;         /* three tokens */
-    rc = uftx_message(q,l,94,"SRV",4,mv);          /* previously 1004 */
+    rc = uftx_message(q,l,94,"SRV",4,mv);         /* previously #1004 */
+    /*   94    I File &1 spooled to &2 origin &3                      */
     if (rc < 0) return rc;
 
     while (*q != 0x00 && i < l) { q++; i++; }

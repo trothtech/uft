@@ -271,7 +271,7 @@ int xmopen(unsigned char*file,int opts,struct MSGSTRUCT*ms)
         if (rc != 0) return rc; else return EBADF; }
     close(fd);
 
-    /* put filename at end of buffer */
+    /* append filename after end of messages buffer */
     p = &ms->msgdata[rc]; *p++ = 0x00;
     (void) strncpy(p,filename,sizeof(filename)-1);
     ms->msgfile = p;
@@ -287,20 +287,24 @@ int xmopen(unsigned char*file,int opts,struct MSGSTRUCT*ms)
     /* parse the file */
     p = ms->msgdata;
     ms->msgmax = 0;
-//  ms->escape = NULL;
-    ms->escape = ampersand;               /* default escape character */
+    ms->escape = NULL;
+//  ms->escape = ampersand;               /* default escape character */
     while (*p != 0x00)
       {
         /* mark off and measure this line */
         q = p; i = 0;
         while (*p != 0x00 && *p != '\n') { p++; i++; }
+// FIXME: need to strip CR
+//      if (i > 0) if (q[i-1] == '\r') q[i-1] = 0x00;
         if (*p == '\n') *p++ = 0x00;
 
         /* skip comments */
         if (*q == '*' || *q == '#') continue;
 
         /* look for escape character */
-        if (*q != ' ' && (*q < '0' || *q > '9')) { ms->escape = q; continue; }
+        if (ms->escape == NULL)
+        if (*q != ' ' && (*q < '0' || *q > '9') && *q != 0x00)
+                                           { ms->escape = q; continue; }
 
         /* ignore short lines */
         if (i < 10) continue;
