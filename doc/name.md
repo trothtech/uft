@@ -35,4 +35,9 @@ the `NAME` command must have an argument. If no argument is provided
 the result is a 400 series NAK (client error). In plain language,
 you cannot use `NAME` without an argument remove a name from a UFT file.
 
+## Command Sequencing
+
+`NAME` is a meta command, even if not prefixed with "META" 
+and therefore must follow `TYPE` and preceed `DATA`.
+
 

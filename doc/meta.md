@@ -64,4 +64,8 @@ not allowed following `META`:
     REMOTE
     SIZE
 
+## Command Sequencing
+
+All `META` commands must follow `TYPE` and preceed `DATA`.
+
 

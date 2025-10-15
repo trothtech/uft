@@ -33,7 +33,7 @@ is only for UFT programs running on the same system.
 
 ## Command Sequencing
 
-`DATA` must come after all `META` commands,
-which in turn should come after the `TYPE` command.
+`DATA` must come after all `META` commands (with or without the 
+"META" prefix), which in turn should come after the `TYPE` command.
 
 

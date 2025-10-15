@@ -36,6 +36,7 @@ The only supported authentications at this time are AGENT and IDENT.
 
 ## Command Sequencing
 
-The `FILE` command must come before any others.
+The `FILE` command must come before any others except 
+`CPQ`, `HELP`, `AGENT`, or an abortive `QUIT`.
 
 

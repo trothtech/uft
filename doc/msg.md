@@ -30,15 +30,15 @@ A successful response from `MSG` is a 200 series ACK.
 
 `MSG` is not inherently related to file transfer and can therefore
 be sent at any time. It may help to send a `FILE` command before `MSG`
-because that will provide identification of the sending user.
-A sequence like `FILE`, `MSG`, `ABORT` is a perfectly legal way
+because that can provide identification of the sending user.
+A sequence like `FILE` / `MSG` / `ABORT` is a perfectly legal way
 to provide the identity of the sending user.
 
 ## Usage Notes
 
 If the sending system (client system) is running an IDENT server then
 the receiving UFT server can derive the identity of the sending user
-without the `FILE`, `MSG`, `ABORT` sequence.
+without the `FILE` / `MSG` / `ABORT` sequence.
 
 If the receiving UFT server cannot identify the sending user
 it may reject the message.

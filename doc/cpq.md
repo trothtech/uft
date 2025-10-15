@@ -34,7 +34,7 @@ Any parameter not recognized results in a 400 series NAK. (client error)
 
 Not all UFT implementations support `CPQ`. <br/>
 An implementation which does not handle `CPQ` must return
-a 500 series NAK. (server error)
+a 400 series NAK. (client error, even though this is a server fault)
 
 Here are the usual parameters recognized by `CPQ`:
 
@@ -73,8 +73,8 @@ Server responds
     699
     200 ACK
 
+## Command Sequencing
 
-
-
+A `CPQ` command can come at any time during a transaction.
 
 

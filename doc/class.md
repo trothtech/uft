@@ -23,7 +23,7 @@ where
 
     class       is the class
 
-    devtype     is an optional  queuing device type
+    devtype     is an optional queuing device type
 
 For historical reasons, `META` is not always required.
 Some older UFT servers will accept `CLASS` as a metadata statement.
