@@ -53,11 +53,11 @@ int _sift_file(int fd[],UFTSTAT*us)
     int rc;
     char buff[256];                                     /* _sift_file */
 
-//  fd = open()
-//    {
-//      sprintf(buff,"FILE %d %s %s %s",us.uft_size,
-// FIXME: add AGENT logic here for AUTH token
-//    } else
+/*  fd = open()                                                    // */
+/*    {                                                            // */
+/*      sprintf(buff,"FILE %d %s %s %s",us.uft_size,               // */
+/* FIXME: add AGENT logic here for AUTH token                      // */
+/*    } else                                                       // */
     sprintf(buff,"FILE %d %s -",us->uft_size,uftx_user());
     rc = _sift_send(fd,buff,0);
 
@@ -289,7 +289,7 @@ int main(int argc,char*argv[])
             /* USER statement drives an OPEN if not already open      */
             rc = uftc_open(q,NULL,fd);
             if (rc != 0) { mv[1] = q; mc = 2; mn = 1049; break; }
-// 1049    E Unable to connect to remote UFT server &1
+/* 1049    E Unable to connect to remote UFT server &1             // */
 
             /* wait for herald from server - the rest via uftc_wack() */
             rc = tcpgets(fd[0],buff,sizeof(buff));
@@ -362,13 +362,13 @@ int main(int argc,char*argv[])
             abbrev("KEEP",p,3))
             _sift_send(fd,copy,0);
 
-//         (abbrev("MSG",p,1) && meta != 0))
-//          abbrev("CHARSET",p,5)   ||
-//          abbrev("UCS",p,3)       ||  abbrev("TRAIN",p,2) ||
-//          abbrev("FCB",p,3)       ||  abbrev("CTAPE",p,2) ||
-//          abbrev("SEQ",p,3)       ||
-//          abbrev("NOTIFY",p,3)
-//        { /*  put this variable into the control file  */ }
+/*         (abbrev("MSG",p,1) && meta != 0))                       // */
+/*          abbrev("CHARSET",p,5)   ||                             // */
+/*          abbrev("UCS",p,3)       ||  abbrev("TRAIN",p,2) ||     // */
+/*          abbrev("FCB",p,3)       ||  abbrev("CTAPE",p,2) ||     // */
+/*          abbrev("SEQ",p,3)       ||                             // */
+/*          abbrev("NOTIFY",p,3)                                   // */
+/*        { **  put this variable into the control file  ** }      // */
 
       }                                 /* end of header-loading loop */
 
@@ -411,7 +411,7 @@ int main(int argc,char*argv[])
           { rc = i = uftctext(0,buff,sizeof(buff)); if (rc == 0)
             rc = i = uftctext(0,buff,sizeof(buff)); if (rc < 1) break;
             sprintf(line,"DATA %d",i); tcpputs(fd[1],line);
-//      if (uftcflag & UFT_VERBOSE || i == 5) uftx_putline(2,line,0);
+/*      if (uftcflag & UFT_VERBOSE || i == 5) uftx_putline(2,line,0); */
             rc = uftc_wack(fd[0],line,sizeof(line));      /* expect 3 */
             if (rc != 3) break;
             tcpwrite(fd[1],buff,i);     /* send it - we live for this */

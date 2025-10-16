@@ -36,7 +36,6 @@
 #define         TCPLARGE        4096
 
 int     tcp_ubuf[TCPLARGE];
-//int   tcp_uoff, tcp_uend;
 char    tcp_umsg[TCPSMALL];
 
 /* if we're on IBM OpenVM, define OECS */
@@ -65,7 +64,6 @@ int tcpopen(char*host,int flag,int mode)
     char       *myhental[2], myhenta0[4], myhenta1[4];
     char        temp[TCPSMALL], *p, *q;
 
-//fprintf(stderr,"tcpopen(): hello, world\n");
 
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -75,7 +73,6 @@ int tcpopen(char*host,int flag,int mode)
         fprintf(stderr,"Windows socket subsytsem could not be initialized.\n");
         fprintf(stderr,"Error Code: %d. Exiting..\n", WSAGetLastError());
         return -1; }
-//fprintf(stderr,"tcpopen(): Windoze hack worked\n");
 #endif
 
 
@@ -91,7 +88,6 @@ int tcpopen(char*host,int flag,int mode)
             temp[i++] = *q++; temp[i++] = 0x00;
         port = atoi(p);
       }
-//fprintf(stderr,"tcpopen(): port %d\n",port);
 
     /*  figure out where to connect  */
     hent = gethostbyname(host);
@@ -130,7 +126,6 @@ int tcpopen(char*host,int flag,int mode)
         /*  should probably call gethostbyaddr()
             at this point;  maybe in the next rev  */
       }
-//fprintf(stderr,"tcpopen(): DNS tinkering done\n");
 
     /*  gimme a socket  */
     s = socket(AF_INET,SOCK_STREAM,0);
@@ -141,7 +136,6 @@ int tcpopen(char*host,int flag,int mode)
  */
         return s;
       }
-//fprintf(stderr,"tcpopen(): we have a socket!\n");
 
     /*  build that structure  */
     name.sa_family = AF_INET;
@@ -166,10 +160,8 @@ int tcpopen(char*host,int flag,int mode)
 
         /*  can we talk?  */
         rc = connect(s, &name, 16);
-//fprintf(stderr,"tcpopen(): connect() returned %d\n",rc);
         if (rc == 0) return s;
       }
-//fprintf(stderr,"tcpopen(): somehow we did not connect\n");
 
     /*  can't seem to reach this host on this port  :-(  */
     (void) close(s);
@@ -259,8 +251,6 @@ int tcpgets(int s,char*b,int l)
         *p = 0x00;      /*  remove trailing CR  */
       }
 
-//  tcp_uoff = 0;
-//  tcp_uend = 0;
     return i;
   }
 

@@ -59,7 +59,7 @@ int uftdcpq_cplevel(char*cpqstr,int cpqsl)                 /* CPLEVEL */
 
 #endif
 
-    return 0;
+    return 0;                                              /* CPLEVEL */
   }
 
 /* ------------------------------------------------------ UFTD_CPQ_CPUID
@@ -70,22 +70,20 @@ int uftdcpq_cpuid(char*cpqstr,int cpqsl)                     /* CPUID */
     int fd, i;
     char uuid[256];
 
-#ifdef          UFT_ANONYMOUS
-    snprintf(cpqstr,cpqsl,"CPUID: N/A");                     /* CPUID */
-#else
-
-    fd = open("/proc/sys/kernel/random/boot_id",O_RDONLY); if (fd < 0)
-    fd = open("/proc/sys/kernel/random/uuid",O_RDONLY); if (fd < 0)
-    strcpy(uuid,"N/A"); else
+    strcpy(uuid,"N/A");                                      /* CPUID */
+#ifndef         UFT_ANONYMOUS
+    fd = open("/var/run/uft/cpuid.txt",O_RDONLY); if (fd < 0)
+    fd = open("/etc/cpuid",O_RDONLY); if (fd < 0)
+    fd = open("/proc/sys/kernel/random/boot_id",O_RDONLY);
+/*  fd = open("/proc/sys/kernel/random/uuid",O_RDONLY);               */
+    if (fd >= 0)
       { i = read(fd,uuid,sizeof(uuid)-1); close(fd);
         if (i > 0) if (uuid[i-1] == '\n') i--;
         uuid[i] = 0x00; }
-
+#endif
     snprintf(cpqstr,cpqsl,"CPUID = %s",uuid);
 
-#endif
-
-    return 0;
+    return 0;                                                /* CPUID */
   }
 
 /* ------------------------------------------------------ UFTD_CPQ_FILES
@@ -98,7 +96,7 @@ int uftdcpq_files(char*cpqstr,int cpqsl)                     /* FILES */
 
     snprintf(cpqstr,cpqsl,"FILES: N/A");                     /* FILES */
 
-    return 0;
+    return 0;                                                /* FILES */
   }
 
 /* --------------------------------------------------- UFTD_CPQ_INDICATE
@@ -107,16 +105,17 @@ AVGPROC-027% 0017
 MDC READS-000000/SEC WRITES-000000/SEC HIT RATIO-000%
 PAGING-3/SEC
 Q0-00001 Q1-00007           Q2-00002 EXPAN-002 Q3-00068 EXPAN-002
+ 16:44:42  up 327 days 19:09,  1 user,  load average: 0.12, 0.26, 0.32
  */
-int uftdcpq_indicate(char*cpqstr,int cpqsl)                /* INDICATE */
-  { static char _eyecatcher[] = "uftdcpq_indicate()";      /* INDICATE */
+int uftdcpq_indicate(char*cpqstr,int cpqsl)               /* INDICATE */
+  { static char _eyecatcher[] = "uftdcpq_indicate()";     /* INDICATE */
     char uuid[256];
 
-    snprintf(cpqstr,cpqsl,"INDICATE: N/A");                /* INDICATE */
+    snprintf(cpqstr,cpqsl,"INDICATE: N/A");               /* INDICATE */
 
 /* uptime 13:36:30  up 195 days 16:01,  3 users,  load average: 0.07, 0.03, 0.00 */
 
-    return 0;
+    return 0;                                             /* INDICATE */
   }
 
 /* ----------------------------------------------------- UFTD_CPQ_LOGMSG
@@ -129,15 +128,15 @@ int uftdcpq_logmsg(char*cpqstr,int cpqsl)                   /* LOGMSG */
 #ifdef          UFT_ANONYMOUS
     snprintf(cpqstr,cpqsl,"LOGMSG: N/A");                   /* LOGMSG */
 #else
-
     fd = open("/etc/motd",O_RDONLY); if (fd < 0)            /* LOGMSG */
     strncpy(cpqstr,"N/A",cpqsl); else
       { i = read(fd,cpqstr,cpqsl); close(fd);               /* LOGMSG */
         if (i > 0) cpqstr[i] = 0x00; }
-
+/*  if (cpqstr[0] == 0x00) strncpy(cpqstr,"/etc/motd is empty",cpqsl); */
+    if (cpqstr[0] == 0x00) strncpy(cpqstr,"There is no logmsg data",cpqsl);
 #endif
 
-    return 0;
+    return 0;                                               /* LOGMSG */
   }
 
 /* ------------------------------------------------------ UFTD_CPQ_NAMES
@@ -148,7 +147,7 @@ int uftdcpq_names(char*cpqstr,int cpqsl)                     /* NAMES */
 
     snprintf(cpqstr,cpqsl,"NAMES: N/A");                     /* NAMES */
 
-    return 0;
+    return 0;                                                /* NAMES */
   }
 
 /* ------------------------------------------------------- UFTD_CPQ_TIME
@@ -178,7 +177,7 @@ int uftdcpq_time(char*cpqstr,int cpqsl)                       /* TIME */
 #if !defined(__sun) && !defined(sun) && !defined(__SUNPRO_C) && !defined(__SUNPRO_CC) && !defined(_WIN32) && !defined(_WIN64)
     tz = (char*) tmstamp->tm_zone;        /* <bits/types/struct_tm.h> */
 #else
-    tz = tzname[0];                         // timezone name <time.h> */
+    tz = tzname[0];                         /* timezone name <time.h> */
     if (tz == NULL || *tz == 0x00) tz = tzname[1];
 #endif
     if (tz == NULL || *tz == 0x00) tz = "-";
@@ -194,10 +193,9 @@ int uftdcpq_time(char*cpqstr,int cpqsl)                       /* TIME */
             tmstamp->tm_year,                  /* Year - 1900         */
             tmstamp->tm_mon,                   /* Month        [0-11] */
             tmstamp->tm_mday);                 /* Day          [1-31] */
-
 #endif
 
-    return 0;
+    return 0;                                                 /* TIME */
   }
 
 /* ------------------------------------------------------ UFTD_CPQ_USERS
@@ -207,7 +205,7 @@ int uftdcpq_users(char*cpqstr,int cpqsl)                     /* USERS */
   { static char _eyecatcher[] = "uftdcpq_users()";           /* USERS */
 /* uptime 13:36:30  up 195 days 16:01,  3 users,  load average: 0.07, 0.03, 0.00 */
     snprintf(cpqstr,cpqsl,"USERS: N/A");                     /* USERS */
-    return 0;
+    return 0;                                                /* USERS */
   }
 
 /* ------------------------------------------------------- UFTD_CPQ_USER
@@ -216,7 +214,7 @@ int uftdcpq_users(char*cpqstr,int cpqsl)                     /* USERS */
 int uftdcpq_user(char*cpqstr,int cpqsl,char*user)        /* USER uuuu */
   { static char _eyecatcher[] = "uftdcpq_user()";        /* USER uuuu */
     snprintf(cpqstr,cpqsl,"USER: N/A");                  /* USER uuuu */
-    return 0;
+    return 0;                                            /* USER uuuu */
   }
 
 /* ------------------------------------------------------------ UFTD_CPQ

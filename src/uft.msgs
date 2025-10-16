@@ -1,6 +1,6 @@
 * © Copyright 1993-2025 Richard M. Troth, all rights reserved. <plaintext>
 *
-*         Name: UFTUME MESSAGES
+*         Name: UFTUME MESSAGES or uft.msgs
 *       Author: Rick Troth, Houston, Texas, USA
 *         Date: 1993-Apr-18, Jul-01, 1994-May-18, 1995-Mar-07
 *
@@ -42,13 +42,18 @@
 0013      UFT/redacted
 *014    X ........
 *
- 384    E Missing modifier keyword(s).
- 386    E Missing operand(s).
- 388    E Invalid keyword: &1
- 389    E Invalid operand: &1
- 391    E Unexpected operand(s): &1
- 394    E Invalid option: &1
- 395    E Invalid value &1 for &2 option
+*304    E Invalid operand value &1
+*384    E Missing modifier keyword(s).
+*385    E Invalid modifier keyword: &1
+*386    E Missing operand(s).                                      >> 16
+*387    E Missing value for &1 operand
+*388    E Invalid keyword: &1
+*389    E Invalid operand: &1
+*390    E Invalid value &1 for &2 operand
+*391    E Unexpected operand(s): &1
+*393    E Missing value for &1 option
+*394    E Invalid option: &1
+*395    E Invalid value &1 for &2 option
 *
   15    E Unknown &1 command
   16    E Missing operand(s)
@@ -68,12 +73,23 @@
   95    I Note &1 received from &2
   96    I From &1(&2): &3
   97    I From &1: &2
-*304    E Invalid operand value &1
-*387    E Missing value for &1 operand
-*390    E Invalid value &1 for &2 operand
-*393    E Missing value for &1 option
 *395    E Invalid value &1 for &2 option
 *116    E Invalid value &1 for &2 in &3
+
+#  There is no logmsg data
+*507    E No preserved data to restore
+
+
+*   HCP002E Invalid operand - operand
+*   HCP003E Invalid option - command contains extra option(s) starting with operand
+*   HCP007E Invalid userid - userid
+*   HCP026E Operand missing or invalid
+*   HCP041E LOGMSG nn does not exist.
+*   HCP1506E The last line (50) in the log message is already in use.
+*   HCP6704E Missing token at end of line
+*   HCP6706E Invalid {group name|account ID} - {groupname|accountid}
+*   HCP6734E Support for file-based LOGMSG is not enabled.
+*   HCP6771E LOGMSG support based on {Account ID|ACI group|Userid} is not enabled.
 
 
 *
@@ -225,11 +241,27 @@
 *
  999      © Copyright 1995, 1997, 2025 Richard M. Troth, all rights reserved.
 *
+1049    E Unable to connect to remote UFT server &1
+*
 * from the CMS implementation:
 1200    E Code level mis-match: expected &1 but found &2
+
+*2000 range
+
+*3000 range
+
+*4000 reserved range
+
+*5000 reserved range
+
+*6000 reserved range
+
+*7000 reserved range
+
 8416      From &1(&2): &3
 8712      File &1 sent to &2 at &3 on &4
 *DMTNTR147I Sent file 0716 (1995) on link NYNJGATE to NEWYORK(MATTHEW)
+
 *
 * TAG on the file for RDRLIST and RECEIVE:
 *         FILE (*UFT) ORIGIN host from date time tz
@@ -240,7 +272,7 @@
 *         File (*UFT) spooled to user -- origin host(from) date time tz
 *002      File (*UFT) spooled to &1 -- origin &2(&3) &4 &5 &6
 9002      File (&1) spooled to &2 -- origin &3(&4) &5 &6 &7
-1004      File &1 spooled to &2 origin &3
+*1004     File &1 spooled to &2 origin &3
 *DMTNTR147I Sent file 0716 (1995) on link NYNJGATE to NEWYORK(MATTHEW)
 *
 * the following is for SIFT-via-MIME and should be renumbered lower
@@ -261,10 +293,7 @@
 9824      X-SIFT/datafile
 9825      X-SIFT/auxdata
 *
-9999      © Copyright 1995, 1997, 2025 Richard M. Troth, all rights reserved.
 *
-* for 386 go to 16
-*385    E Invalid modifier keyword: &1
 *740    I Execution begins...
 *440    E RXSOCKET requires TCPIP Version 2 or higher               1440
 *606    E No primary input specified                                1606

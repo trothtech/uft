@@ -800,10 +800,10 @@ int uftc_wack(int s,char*b,int l)
 
     while (1)
       { i = tcpgets(s,b,l);
-//      b[i] = 0x00;
-//      if (i > 2) if (b[i-1] == 0x0a) b[--i] = 0x00;
-//      if (i > 1) if (b[i-1] == 0x0d) b[--i] = 0x00;
-//fprintf(stderr,"WACK: '%s'\n",b);
+/*      b[i] = 0x00;                                               // */
+/*      if (i > 2) if (b[i-1] == 0x0a) b[--i] = 0x00;              // */
+/*      if (i > 1) if (b[i-1] == 0x0d) b[--i] = 0x00;              // */
+/* fprintf(stderr,"WACK: '%s'\n",b);                               // */
         if (i < 0)
           { /* broken pipe or network error */
             b[0] = 0x00; return i; }

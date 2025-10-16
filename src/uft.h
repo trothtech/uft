@@ -246,21 +246,11 @@ typedef struct  UFTSTAT {
 
     char        uft_user[64],   /* who this file is sent *to*         */
                 uft_from[64],   /* who this file is received *from*   */
-                uft_name[64],
+                uft_name[64],   /* name of file (optional in UFT)     */
                 uft_form[16],   /* z/VM, mainframe, or print concept  */
                 uft_dist[16],   /* z/VM, mainframe, or print concept  */
                 uft_dest[16],   /* z/VM, mainframe, or print concept  */
                 uft_title[64];  /* z/VM, mainframe, or print concept  */
-
-//              name[64],
-//              from[64],
-//              user[16],       /* from - parsed, NOT who it's to/for */
-//              host[16],       /* from - parsed */
-
-//              form[16],       /* z/VM, mainframe, or print concept  */
-//              dist[16],       /* z/VM, mainframe, or print concept  */
-//              dest[16],       /* z/VM, mainframe, or print concept  */
-//              title[64];      /* z/VM, mainframe, or print concept  */
 
 /*
 

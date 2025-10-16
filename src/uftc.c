@@ -204,7 +204,6 @@ int     uftv;           /* protocol level (1 or 2) */
         prot = uftcstat.st_mode; }
     else
       { size = 0;  mtime = 0;  prot = 0; }
-//fprintf(stderr,"UFTC: input file size %d\n",size);
 
     /* better peer authentication than IDENT is AGENT (see protocol)  */
     if (*proxy == 0x00) fda = open("/var/run/uft/agent.key",O_RDONLY);
@@ -220,7 +219,6 @@ int     uftv;           /* protocol level (1 or 2) */
     /* see if we're running IDENT locally (long story!)               */
     if (*proxy == 0x00 && auth[0] == '-')
       { sprintf(temp,"%s:%d","localhost",IDENT_PORT);
-//fprintf(stderr,"UFTC: trying IDENT\n");
         fd[1] = tcpopen(temp,0,0);  /* simple test to see if it opens */
         if (fd[1] >= 0) { auth = "IDENT"; close(fd[1]); } }
 
@@ -232,11 +230,10 @@ int     uftv;           /* protocol level (1 or 2) */
 
     rc = uftc_open(host,proxy,fd);
     if (rc != 0) { if (errno != 0) perror(host); return 1; }
-//  r = fd[0]; s = fd[1];                /* r for read and s for send */
+/*  r = fd[0]; s = fd[1];                // r for read and s for send */
 
     /* wait for the herald from the server */
     i = tcpgets(fd[0],temp,sizeof(temp));   /* all others uftc_wack() */
-//fprintf(stderr,"UFTC: tcpgets() returned %d\n",i);
     if (i < 0)
       { (void) perror(host);              /* FIXME: remember to close */
         return 1; }              /* read of herald from server failed */
@@ -244,7 +241,6 @@ int     uftv;           /* protocol level (1 or 2) */
 
     /* figure out what protocol version the server likes */
     uftv = temp[0] & 0x0F;
-//fprintf(stderr,"UFTC: herald '%s'\n",temp);
     if (uftv < 1) uftv = 1;
     if (uftcflag & UFT_VERBOSE)
       { (void) sprintf(temp,"%s: UFT protocol %d",arg0,uftv);
@@ -435,7 +431,6 @@ int     uftv;           /* protocol level (1 or 2) */
     sleep(2);
 
     /* close the socket */
-//  close(fd[0]); close(fd[1]);
     uftc_close(fd);
 
     /* get outta here */
