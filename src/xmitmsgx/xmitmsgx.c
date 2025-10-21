@@ -29,6 +29,9 @@
  #define  LOG_INFO      6   /* informational */
  #define  LOG_DEBUG     7   /* debug-level messages */
 #else
+ #ifdef OECS
+  #define __UU
+ #endif
  #include <syslog.h>
  #define XMM_POSIX
 #endif
