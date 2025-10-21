@@ -141,12 +141,14 @@ cpq:		makefile cpq.o \
 			uftlib.o \
 			tcpio.o \
 			xmitmsgx.o \
+			aecs.o \
 			abbrev.o
 		$(CC) $(LDFLAGS) -o cpq \
 			cpq.o \
 			uftlib.o \
 			tcpio.o \
 			xmitmsgx.o \
+			aecs.o \
 			abbrev.o \
 			$(LIBS)
 
@@ -163,13 +165,14 @@ uftxdspl:       uftxdspl.o makefile \
 			uftlib.o \
 			tcpio.o \
 			xmitmsgx.o \
-			abbrev.o \
-			$(LIBS)
+			aecs.o \
+			abbrev.o
 		$(CC) $(LDFLAGS) -o uftxdspl \
 			uftxdspl.o \
 			uftlib.o \
 			tcpio.o \
 			xmitmsgx.o \
+			aecs.o \
 			abbrev.o \
 			$(LIBS)
 
@@ -181,13 +184,14 @@ uftctcp2:       uftctcp2.o makefile \
 			uftlib.o \
 			tcpio.o \
 			xmitmsgx.o \
-			abbrev.o \
-			$(LIBS)
+			aecs.o \
+			abbrev.o
 		$(CC) $(LDFLAGS) -o uftctcp2 \
 			uftctcp2.o \
 			uftlib.o \
 			tcpio.o \
 			xmitmsgx.o \
+			aecs.o \
 			abbrev.o \
 			$(LIBS)
 
