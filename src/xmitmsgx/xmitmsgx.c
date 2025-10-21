@@ -37,10 +37,10 @@
 #include <ctype.h>
 
 #include "xmitmsgx.h"
-
-extern char *xmmprefix; /* installation prefix not application prefix */
+extern unsigned char *xmmprefix;    /* install prefix not appl prefix */
 
 /* These are the locale environment variables we will interrogate:    */
+unsigned
 char *localevars[] = {
                 "LANG",
                 "LC_CTYPE",
@@ -63,6 +63,7 @@ char *localevars[] = {
 /*              <LANGUAGE>_<TERRITORY>.<CODESET>[@<MODIFIERS>]        */
 
 /* These are the directories where we might find locale support:      */
+unsigned
 char *localedirs[] = {
                 "%s/share/locale/%s/%s.msgs",
                 "%s/lib/nls/msg/%s/%s.msgs",
@@ -95,7 +96,7 @@ static struct MSGSTRUCT *msglobal = NULL, msstatic;
  * Open the messages file, read it, get ready for service.
  * Returns: zero upon successful operation, or 813 if cannot open the repository file
  * The VM/CMS counterpart does 'SET LANG' to load the messages file.
- * See also: the catopen() call on many POSIX systems
+ * See also: the catopen() call on many POSIX systems.
  *
  * The first thing we must do is find and open the message repository.
  * This routine looks in several places using a variety of names.
@@ -103,12 +104,11 @@ static struct MSGSTRUCT *msglobal = NULL, msstatic;
  */
 int xmopen(unsigned char*file,int opts,struct MSGSTRUCT*ms)
   {
-    int rc, fd, memsize, i, j;
-    char filename[256]; int filesize;
-    unsigned char *p, *q, *locale;
+    int rc, fd, memsize, i, j, filesize;
+    unsigned char *p, *q, *locale, filename[256];
     struct stat statbuf;
 
-    static char ampersand[2] = "&";       /* default escape character */
+    static unsigned char ampersand[2] = "&";   /* default escape char */
 
     /* NULL struct pointer means to use global static storage         *
      * unless it was already established, in which case "busy".       */
@@ -288,14 +288,13 @@ int xmopen(unsigned char*file,int opts,struct MSGSTRUCT*ms)
     p = ms->msgdata;
     ms->msgmax = 0;
     ms->escape = NULL;
-//  ms->escape = ampersand;               /* default escape character */
     while (*p != 0x00)
       {
         /* mark off and measure this line */
         q = p; i = 0;
         while (*p != 0x00 && *p != '\n') { p++; i++; }
-// FIXME: need to strip CR
-//      if (i > 0) if (q[i-1] == '\r') q[i-1] = 0x00;
+/* FIXME: need to strip CR                                            */
+/*      if (i > 0) if (q[i-1] == '\r') q[i-1] = 0x00;                 */
         if (*p == '\n') *p++ = 0x00;
 
         /* skip comments */
@@ -359,7 +358,7 @@ int xmopen(unsigned char*file,int opts,struct MSGSTRUCT*ms)
   }
 
 /* ---------------------------------------------------------------- MAKE
- * This is the central function: make a message
+ * This is the central function: make a message.
  * All other print, string, and write functions are derivatives.
  * Returns: zero upon successful operation, ENOENT or 814 if no message
  * The VM/CMS counterpart is the APPLMSG macro (high level assembler).
@@ -380,7 +379,6 @@ int xmmake(struct MSGSTRUCT*ms)
 
     i = rc = snprintf(ms->msgbuf,ms->msglen,"%s%s%03d%c ",
       ms->pfxmaj,ms->pfxmin,ms->msgnum,*p);
-//write(2,ms->pfxmaj,3); write(2,ms->pfxmin,3); write(2,p,1); write(2,"\n",1);
 
     p++; if (*p == ' ') p++;
     ms->msgtext = p;
@@ -388,10 +386,7 @@ int xmmake(struct MSGSTRUCT*ms)
     /* perform token replacement, the main purpose of this library    */
     while (i < ms->msglen)
       { if (*p == *ms->escape)
-//    { if (*p == '&')
-          {
-//write(2,p,2); write(2,"\n",1);
-            p++;
+          { p++;
             j = 0;
             while ('0' <= *p && *p <= '9')
               { j = j * 10;
@@ -538,7 +533,8 @@ int xmwrite(int fd,int msgnum,int msgc,unsigned char*msgv[],int msgopts,struct M
  * Calls: xmmake()
  * The VM/CMS counterpart (for Rexx variables) is the XMITMSG command.
  */
-int xmstring(unsigned char*output,int outlen,int msgnum,int msgc,unsigned char*msgv[],struct MSGSTRUCT*ms)
+int xmstring(unsigned char*output,int outlen,int msgnum,
+                      int msgc,unsigned char*msgv[],struct MSGSTRUCT*ms)
   {
     int  rc;
     struct MSGSTRUCT ts;
@@ -563,7 +559,7 @@ int xmstring(unsigned char*output,int outlen,int msgnum,int msgc,unsigned char*m
   }
 
 /* --------------------------------------------------------------- CLOSE
- * Close (figuratively): free common storage and reset static variables
+ * Close (figuratively): free common storage and reset static variables.
  * Returns: zero upon successful operation
  */
 int xmclose(struct MSGSTRUCT*ms)

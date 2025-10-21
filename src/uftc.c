@@ -255,11 +255,14 @@ int     uftv;           /* protocol level (1 or 2) */
     if (uftcflag & UFT_VERBOSE) (void) uftx_putline(2,temp,0);
 
         /* the normal sequence for a UFT transaction is ...           */
-        /* ------------ 1 ------------------------------ FILE command */
-        /* ------------ 2 ------------------------------ USER command */
-        /* ------------ 3 ------------------------------ TYPE command */
-        /* ------------ 4 ----------------------------- META commands */
-        /* ------------ 5 ------------------------------ DATA command */
+        /* ----- step 1 -------------------------------- FILE command */
+        /* ----- step 2 -------------------------------- USER command */
+        /* ----- step 3 -------------------------------- TYPE command */
+        /* ----- step 4 ------------------------------- META commands */
+        /* --------------- NAME, DATE, XDATE, PROT, XPERM, CLASS, etc */
+        /* ----- step 5 ------------------------------- DATA commands */
+        /* ----- step 6 --------------------------------- EOF command */
+        /* ----- step 7 -------------------------------- QUIT command */
 
     /* start the transaction */
 /*  (void) sprintf(temp,"FILE %d %s %s",size,uftx_user(),auth);       */
@@ -372,7 +375,8 @@ int     uftv;           /* protocol level (1 or 2) */
 
     /* does this file have a specific class? */
     if (class != 0x0000 && class[0] != 0x00)
-      { (void) sprintf(temp,"CLASS %s",class);
+/*    { (void) sprintf(temp,"CLASS %s",class);                        */
+      { (void) sprintf(temp,"META CLASS %s",class);
         if (uftcflag & UFT_VERBOSE) (void) uftx_putline(2,temp,0);
         i = tcpputs(fd[1],temp);
         i = uftc_wack(fd[0],temp,sizeof(temp));
@@ -436,14 +440,5 @@ int     uftv;           /* protocol level (1 or 2) */
     /* get outta here */
     return 0;
  }
-
-/*
-        -a  ASCII (plain text)
-        -i  image (binary)
-
-        -#  copies
-        -q
-        -f
- */
 
 

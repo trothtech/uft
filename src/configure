@@ -115,7 +115,7 @@ case "$US" in
     OS390)              # OS/390, z/OS
         UM="s390x" # guessing! since both "s390x" and "s390" are viable
         CC="xlc"
-        CFLAGS="-DOECS -D_OE_SOCKETS -D__UU"
+        CFLAGS="-DOECS -D_OE_SOCKETS -D__UU -Wc,SSCOM"
 #       LDFLAGS="-O -qxplink"
         LDFLAGS=""
         SHFLAGS="$LDFLAGS -qdll"
@@ -124,7 +124,7 @@ case "$US" in
     zVM|VMESA)          # VM/ESA, z/VM
         UM="s390" # guessing! but CMS is historically slow w/r/t 64-bit
         CC="xlc"
-        CFLAGS="-DOECS -D_OE_SOCKETS -D__UU"
+        CFLAGS="-DOECS -D_OE_SOCKETS -D__UU -Wc,SSCOM"
         LIBS="-l//posxsock -l//vmmtlib"
         LDFLAGS="$LDFLAGS -l//posxsock -l//vmmtlib"
         ;;

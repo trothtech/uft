@@ -297,7 +297,7 @@ int main(int argc,char*argv[])
                 if (tf >= 0) (void) uftx_putline(tf,temp,0);
                 if (cf >= 0) (void) uftx_putline(cf,temp,0); }
 
-/* FIXME: if AUTH=AGENT then parse more and check it
+/* FIXME: if AUTH=AGENT then parse more and check it                  */
 /*              if (strcasecmp(auth,"AGENT") == 0)                 // */
 /*                { for (p = q; *q > ' '; q++);                    // */
 /*                  if (*q != 0x00) *q++ = 0x00;                   // */

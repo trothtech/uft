@@ -11,8 +11,8 @@
 #ifndef _XMITMSGX_H
 #define _XMITMSGX_H
 
-/* xmitmsgx-2.2.3            v2            r2            m3           */
-#define  XMITMSGX_VERSION  (((2) << 24) + ((2) << 16) + ((3) << 8) + (0))
+/* xmitmsgx-2.2.4            v2            r2            m4           */
+#define  XMITMSGX_VERSION  (((2) << 24) + ((2) << 16) + ((4) << 8) + (0))
 
 /* priorities (these are ordered)                                     */
 /*      MSGLEVEL_DEBUG           LOG_DEBUG   7 debug-level messages, not used here */
@@ -62,7 +62,6 @@ typedef struct MSGSTRUCT
     unsigned char *msgdata;     /* messages file content (allocated memory) */
     unsigned char *msgfile;     /* name of message file found (for reference and debugging) */
     unsigned char *escape;      /* the escape character (for reference and debugging) */
-//  unsigned char  eschar;
 
     unsigned char  pfxmaj[4];   /* truncated up-cased applid/major */
     unsigned char  pfxmin[4];   /* truncated up-cased caller/minor */
