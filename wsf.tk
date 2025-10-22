@@ -1,0 +1,433 @@
+#!/usr/local/bin/wish 
+# 
+#	  Name: wsf.tk (Tcl/Tk script) 
+#		Windowed (Tk) SENDFILE, file lister/sender tool 
+#	  Date: 1996-Jul-19, 27 
+# 
+#     Routines: 
+#		uftcwack	"wait for ACK" 
+#		sfa		Send File ASCII 
+#		wsf_stat	pop-up for one-liners 
+#		wsf_help	pop-up for HELP 
+#		wsf_view	pop-up for viewing files 
+#		wsf_send	util: send file clicked 
+#		wsf_list	util: list files in current directory 
+#		wsf_open	util: handle clicked item 
+#				(list if directory or send if file) 
+#		wsf_clik	util: glue between main and wsf_open 
+# 
+ 
+# 
+# initialize some variables: 
+set verbose 0 
+set WSF_VERBOSE 0 
+set WSF_VRM "0.5" 
+set WSF_SYS "" 
+set WSF_SFX "" 
+ 
+# 
+# what kind of environment are we running in? 
+# for "Windows" (3.1 and 95) assume no external 'sf': 
+if {[info exists env(COMSPEC)]} then { 
+	set WSF_SYS "Windows" 
+	set WSF_SFX "" 
+	} 
+# for UNIX (POSIX) rely on external 'sf' command: 
+if {[info exists env(PATH)] && [info exists env(TERM)] \
+	&& [info exists env(LOGNAME)]} then { 
+	set WSF_SYS [exec uname] 
+	set WSF_SFX "sf" 
+	} 
+ 
+# ----------------------------------------------------------------- LEFT 
+# Thanks to Glenn Vanderburg for this. 
+# 
+proc left { value width {pad " "} } {
+ 
+	if {[string length $pad] != 1} {
+	    error "pad argument was '$pad'; should be a single character"
+	}
+
+	set padlen [expr $width - [string length $value]]
+
+	if {$padlen > 0} {
+	    set padding [format "%-*s" $padlen ""]
+            if {$pad == "&" || $pad == "\\"} {
+                set pad "\\$pad"
+            }
+            regsub -all " " $padding "$pad" padding
+        } else {
+            set padding ""
+        }
+
+        return [format "%.*s" $width "$value$padding"]
+    }   
+ 
+# ---------------------------------------------------------------- RIGHT 
+# Returns rightmost n characters of s. 
+proc right {s n {p " "}} { 
+	if {$n < 1} then {return ""} 
+	set l [string length $s] 
+	if {$l > $n} then {return [string range $s [expr $l - $n] end]} 
+	if {[string length $p] < 1} then {set p " "} 
+	if {[string length $p] > 1} then {set p [string index $p 0]} 
+	while {$l < $n} {incr l; set s "$s$p"} 
+	return $s 
+	} 
+ 
+# ------------------------------------------------------------- UFTCWACK  
+# a proc to "Wait for ACK" (UFT): 
+proc uftcwack { sock } { 
+	global RESPONSE 
+	while {1} { 
+		set BC [gets $sock BS] 
+		if {$BC < 0} {set RESPONSE "5XX EOF"; return 1} 
+		if {$BC == 0} then {set RESPONSE "2XX ACK"; return 0} 
+		set RESPONSE $BS 
+		set TS [string range $BS 0 0] 
+		if {$TS == "1"} then {continue} 
+		if {$TS == "2"} then {return 0} 
+		if {$TS == "3"} then {return 0} 
+		if {$TS == "4"} then {return 1} 
+		if {$TS == "5"} then {return 1} 
+		if {$TS == "6"} then {continue} 
+		return 1 
+		} 
+	} 
+ 
+# ------------------------------------------------------------------ SFA 
+#!/usr/local/bin/tclsh 
+# 
+#	  Name: sfa (Tcl Script) Send File ASCII 
+#		to prove implementability of UFT in Tcl 
+#	  Date: 1996-Jul-16, Aug-13 
+# 
+ 
+# 
+# send file NAME to target USER: 
+proc sfa {NAME USER} { 
+ 
+#set verbose 0 
+global verbose 
+ 
+# 
+# confirm sufficient arguments: 
+if {$NAME == ""} then {return -1} 
+if {$USER == ""} then {return -1} 
+ 
+# 
+# process file name: 
+set F [open $NAME RDONLY] 
+set SIZE [file size $NAME] 
+ 
+# 
+# process recipient name: 
+set HOST [lindex [split $USER "@"] 1] 
+set USER [lindex [split $USER "@"] 0] 
+if {$HOST == ""} then {set HOST "localhost"} 
+ 
+# 
+# try to connect to server: 
+set S [socket $HOST 608] 
+# write clean spec; accept loose spec: 
+fconfigure $S -buffering line -translation {auto crlf} 
+ 
+# 
+# consume herald: 
+if {$verbose} then {puts stderr "herald: [gets $S]"} 
+ 
+# 
+# build and send a FILE command: 
+set FROM "-" 
+if {[info exists env(USER)]} then {set FROM $env(USER)} 
+if {[info exists env(LOGNAME)]} then {set FROM $env(LOGNAME)} 
+set AUTH "-" 
+puts $S "FILE $SIZE $FROM $AUTH" 
+if {[uftcwack $S] != 0} then { 
+	puts stderr $RESPONSE 
+	exit -1 
+	} 
+if {$verbose} then {puts stderr "uftcwack: $RESPONSE"} 
+ 
+# 
+# this version of SENDFILE only does ASCII type files: 
+puts $S "TYPE A" 
+if {[uftcwack $S] != 0} then { 
+	puts stderr $RESPONSE 
+	exit -1 
+	} 
+if {$verbose} then {puts stderr "uftcwack: $RESPONSE"} 
+ 
+# 
+# identify the target user: 
+puts $S "USER $USER" 
+if {[uftcwack $S] != 0} then { 
+	puts stderr $RESPONSE 
+	exit -1 
+	} 
+if {$verbose} then {puts stderr "uftcwack: $RESPONSE"} 
+ 
+# 
+# identify the file (if it has a name): 
+if {$NAME != ""} then { 
+puts $S "NAME $NAME" 
+if {[uftcwack $S] != 0} then { 
+	puts stderr $RESPONSE 
+	exit -1 
+	} 
+if {$verbose} then {puts stderr "uftcwack: $RESPONSE"} 
+} 
+ 
+while {1} { 
+	set BC [gets $F BS] 
+	if {$BC < 0} break 
+	puts $S "DATA [expr $BC + 2]" 
+	puts $S $BS 
+	if {[uftcwack $S] != 0} then { 
+		puts stderr $RESPONSE 
+		exit -1 
+		} 
+	} 
+ 
+puts $S "EOF" 
+if {[uftcwack $S] != 0} then { 
+	puts stderr $RESPONSE 
+	exit -1 
+	} 
+if {$verbose} then {puts stderr "uftcwack: $RESPONSE"} 
+ 
+puts $S "QUIT" 
+if {[uftcwack $S] != 0} then { 
+	puts stderr $RESPONSE 
+	exit -1 
+	} 
+if {$verbose} then {puts stderr "uftcwack: $RESPONSE"} 
+ 
+close $S 
+close $F 
+ 
+} 
+ 
+# ------------------------------------------------------------- WSF_STAT 
+# something to pop-up a note or status flash box: 
+proc wsf_stat {line} { 
+	catch {destroy .stat} 
+	toplevel .stat 
+	wm title .stat "WSF Status" 
+	wm iconname .stat "wsf stat" 
+	label .stat.text -text "$line" 
+	button .stat.quit \
+		-text "OK" -command "destroy .stat" 
+	pack .stat.quit .stat.text -side bottom 
+	} 
+ 
+# ------------------------------------------------------------- WSF_HELP 
+# something offer the user a little guidance: 
+proc wsf_help {} { 
+	global WSF_VRM WSF_SFX 
+	# blow off any existing "help" window: 
+	catch {destroy .help} 
+	toplevel .help 
+	wm title .help "WSF Help" 
+	wm iconname .help "wsf help" 
+	# a "quit" button for when the user is quite helped: 
+	button .help.quit -text "okay" -command "destroy .help" 
+	pack .help.quit -side bottom 
+	# set-up text area, no scroll bar: 
+	text .help.text -font fixed -width 48 -height 4 -relief flat 
+	pack .help.text 
+	# now fill the text area with info: 
+	.help.text insert end "WSF/$WSF_VRM Internet SENDFILE client\n" 
+	if {$WSF_SFX == ""} then { 
+	.help.text insert end "(apparently running on MS Windows)\n" 
+	} else { 
+	.help.text insert end "(apparently running on UNIX)\n" 
+	} 
+	.help.text insert end "Fill-in a recipient user (user@host),\n" 
+	.help.text insert end "then double-click the file you wish to send." 
+	} 
+ 
+# ------------------------------------------------------------- WSF_VIEW 
+# something to eyeball files before sending them: 
+proc wsf_view {file} { 
+	# blow off any existing "view" window: 
+	catch {destroy .view} 
+	toplevel .view 
+	# a "quit" button would help: 
+	button .view.quit -text "okay" -command "destroy .view" 
+	pack .view.quit -side bottom 
+	# set-up text area and scroll bar: 
+	text .view.text -font fixed -width 80 \
+		-yscrollcommand ".view.sbar set" 
+	scrollbar .view.sbar -command ".view.text yview" 
+	pack .view.text .view.sbar -side left -fill y 
+	# now fill the text area with the file: 
+	set F [open $file RDONLY] 
+	while {1} { 
+		set RC [gets $F RS] 
+		if {$RC < 0} then break 
+		.view.text insert end "$RS\n" 
+		} 
+	close $F 
+	} 
+ 
+# ------------------------------------------------------------- WSF_SEND 
+# 
+proc wsf_send {file user {type "-a"} } { 
+	global verbose WSF_SFX 
+	if {$file == ""} then { 
+		bell 
+		wsf_stat "missing filename" 
+		return 
+		} 
+	if {$user == ""} then { 
+		bell 
+		wsf_stat "missing username" 
+		return 
+		} 
+	if {$type == ""} then {set type "-a"} 
+	if {$type == "text"} then {set type "-a"} 
+	if {$type == "binary"} then {set type "-i"} 
+	if {$WSF_SFX != ""} then { 
+		exec $WSF_SFX $type $file $user 
+		} else { 
+		sfa $file $user 
+		} 
+	wsf_stat "sent $file to $user" 
+	return 
+	} 
+ 
+# ------------------------------------------------------------- WSF_LIST 
+# 
+# list the files in the current directory: 
+proc wsf_list {} { 
+	global FILE 
+	.list.lbox delete 0 end 
+	set FILES [glob -nocomplain * .*] 
+	set n [llength $FILES] 
+	for {set i 0} {$i < $n} {set i [expr $i + 1]} { 
+		set FILE($i) [lindex $FILES $i] 
+#		if {$FILE($i) == "."} then continue 
+		file stat $FILE($i) STAT 
+		set SIZE $STAT(size) 
+#		set DATE [clock format $STAT(mtime)] 
+		set DATE $STAT(mtime) 
+		if {$DATE == 0} then {set DATE [clock seconds]} 
+		set DATE [clock format $DATE \
+				-format "%Y-%b-%d %H:%M:%S"] 
+		set NAME [left $FILE($i) 16] 
+		if {$STAT(type) == "directory"} \
+			then {set SIZE "<DIR>   "} \
+			else {set SIZE [right $SIZE 8]} 
+		.list.lbox insert end "$NAME $SIZE $DATE" 
+		} 
+	return 
+	} 
+ 
+# ------------------------------------------------------------- WSF_OPEN 
+# 
+proc wsf_open {file} { 
+	global type 
+	if {[file isdirectory $file]} then { 
+		cd $file 
+		.file.text delete 0 end 
+		.file.text insert 0 [pwd] 
+		wsf_list 
+		} else { 
+		wsf_send $file [.user.text get] $type 
+		.file.text delete 0 end 
+		.file.text insert 0 $file 
+		} 
+	return 
+	} 
+ 
+# ------------------------------------------------------------- WSF_CLIK 
+# 
+proc wsf_clik {w x y} { 
+	global FILE 
+	wsf_open $FILE([$w index @$x,$y]) 
+	} 
+ 
+# --------------------------------------------------------------------- # 
+# 
+wm title . "SENDFILE" 
+wm iconname . "sendfile" 
+ 
+# 
+# first entry field, what are we sending? 
+frame .file 
+label .file.label -text "Send:" -font fixed 
+entry .file.text -relief sunken -width 44 -font fixed 
+pack .file.text .file.label -side right 
+bind .file.text <Key-Return> {wsf_open [.file.text get]} 
+ 
+# 
+# next entry field, to whom are we sending? 
+frame .user 
+label .user.label -text "  To:" -font fixed 
+entry .user.text -relief sunken -width 44 -font fixed 
+pack .user.text .user.label -side right 
+bind .user.text <Key-Return> \
+		{wsf_send [.file.text get] [.user.text get] $type} 
+ 
+# 
+# pack at least these two: 
+pack .file .user -side top 
+# flat, sunken, groove, ridge, raised 
+ 
+# 
+# an optional "type" entry field (radio button selection): 
+#if {$WSF_SFX != ""} then { 
+	frame .type 
+	label .type.label -text "  As:" -font fixed 
+	foreach i {text binary} { 
+		radiobutton .type.$i -text $i \
+			-variable type -relief flat -value $i 
+		pack .type.$i -side right -pady 2 -anchor w 
+		} 
+	pack .type.label 
+	pack .type -side top 
+#	} else { 
+#	set type "" 
+#	} 
+# (this requres availability of external 'sf' command, 
+# which is not available on Windows 3.1 or 95) 
+#if {$WSF_SFX == ""} then {.type.binary config -disable} 
+if {$WSF_SFX == ""} then { 
+	.type.binary config -state disabled 
+	.type.text select 
+	} 
+ 
+# 
+# the file list window: 
+frame .list 
+listbox .list.lbox -yscrollcommand ".list.sbar set" \
+			-font fixed -width 48 
+scrollbar .list.sbar -command ".list.lbox yview" 
+bind .list.lbox <Double-1> {wsf_clik .list.lbox %x %y} 
+pack .list.lbox .list.sbar -side left -fill y 
+ 
+# 
+# 
+frame .btns 
+label .btns.note -text "WSF/$WSF_VRM $WSF_SYS" 
+button .btns.quit -text "Cancel" \
+	-command "destroy ." 
+button .btns.view -text "Browse" \
+	-command {wsf_view $FILE([.list.lbox index active])} 
+button .btns.help -text "Help" \
+	-command wsf_help 
+pack .btns.help .btns.view .btns.quit .btns.note \
+	-side left -expand y -fill y 
+ 
+# 
+# finally, pack list box and buttons: 
+pack .list .btns -side top 
+ 
+# 
+# 
+set file [lindex $argv 0] 
+if {$file == ""} then {set file .} 
+wsf_open $file 
+ 
+
