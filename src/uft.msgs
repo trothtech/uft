@@ -55,42 +55,55 @@
 *394    E Invalid option: &1
 *395    E Invalid value &1 for &2 option
 *
-  15    E Unknown &1 command
-  16    E Missing operand(s)
+  15    E unknown &1 command
+  16    E missing operand(s)
   22    E file &1 not found
   26    E socket or stream closed without a QUIT command
-  42    E User &1 spoolid &2 does not exist
+* 36    E operand missing or invalid
+  42    E user &1 spoolid &2 does not exist
   45    E protocol sequence error
-  50    E Invalid spoolid &1
-  53    E &1 not in CP directory
-  54    E Incomplete fileid specified
-  70    E Invalid parameter &1
+  50    E invalid spoolid &1
+* 53    E &1 not in CP directory
+  53    E user &1 does not exist
+  54    E incomplete fileid specified
+  70    E invalid parameter &1
   81    E &1 command not supported in batch mode
-  90    E Invalid value &1 for &2 parameter
-  92    I File (&1) spooled to &2 -- origin &3(&4) &5 &6 &7
-  93    I File &1 received from &2 sent as &3
-  94    I File &1 spooled to &2 origin &3
-  95    I Note &1 received from &2
-  96    I From &1(&2): &3
-  97    I From &1: &2
-*395    E Invalid value &1 for &2 option
-*116    E Invalid value &1 for &2 in &3
+  90    E invalid value &1 for &2 parameter
+  92    I file (&1) spooled to &2 -- origin &3(&4) &5 &6 &7
+  93    I file &1 received from &2 sent as &3
+  94    I file &1 spooled to &2 origin &3
+  95    I note &1 received from &2
+  96    I from &1(&2): &3
+  97    I from &1: &2
+*395    E invalid value &1 for &2 option
+*116    E invalid value &1 for &2 in &3
 
 #  There is no logmsg data
-*507    E No preserved data to restore
+*507    E no preserved data to restore
 
 
-*   HCP002E Invalid operand - operand
-*   HCP003E Invalid option - command contains extra option(s) starting with operand
-*   HCP007E Invalid userid - userid
-*   HCP026E Operand missing or invalid
+*   HCP002E invalid operand - operand
+*   HCP003E invalid option - command contains extra option(s) starting with operand
+*   HCP007E invalid userid - userid
 *   HCP041E LOGMSG nn does not exist.
-*   HCP1506E The last line (50) in the log message is already in use.
-*   HCP6704E Missing token at end of line
-*   HCP6706E Invalid {group name|account ID} - {groupname|accountid}
-*   HCP6734E Support for file-based LOGMSG is not enabled.
+*   HCP1506E the last line (50) in the log message is already in use.
+*   HCP6704E missing token at end of line
+*   HCP6706E invalid {group name|account ID} - {groupname|accountid}
+*   HCP6734E support for file-based LOGMSG is not enabled.
 *   HCP6771E LOGMSG support based on {Account ID|ACI group|Userid} is not enabled.
+*     NO FILES TRANSFERRED
 
+#vfmv 1234 zoomba
+#     NO FILES TRANSFERRED
+#HCPSCO053E &1 not in CP directory
+
+#vfmv 1234 vss31
+#     NO FILES TRANSFERRED
+#HCPCSC042E User &1 spoolid &2 does not exist
+
+#RDR FILE 1850 SENT TO   VSS33    RDR AS  0896 RECS 
+#0000001 FILE  TRANSFERRED
+#file &1 sent to &2 as &3
 
 *
 * spontaneous info messages (including deprecated UFT/1 herald)

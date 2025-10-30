@@ -9,7 +9,9 @@
 
 APPLID          =       uft
 VERSION         =       2.0.12
-DELIVERABLES    =       uftd sf rls rcv rstat uftcndd tell cpq uftxdspl uftctcp2
+DELIVERABLES    =       sf rls rcv rstat rrm uftcndd tell cpq \
+                        uftd uftxdspl uftctcp2
+
 SOURCEURL       =       https://raw.githubusercontent.com/trothtech/uft/refs/heads/main
 #                       https://raw.githubusercontent.com/trothtech/uft/master
 
@@ -31,7 +33,6 @@ all:		$(DELIVERABLES)
 #		maketext cpq cpqu msgpipe msgcat msgd
 
 uftd:		makefile uftd.o \
-			uftdnext.o \
 			uftddata.o \
 			uftduser.o \
 			uftdmove.o \
@@ -45,7 +46,6 @@ uftd:		makefile uftd.o \
 			xmitmsgx.o
 		$(CC) $(LDFLAGS) -o uftd \
 			uftd.o \
-			uftdnext.o \
 			uftddata.o \
 			uftduser.o \
 			uftdmove.o \
@@ -59,8 +59,8 @@ uftd:		makefile uftd.o \
 			xmitmsgx.o \
 			$(LIBS)
 
-uftdnext.o:	makefile uft.h uftdnext.c
-		$(CC) $(CFLAGS) -c uftdnext.c
+#uftdnext.o:	makefile uft.h uftdnext.c
+#		$(CC) $(CFLAGS) -c uftdnext.c
 
 uftddata.o:	makefile uft.h uftddata.c
 		$(CC) $(CFLAGS) -c uftddata.c
@@ -368,9 +368,8 @@ corral:		$(DELIVERABLES)
 install:	$(DELIVERABLES)
 		mkdir -p $(PREFIX)/bin $(PREFIX)/etc/xinetd.d \
 			$(PREFIX)/share/locale/$(LOCALE) $(PREFIX)/libexec
-		cp -p sf rls rcv rstat uftcndd tell cpq $(PREFIX)/bin/.
-#		cp -p uftd $(PREFIX)/sbin/.
-		cp -p uftd $(PREFIX)/libexec/.
+		cp -p sf rls rcv rstat rrm uftcndd tell cpq $(PREFIX)/bin/.
+		cp -p uftd uftxdspl uftctcp2 $(PREFIX)/libexec/.
 		cp -p uft.inet $(PREFIX)/etc/xinetd.d/uft
 		cp -p uft.msgs $(PREFIX)/share/locale/$(LOCALE)/.
 

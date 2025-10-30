@@ -392,16 +392,18 @@ int uftd_fann(char*user,char*spid,char*from)
  *
  *        Note: Size is limited to 63 characters because we force it
  *              to lower case (ths is POSIX!) using a private buffer.
+ *        Note: On systems where the username cannot be determined
+ *              (cough, MS Windows, cough) we return a dash.
  */
 char *uftx_user()
   { static char _eyecatcher[] = "uftx_user()";
-#ifdef UFT_POSIX
     int i;
-    char *u;
+    char *u = "";
     static char ut[64];
-    struct passwd *pwdent;
 
-    u = "";
+#ifdef UFT_POSIX
+
+    struct passwd *pwdent;
 
     /* first try effective uid key into passwd */
 /*  if (*u == 0x00)                           this would be redundant */
@@ -412,6 +414,8 @@ char *uftx_user()
     if (*u == 0x00) {
     pwdent = getpwuid(getuid());
     if (pwdent) u = pwdent->pw_name; if (u == 0x0000) u = ""; }
+
+#endif
 
     /* skating on thin ice: try USER environment variable */
     if (*u == 0x00) {
@@ -426,12 +430,10 @@ char *uftx_user()
     while (*u != 0x00 && i < sizeof(ut) - 1)
       { if (isupper(*u)) ut[i] = tolower(*u);
                     else ut[i] = *u;
-        i++; u++;
-      } ut[i] = 0x00;
+        i++; u++; }
+    ut[i] = 0x00;
+
     return ut;
-#else
-    return "";
-#endif
   }
 
 #ifdef UFT_POSIX
@@ -444,19 +446,19 @@ char *useridg()
     char       *g;
     struct passwd *pwdent;
 
-    /*  if the user set one, take that  */
+    /* if the user set one, take that  */
     g = getenv("NAME");
     if (g != 0x0000 && *g != 0x00) return g;
 
-    /*  next, try GECOS for effective uid key into passwd  */
+    /* next, try GECOS for effective uid key into passwd  */
     pwdent = getpwuid(geteuid());
     if (pwdent) return pwdent->pw_gecos;
 
-    /*  next, try GECOS field for real uid key into passwd  */
+    /* next, try GECOS field for real uid key into passwd  */
     pwdent = getpwuid(getuid());
     if (pwdent) return pwdent->pw_gecos;
 
-    /*  give up!  */
+    /* give up!  */
     return uftx_user();
   }
 #endif
@@ -1402,6 +1404,84 @@ char *uftcprot(mode_t prot)
     /*  terminate the string and return  */
     *p++ = 0x00;
     return buffer;
+  }
+
+/* ------------------------------------------------------------ UFTDNEXT
+ *        Name: uftdnext.c (C program source)
+ *              Unsolicited File Transfer daemon "next" routine
+ *              returns next available SEQuence number
+ */
+int uftdnext()
+  { static char _eyecatcher[] = "uftdnext()";
+    int         i, n, n0, sf;
+    char        temp[256], *seq;
+
+    /* start with our preferred SEQuence file name */
+    seq = UFT_SEQFILE;
+    /* switch to alternate if we run into errors */
+
+    /* first, try to open the sequence file */
+#ifdef  WEAKOPEN
+    sf = open(seq,O_RDWR|O_CREAT);
+    if (sf < 0 && errno == EINVAL)
+      { seq = UFT_SEQFILE_ALT;
+        sf = open(seq,O_RDWR|O_CREAT);
+      }
+#else
+    sf = open(seq,O_RDWR|O_CREAT,S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP);
+    if (sf < 0 && errno == EINVAL)
+      { seq = UFT_SEQFILE_ALT;
+        sf = open(seq,O_RDWR|O_CREAT,S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP);
+      }
+#endif
+    if (sf < 0) return sf;            /* open of sequence file failed */
+#ifdef  WEAKOPEN
+    (void) sprintf(temp,"chmod 664 %s",seq);
+    (void) system(temp);
+#endif
+    /* (it would help if the above resulted in exclusive access) */
+
+    /* now extract the sequence number */
+    i = read(sf,temp,8);
+    if (i < 0)
+      { (void) close(sf); return i; } /* read of sequence file failed */
+    temp[++i] = 0x00;                  /* make sure string terminates */
+    n0 = atoi(temp);                         /* convert string to int */
+
+    /* increment the sequence number until a free slot is found */
+    for (n = n0; ++n; n != n0)
+      { if (n > 9999) n = 1;                 /* wrap at 10000 for now */
+                                                  /* 0000 is reserved */
+        (void) sprintf(temp,"%04d.cf",n);
+        if (access(temp,0)) break;
+    /* loop while  <nnnn>.cf  exists */
+    /* (should also check for <nnnn>.df) */
+      }
+
+    /* if we've been around once, don't continue */
+    if (n == n0)
+      {
+/*      (void) netline(1,"5XX no slots available!");  */
+        (void) close(sf);
+        /* implies there are 10000 files in this directory! */
+        errno = ENOENT;
+        return -1; }
+
+    /* now back-up to the start of the sequence file */
+    (void) lseek(sf,0,0);                                 /* "rewind" */
+    /* we need locking; we also should check for errors here */
+
+    /* write the new sequence number */
+    (void) sprintf(temp,"%04d",n);
+    i = uftx_putline(sf,temp,0);
+    if (i < 0)
+      { (void) close(sf); return i; }     /* write of seq file failed */
+
+    /* and close it */
+    (void) close(sf);
+
+    /* and return this wonderful number */
+    return n;
   }
 
 /* ------------------------------------------------------------ MSGWRITE
