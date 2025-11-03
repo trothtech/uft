@@ -19,41 +19,44 @@ The package follows the standard recipe:
 
 The programs and files produced from this source are:
 
-* `sf`       - sendfile
+* `sf`       - sendfile <br/>
 Location: /usr/bin/sf
 
-* `rls`      - list receivables
+* `rls`      - list receivables <br/>
 Location: /usr/bin/rls
 
-* `rcv`      - receive a file
+* `rcv`      - receive a file <br/>
 Location: /usr/bin/rcv
 
-* `rstat`    - "stat" a receivable file
+* `rrm`      - remove (purge) a file <br/>
+Location: /usr/bin/rrm
+
+* `rstat`    - "stat" a receivable file <br/>
 Location: /usr/bin/
 
-* `uftcndd`  - Netdata decoder
+* `uftcndd`  - Netdata decoder <br/>
 Location: /usr/bin/
 
-* `tell`     - send an interactive message
+* `tell`     - send an interactive message <br/>
 Location: /usr/bin/tell
 
-* `cpq`      - query utility
+* `cpq`      - query utility <br/>
 Location: /usr/bin/cpq
 
-* `uftd`     - UFT daemon
+* `uftd`     - UFT daemon <br/>
 Location: /usr/libexec/uftd
 
-* `ufta`     - anonymized UFT daemon
+* `ufta`     - anonymized UFT daemon <br/>
 Location: /usr/libexec/ufta
 
-* `uftxdspl` - de-spooler (for a receivable file)
+* `uftxdspl` - de-spooler (for a receivable file) <br/>
 Location: /usr/libexec/uftxdspl
 
-* `uftctcp2` - re-sender (for a de-spooled file)
+* `uftctcp2` - re-sender (for a de-spooled file) <br/>
 Location: /usr/libexec/uftctcp2
 
-* `uft.msgs` - the message repository
-Location: (varies)
+* `uft.msgs` - the message repository <br/>
+Location: (varies, see next)
 
 The message repository must be found via locale settings and so has
 a number of possible residence locations, including (for example) ...
