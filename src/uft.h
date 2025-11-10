@@ -348,9 +348,11 @@ int msgc_uft(char*,char*);
 int msgc_rdm(char*,char*);
 int msgc_msp(char*,char*);
 
-int uftd_fann(char*,char*,char*);
-int uftc_wack(int,char*,int);
+int uftd_fann(char*,char*,char*);                /* file announcement */
+int uftd_tann(char*,char*,char*);            /* transfer announcement */
 int uftd_agck(char*);
+
+int uftc_wack(int,char*,int);                         /* wait for ACK */
 
 int uftx_proxy(char*,char*,int*);
 int uft_stat(char*,struct UFTSTAT*);

@@ -45,7 +45,6 @@
 *304    E Invalid operand value &1
 *384    E Missing modifier keyword(s).
 *385    E Invalid modifier keyword: &1
-*386    E Missing operand(s).                                      >> 16
 *387    E Missing value for &1 operand
 *388    E Invalid keyword: &1
 *389    E Invalid operand: &1
@@ -68,6 +67,8 @@
   54    E incomplete fileid specified
   70    E invalid parameter &1
   81    E &1 command not supported in batch mode
+  84    I file &1 sent to &2
+  85    I file &1 sent from &2
   90    E invalid value &1 for &2 parameter
   92    I file (&1) spooled to &2 -- origin &3(&4) &5 &6 &7
   93    I file &1 received from &2 sent as &3
@@ -81,7 +82,6 @@
 #  There is no logmsg data
 *507    E no preserved data to restore
 
-
 *   HCP002E invalid operand - operand
 *   HCP003E invalid option - command contains extra option(s) starting with operand
 *   HCP007E invalid userid - userid
@@ -91,19 +91,6 @@
 *   HCP6706E invalid {group name|account ID} - {groupname|accountid}
 *   HCP6734E support for file-based LOGMSG is not enabled.
 *   HCP6771E LOGMSG support based on {Account ID|ACI group|Userid} is not enabled.
-*     NO FILES TRANSFERRED
-
-#vfmv 1234 zoomba
-#     NO FILES TRANSFERRED
-#HCPSCO053E &1 not in CP directory
-
-#vfmv 1234 vss31
-#     NO FILES TRANSFERRED
-#HCPCSC042E User &1 spoolid &2 does not exist
-
-#RDR FILE 1850 SENT TO   VSS33    RDR AS  0896 RECS 
-#0000001 FILE  TRANSFERRED
-#file &1 sent to &2 as &3
 
 *
 * spontaneous info messages (including deprecated UFT/1 herald)
@@ -125,7 +112,8 @@
 *         (for SEND, recommend 331 below)
 *133      133 SEND &1 bytes of data.
 0145      145 &1 not logged on
-0153      153 &1 not in CP directory
+*153      153 &1 not in CP directory
+ 153      153 user &1 does not exist
 0185    I Active reader class empty (Next file &1 Class &2).
  199      199 &1
 *
@@ -242,7 +230,8 @@
 0550    E 550 &1 ; &1 ... User unknown
 0551    E 551 &1 ; server data file error &1
 0552      552 spool directory unavailable
-0553    E 553 &1 ; &1 not in CP directory
+*553    E 553 &1 ; &1 not in CP directory
+ 553    E 553 &1 ; user &1 does not exist
 0555    E 555 &1 ; user auxdata file error &1
 0557      557 &1 not receiving
 0559      559 server data error (physical space)

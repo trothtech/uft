@@ -376,6 +376,86 @@ int uftd_fann(char*user,char*spid,char*from)
     return rc;
   }
 
+/* -------------------------------------------------- File Announce TANN
+ *    This routine announces the transfer of a file.
+ *       Calls: msgd_xmsg_sock(), msgd_xmsg_fifo(), uftd_message()
+ */
+int uftd_tann(char*user,char*spid,char*from)
+  { static char _eyecatcher[] = "uftd_tann()";
+    int rc, i, l, fd;
+    char *p, *q, buffer[4096], fn[256], un[64], *mv[8];
+
+    /* parse the supplied user name */
+    p = user; i = 0;
+    while (i < sizeof(un) - 1 && *p != 0x00 && *p != '@')
+      { un[i++] = *p++; }
+    un[i] = 0x00;
+
+    /* start at the start of the buffer and note its size for limit   */
+    q = buffer; i = 0;
+    l = sizeof(buffer) - 2;
+
+    mv[0] = "";
+    mv[1] = spid; mv[2] = from;                         /* two tokens */
+    rc = uftx_message(q,l,85,"SRV",3,mv);
+    /*   85    I file &1 sent from &2                                 */
+    if (rc < 0) return rc;
+
+    while (*q != 0x00 && i < l) { q++; i++; }
+    if (i < l) { q++; i++; }      /* skip one more past end of string */
+
+    /* we don't always care about the message type but we always tell */
+    p = "MSGTYPE=IMSG";         /* 7 - IMSG      */
+    while (*p != 0x00 && i < l) { *q++ = *p++; i++; }
+    if (i < l) { *q++ = 0x00; i++; }    /* terminate and skip pointer */
+
+    /* this is obvious to the receiving user but we include it anyway */
+    p = "MSGUSER=";                 /* who is this file to? (obvious) */
+    while (*p != 0x00 && i < l) { *q++ = *p++; i++; }
+    p = user;
+    while (*p != 0x00 && i < l) { *q++ = *p++; i++; }
+    if (i < l) { *q++ = 0x00; i++; }    /* terminate and skip pointer */
+
+    /* this is in the message but here too (varies from VM IMSG)      */
+    p = "MSGFROM=";                          /* who is the file from? */
+    while (*p != 0x00 && i < l) { *q++ = *p++; i++; }
+    p = from;
+    while (*p != 0x00 && i < l) { *q++ = *p++; i++; }
+    if (i < l) { *q++ = 0x00; i++; }    /* terminate and skip pointer */
+
+    /* indicate the "spool ID"                                        */
+    p = "UFTSPID=";
+    while (*p != 0x00 && i < l) { *q++ = *p++; i++; }
+    p = spid;
+    while (*p != 0x00 && i < l) { *q++ = *p++; i++; }
+    if (i < l) { *q++ = 0x00; i++; }    /* terminate and skip pointer */
+
+    /* double NULL marks end of environment variables                 */
+    if (i < l) { *q++ = 0x00; i++; }
+
+    /* at this point we have a buffer and we know its length          */
+    /* try: socket, home socket, FIFO, home FIFO, 'write'             */
+
+    /* -------- try socket ------------------------------------------ */
+    rc = msgd_xmsg_sock(un,buffer,i);
+    if (rc >= 0) return rc;            /* zero or positive is success */
+
+    /* -------- try FIFO -------------------------------------------- */
+    rc = msgd_xmsg_fifo(un,buffer,i);
+    if (rc >= 0) return rc;            /* zero or positive is success */
+
+    /* -------- try brute force ------------------------------------- */
+    rc = uftd_message(un,buffer);
+
+    /* -------- merge uftdlmsg logic here --------------------------- */
+#ifdef UFT_DO_SYSLOG
+    openlog("uftd",LOG_PID|LOG_CONS,LOG_UUCP);
+    syslog(LOG_INFO,"%s",buffer);
+#endif
+
+    return rc;
+  }
+
 /* © Copyright 1995, Richard M. Troth, all rights reserved.  <plaintext>
  *
  *        Name: userid.c
