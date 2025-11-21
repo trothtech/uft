@@ -32,7 +32,7 @@ extern int uftcflag;
 /* ------------------------------------------------------------------ */
 int main(int argc,char*argv[])
   { static char _eyecatcher[] = "uftc.c main()";
-    int         i, fd0, size, copy, fda, rc, fd[2];
+    int         i, fd0, size, copy, fda, rc, fd[2], flag;
     char        temp[256], targ[256], b[UFT_BUFSIZ], akey[256], *mv[16],
                *host, *name, *type, *auth, *class, *proxy, *ptitle;
     struct  stat  uftcstat;
@@ -48,9 +48,10 @@ int     uftv;           /* protocol level (1 or 2) */
             arg0 = uftx_basename(argv[0]);
     uftcflag = UFT_BINARY;      /* default */
     name = type = class = "";
-    auth = "-";         /* no particular authentication scheme */
+    auth = "-";                /* no particular authentication scheme */
     copy = 0;
     proxy = "";
+    flag = 0x0000;                             /* reset all flag bits */
 
     /* process command-line options */
     for (i = 1; i < argc && argv[i][0] == '-' &&
@@ -62,11 +63,13 @@ int     uftv;           /* protocol level (1 or 2) */
                         break;
             case 'a':   case 'A':       /* ASCII (ie: plain text)     */
                         uftcflag &= ~UFT_BINARY;
+                        flag |= UFT_NOTRANS;
                         type = "A";
                         break;
             case 'b':   case 'B':       /* BINARY                     */
             case 'i':   case 'I':       /* aka IMAGE                  */
                         uftcflag |= UFT_BINARY;
+                        flag |= UFT_DOTRANS;
                         type = "I";
                         break;
 #ifdef  OECS
@@ -169,6 +172,19 @@ int     uftv;           /* protocol level (1 or 2) */
         if (uftcflag & UFT_VERBOSE) return 0;  /* exit from help okay */
                               else  return 1; }       /* missing args */
     temp[0] = 0x00;
+
+    /* ensure the user indicated ASCII or IMAGE but not both          */
+    if ((flag & UFT_DOTRANS) && (flag & UFT_NOTRANS))
+      { mv[1] = "--text"; mv[2] = "--binary";
+        rc = uftx_message(temp,sizeof(temp)-1,66,"CLI",3,mv);
+        if (rc >= 0) fprintf(stderr,"%s\n",temp); else
+        fprintf(stderr,"%s: conflicting options\n",arg0);
+        return 1; }
+    if (!(flag & (UFT_DOTRANS|UFT_NOTRANS)))
+      { rc = uftx_message(temp,sizeof(temp)-1,16,"CLI",1,mv);
+        if (rc >= 0) fprintf(stderr,"%s\n",temp); else
+        fprintf(stderr,"%s: missing options\n",arg0);
+        return 1; }
 
     /* flag some known canonization types */
     switch (type[0])
