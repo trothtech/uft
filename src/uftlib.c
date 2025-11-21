@@ -1706,6 +1706,62 @@ int uftx_getndr(int fd,struct UFTNDIO*uftndio,int*flag,char**output,int*outlen)
     return 0;
   }
 
+/* ---------------------------------------------------------------- NDFD
+ *    UFT Netdata Stream Decoder - Netdata via File Descriptors
+ *        Note: maximum recovered record size is 64K bytes
+ */
+int uftx_ndfd(int fdi,int fdo,int flag)
+  { static char _eyecatcher[] = "uftx_ndfd()";
+    int rc, type, plen, i;
+    char *part, b1[65536], b2[65536];
+
+    /* focus the flag variable on "translate or not"                  */
+    flag = flag & (UFT_DOTRANS|UFT_NOTRANS);
+
+    /* initialize the UFTNDIO struct                                  */
+    struct UFTNDIO ndio;
+    ndio.buffer = b1;
+    ndio.bufmax = sizeof(b1);
+    ndio.buflen = 0;
+    ndio.bufdex = 0;
+
+    while (1)
+      { rc = uftx_getndr(fdi,&ndio,&type,&part,&plen);
+        if (rc < 0) if (errno != 0) perror("uftx_getndr");
+        if (rc < 0) fprintf(stderr,"uftx_getndr() returned %d\n",rc);
+        if (rc < 0) break;
+
+        if (type & UFT_ND_CTRL)                   /* a control record */
+          { if (memcmp(part,UFT_ND_INMR06,6) == 0) break;
+          } else switch (type) {              /* a non-control record */
+            case UFT_ND_FIRST:
+                memcpy(b2,part,plen);
+                i = plen;
+                break;
+            case UFT_ND_NONE:
+                memcpy(&b2[i],part,plen);
+                i = i + plen;
+                break;
+            case UFT_ND_LAST:
+                memcpy(&b2[i],part,plen);
+                i = i + plen;
+                if (flag & UFT_DOTRANS) uftx_e2l(fdo,b2,i);
+                                   else write(fdo,b2,i);
+                i = 0;
+                break;
+            case UFT_ND_FIRST|UFT_ND_LAST:
+                if (flag & UFT_DOTRANS) uftx_e2l(fdo,part,plen);
+                                   else write(fdo,part,plen);
+                break;
+            default:
+                fprintf(stderr,"mixed records\n");
+                break;
+          }
+      }
+
+    return rc;
+  }
+
 /* ------------------------------------------------------------ ISBINARY
  *    This routine makes a best guess about the content, whether it is
  *    "binary" or textual, based on the record supplied to it.

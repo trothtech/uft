@@ -364,6 +364,7 @@ int uftx_atoi(char*);
 int uftx_wtl(int,char*,int);                      /* write text local */
 int uftx_e2l(int,char*,int);                 /* write EBCDIC to local */
 int uftx_getndr(int,struct UFTNDIO*,int*,char**,int*);     /* netdata */
+int uftx_ndfd(int,int,int);                 /* Netdata stream via FDs */
 int uftx_isbinary(char*,int);
 
 void uftdstat(int,char*);
