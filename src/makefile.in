@@ -8,7 +8,7 @@
 #
 
 APPLID          =       uft
-VERSION         =       2.0.12
+VERSION         =       2.0.14
 DELIVERABLES    =       sf rls rcv rstat rrm uftcndd tell cpq \
                         uftd uftxdspl uftctcp2
 
@@ -126,9 +126,13 @@ uftcmime:	makefile uftcmime.c uftcnote.h
 		$(CC) $(CFLAGS) -o uftcmime \
 			uftcmime.c $(LIBS)
 
-uftcndd:	makefile uftcndd.c uft.h
-		$(CC) $(CFLAGS) -o uftcndd \
-			uftcndd.c $(LIBS)
+uftcndd:	makefile uftcndd.o uftlib.o tcpio.o xmitmsgx.o aecs.o
+		$(CC) $(LDFLAGS) -o uftcndd \
+			 uftcndd.o uftlib.o tcpio.o xmitmsgx.o aecs.o $(LIBS)
+
+uftcndd.o:      makefile uft.h uftcndd.c
+		$(CC) $(CFLAGS) -o uftcndd.o \
+				-c uftcndd.c
 
 maketext:	makefile maketext.o tcpio.o aecs.o
 		$(CC) $(CFLAGS) -o maketext \

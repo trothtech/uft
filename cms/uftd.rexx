@@ -948,7 +948,9 @@ Select /* a */
         Parse Value DiagRC(08,"QUERY USERS")   With 1 rc 10 . 17 rs
     When Abbrev("USERS",a,1) & b ^= "" Then ,
         Parse Value DiagRC(08,"QUERY USER" b)  With 1 rc 10 . 17 rs
-    Otherwise Return 433 "Invalid option" a
+    When Abbrev("CERTIFICATE",a,4) Then ,
+        'CALLPIPE < CERT PEM | JOIN * x15 | VAR RS'
+    Otherwise Do ; rc = 433 ; rs = "Invalid option" a ; End
 End /* Select a */
 
 Return rc rs

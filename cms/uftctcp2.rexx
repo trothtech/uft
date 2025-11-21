@@ -20,12 +20,20 @@ Parse Source . . arg0 .
 argl = '*' || arg0 || ':'                                  /* logging */
 
 /* parse command line arguments */
-Parse Arg host port . '(' . ')' .
+Parse Arg host port . '(' opts ')' .
 If host = "" Then host = "localhost"
 If Index(host,'@') > 0 Then Parse Var host user '@' host
                        Else user = ""
 Parse Var host host ':' port
 If port = "" Then port = 608
+
+/* extract the TCP/IP service VM ID from Rexx/Sockets                 */
+Parse Value Socket("INITIALIZE","TCPCHECK") With rc rs
+If rc = 0 Then Do
+    Parse Var rs . . tcpid .
+    Call Socket "TERMINATE", "TCPCHECK"
+End ; Else tcpid = "TCPIP"
+tcpid = "USER" tcpid
 
 /* figure out the target host address */
 hisaddr = _hostaddr(host)
@@ -64,13 +72,12 @@ If hisaddr = "" Then Do
 
 End /* If .. Do */
 
-
 /* set-up a stream for the TCP/IP client driver */
 'ADDSTREAM BOTH TCP'
 If rc ^= 0 Then Exit rc
 
 /* connect that TCP/IP client driver to contact the UFT server        */
-'ADDPIPE *.OUTPUT.TCP: | TCPCLIENT' hisaddr port '| *.INPUT.TCP:'
+'ADDPIPE *.OUTPUT.TCP: | TCPCLIENT' hisaddr port tcpid '| *.INPUT.TCP:'
 If rc ^= 0 Then Exit rc
 
 /* load ASCII/EBCDIC translate tables **

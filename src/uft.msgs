@@ -63,8 +63,10 @@
   45    E protocol sequence error
   50    E invalid spoolid &1
 * 53    E &1 not in CP directory
-  53    E user &1 does not exist
+* 53    E user &1 does not exist
+  53    E no such user or queue &1
   54    E incomplete fileid specified
+  66    E &1 and &2 are conflicting options
   70    E invalid parameter &1
   81    E &1 command not supported in batch mode
   84    I file &1 sent to &2
@@ -191,7 +193,7 @@
  416      416 Missing operand(s)
 *421      421 (see 521)
 0426      426 Connection closed; transfer aborted.
-*432      432 No such local user &1
+*432    E 432 no such local user &1
 0433    E 433 invalid option &1
 0449      449 protocol sequence error
 *450      450 Requested file action pending further information.
@@ -216,7 +218,7 @@
 0529      529 server meta file error
 0530    E 530 No file blocks are assigned for this user in file pool &1.
 0531      531 server data error (user has no space)
-0532    E 532 &1 ; No such local user &1
+0532    E 532 &1 ; no such local user &1
 0533      533 server temp file error
 0534      534 user meta file error.
 0535    T 535 This server is not in the required VM CP environment.

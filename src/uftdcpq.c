@@ -16,7 +16,6 @@
 #include <string.h>
 #include <time.h>
 #include <ctype.h>
-
 #include <sys/utsname.h>
 
 #include "uft.h"
@@ -123,15 +122,16 @@ int uftdcpq_indicate(char*cpqstr,int cpqsl)               /* INDICATE */
  */
 int uftdcpq_logmsg(char*cpqstr,int cpqsl)                   /* LOGMSG */
   { static char _eyecatcher[] = "uftdcpq_logmsg()";         /* LOGMSG */
-    int fd, i;
+    int fd, i;                                              /* LOGMSG */
 
 #ifdef          UFT_ANONYMOUS
     snprintf(cpqstr,cpqsl,"LOGMSG: N/A");                   /* LOGMSG */
 #else
     fd = open("/etc/motd",O_RDONLY); if (fd < 0)            /* LOGMSG */
-    strncpy(cpqstr,"N/A",cpqsl); else
+    fd = open("/var/run/motd.dynamic",O_RDONLY); if (fd < 0)
+    strncpy(cpqstr,"N/A",cpqsl); else                       /* LOGMSG */
       { i = read(fd,cpqstr,cpqsl); close(fd);               /* LOGMSG */
-        if (i > 0) cpqstr[i] = 0x00; }
+        if (i > 0) cpqstr[i] = 0x00; }                      /* LOGMSG */
 /*  if (cpqstr[0] == 0x00) strncpy(cpqstr,"/etc/motd is empty",cpqsl); */
     if (cpqstr[0] == 0x00) strncpy(cpqstr,"There is no logmsg data",cpqsl);
 #endif
@@ -217,6 +217,23 @@ int uftdcpq_user(char*cpqstr,int cpqsl,char*user)        /* USER uuuu */
     return 0;                                            /* USER uuuu */
   }
 
+/* ------------------------------------------------ UFTD_CPQ_CERTIFICATE
+ */
+int uftdcpq_certificate(char*cpqstr,int cpqsl)         /* CERTIFICATE */
+  { static char _eyecatcher[] = "uftdcpq_certificate()";      /* CERT */
+    int rc, fd, i;                                     /* CERTIFICATE */
+
+    cpqstr[0] = 0x00;                            /* empty certificate */
+
+    fd = open("/var/run/uft/cert.pem",O_RDONLY);       /* CERTIFICATE */
+    if (fd >= 0)                                       /* CERTIFICATE */
+      { i = read(fd,cpqstr,cpqsl-1); close(fd);        /* CERTIFICATE */
+        if (i > 0) if (cpqstr[i-1] == '\n') i--;       /* CERTIFICATE */
+        cpqstr[i] = 0x00; }                            /* CERTIFICATE */
+
+    return 0;                                          /* CERTIFICATE */
+  }
+
 /* ------------------------------------------------------------ UFTD_CPQ
  *    This routine mimics some of the functions of RSCS "CPQ" command.
  */
@@ -238,6 +255,8 @@ int uftdcpq(char*a,char*cpqstr,int cpqsl)
     if (abbrev("TIME",a,1))     return uftdcpq_time(cpqstr,cpqsl);
     if (abbrev("USERS",a,5) && *b == 0x00) return uftdcpq_users(cpqstr,cpqsl);
     if (abbrev("USER",a,1) && *b != 0x00) return uftdcpq_user(cpqstr,cpqsl,b);
+
+    if (abbrev("CERTIFICATE",a,4)) return uftdcpq_certificate(cpqstr,cpqsl);
 
     /* CPQ USER requires an additional operand                        */
     if (abbrev("USER",a,1)) {

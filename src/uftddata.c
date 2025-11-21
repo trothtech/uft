@@ -20,6 +20,7 @@
 /* ------------------------------------------------------------ UFTDDATA
  *  Similar calling syntax to read(),
  *  from, to, count,  in this case  fd, fd, int.
+ *        NOTE: This routine does NOT perform character set translation.
  */
 int uftddata(int o,int i,int n)
   { static char _eyecatcher[] = "uftddata()";
