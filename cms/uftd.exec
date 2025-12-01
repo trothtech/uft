@@ -6,7 +6,7 @@
  *      Author: Rick Troth, Houston, Texas, USA
  *        Date: 1993-Apr-20, 1995-Jan-25
  *
- *        Note: recommend you run this in v-machine UFTD with class B.
+ *        Note: Recommend you run this in v-machine UFTD with class B.
  *
  *       Calls: UFTD REXX via TCPSHELL EXEC
  */
