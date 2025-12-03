@@ -1295,11 +1295,13 @@ int uft_purge(struct UFTSTAT*us)
     int rc, i;
     char sidn[64];
     struct  stat  statbuf;
-    char *exts[] = {  UFT_EXT_CONTROL,  /*    ".cf" ** control/meta   */
+    char *exts[] = {  UFT_EXT_BATCH,    /*    ".bf" ** batch, SIFT    */
+                      UFT_EXT_CONTROL,  /*    ".cf" ** control/meta   */
                       UFT_EXT_DATA,     /*    ".df" ** data           */
                       UFT_EXT_EXTRA,    /*    ".ef" ** resource fork  */
                       UFT_EXT_LIST,     /*    ".lf" ** 'ls -l' format */
                       UFT_EXT_WORK,     /*    ".wf" ** work file      */
+                      UFT_EXT_TEMP,     /*    ".tf" ** temp file      */
                       ""   };       /* empty string marks end of list */
 
     /* loop through the standard filename extensions deleting all     */
@@ -1501,6 +1503,15 @@ int uftdnext()
     int         i, n, n0, sf;
     char        temp[256], *seq;
 
+    char *exts[] = {  UFT_EXT_BATCH,    /*    ".bf" ** batch, SIFT    */
+                      UFT_EXT_CONTROL,  /*    ".cf" ** control/meta   */
+                      UFT_EXT_DATA,     /*    ".df" ** data           */
+                      UFT_EXT_EXTRA,    /*    ".ef" ** resource fork  */
+                      UFT_EXT_LIST,     /*    ".lf" ** 'ls -l' format */
+                      UFT_EXT_WORK,     /*    ".wf" ** work file      */
+                      UFT_EXT_TEMP,     /*    ".tf" ** temp file      */
+                      ""   };       /* empty string marks end of list */
+
     /* start with our preferred SEQuence file name */
     seq = UFT_SEQFILE;
     /* switch to alternate if we run into errors */
@@ -1510,14 +1521,12 @@ int uftdnext()
     sf = open(seq,O_RDWR|O_CREAT);
     if (sf < 0 && errno == EINVAL)
       { seq = UFT_SEQFILE_ALT;
-        sf = open(seq,O_RDWR|O_CREAT);
-      }
+        sf = open(seq,O_RDWR|O_CREAT); }
 #else
     sf = open(seq,O_RDWR|O_CREAT,S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP);
     if (sf < 0 && errno == EINVAL)
       { seq = UFT_SEQFILE_ALT;
-        sf = open(seq,O_RDWR|O_CREAT,S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP);
-      }
+        sf = open(seq,O_RDWR|O_CREAT,S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP); }
 #endif
     if (sf < 0) return sf;            /* open of sequence file failed */
 #ifdef  WEAKOPEN
@@ -1533,21 +1542,21 @@ int uftdnext()
     temp[++i] = 0x00;                  /* make sure string terminates */
     n0 = atoi(temp);                         /* convert string to int */
 
-    /* increment the sequence number until a free slot is found */
+    /* increment the sequence number until a free slot is found       */
     for (n = n0; ++n; n != n0)
-      { if (n > 9999) n = 1;                 /* wrap at 10000 for now */
-                                                  /* 0000 is reserved */
-        (void) sprintf(temp,"%04d.cf",n);
-        if (access(temp,0)) break;
-    /* loop while  <nnnn>.cf  exists */
-    /* (should also check for <nnnn>.df) */
-      }
+      { if (n > 9999) n = 1;         /* wrap at 10000 (0000 reserved) */
+//      (void) sprintf(temp,"%04d.cf",n);
+//      if (access(temp,0) != 0) break;
+        /* loop while <nnnn>.cf exists (or .df or .ef or other)       */
+        i = 0; while (*exts[i] != 0x00) {
+            sprintf(temp,"%04d.%s",n,exts[i]);   /* the physical file */
+            if (access(temp,0) == 0) break;         /* does it exist? */
+            i++;       /* next */       }
+        if (exts[i] != 0x00) break;     }
 
     /* if we've been around once, don't continue */
     if (n == n0)
-      {
-/*      (void) netline(1,"5XX no slots available!");  */
-        (void) close(sf);
+      { (void) close(sf);
         /* implies there are 10000 files in this directory! */
         errno = ENOENT;
         return -1; }
@@ -1808,6 +1817,20 @@ int uftx_isbinary(char*b,int l)
             if (b[i] == *j) return 1;
 
     return 0;
+  }
+
+/* -------------------------------------------------------------- ABBREV
+ * Returns length of info if info is an abbreviation of informat.
+ * Returns zero if info does not match or is shorter than minlen.
+ * Comparison is not case sensitive.
+ */
+int uftx_abbrev(char*informat,char*info,int minlen)
+  { static char _eyecatcher[] = "abbrev()";
+    int     i;
+    for (i = 0; info[i] != 0x00; i++)
+        if (toupper(informat[i]) != toupper(info[i])) return 0;
+    if (i < minlen) return 0;
+    return i;
   }
 
 /* ------------------------------------------------------------ MSGWRITE

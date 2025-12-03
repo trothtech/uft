@@ -44,16 +44,16 @@ int main(int argc,char*argv[])
 
 /* ------------------------------------------------------------------ */
             case '-':                          /* long format options */
-                if (abbrev("--version",argv[i],6) > 0)
+                if (uftx_abbrev("--version",argv[i],6) > 0)
                   { sprintf(temp,"%s: %s Remote CPQUERY client",
                                 arg0,UFT_VERSION);
                     uftx_putline(2,temp,0);
                     return 0; } else           /* exit from help okay */
-                if (abbrev("--host",argv[i],6) > 0)
+                if (uftx_abbrev("--host",argv[i],6) > 0)
                   { i++; host = argv[i]; } else
-                if (abbrev("--proxy",argv[i],7) > 0)
+                if (uftx_abbrev("--proxy",argv[i],7) > 0)
                   { i++; proxy = argv[i]; } else
-                if (abbrev("--verbose",argv[i],6) > 0)
+                if (uftx_abbrev("--verbose",argv[i],6) > 0)
                   { uftcflag |= UFT_VERBOSE; } else
                   { sprintf(temp,"%s: invalid option %s",
                                 arg0,argv[i]);

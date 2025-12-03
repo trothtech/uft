@@ -124,11 +124,11 @@ int main(int argc,char*argv[])
 
 /* ------------------------------------------------------------------ */
             case '-':                          /* long format options */
-                if (abbrev("--version",argv[i],6) > 0)
+                if (uftx_abbrev("--version",argv[i],6) > 0)
                   { sprintf(buff,"%s: %s %s",arg0,UFT_VERSION,ptitle);
                     uftx_putline(1,buff,0);
                     return 0; } else           /* exit from help okay */
-                if (abbrev("--verbose",argv[i],6) > 0)
+                if (uftx_abbrev("--verbose",argv[i],6) > 0)
                   { uftcflag |= UFT_VERBOSE; } else
                   { mv[1] = argv[i];
                 rc = uftx_message(buff,sizeof(buff)-1,3,"TCP",2,mv);
@@ -209,7 +209,7 @@ int main(int argc,char*argv[])
 
         /* --------------------------------------------- META command */
         /* differentiate "META" from other commands ----------------- */
-        if (abbrev("META",p,4))
+        if (uftx_abbrev("META",p,4))
           { char *p2, *q2;                      /* alternate pointers */
 
             /* if this comes before a FILE command that is an error   */
@@ -239,7 +239,7 @@ int main(int argc,char*argv[])
 
         /* --------------------------------------------- FILE command */
         /* This record should come in *before* we connect to server.  */
-        if (abbrev("FILE",p,4) && meta == 0)   /* FILE size from auth */
+        if (uftx_abbrev("FILE",p,4) && meta == 0)   /* FILE size from auth */
           { /* if we already got a FILE command that is an error      */
             if (us.uft_size >= 0) { mc = 0; mn = 45; rc = -1; break; }
 
@@ -267,7 +267,7 @@ int main(int argc,char*argv[])
 
         /* --------------------------------------------- USER command */
         /* This record enables the connection if it has @host part.   */
-        if (abbrev("USER",p,1) && meta == 0)              /* NON META */
+        if (uftx_abbrev("USER",p,1) && meta == 0)         /* NON META */
           { /* if this comes before a FILE command that is an error   */
             if (us.uft_size < 0) { mc = 0; mn = 45; rc = -1; break; }
 
@@ -305,7 +305,7 @@ int main(int argc,char*argv[])
             continue; }                             /* loop on header */
 
         /* --------------------------------------------- TYPE command */
-        if (abbrev("TYPE",p,1) && meta == 0)              /* NON META */
+        if (uftx_abbrev("TYPE",p,1) && meta == 0)         /* NON META */
           { us.uft_type = *q;
             /* if this comes before a FILE command that is an error   */
             if (us.uft_size < 0) { mc = 0; mn = 45; rc = -1; break; }
@@ -317,7 +317,7 @@ int main(int argc,char*argv[])
             continue; }                             /* loop on header */
 
         /* --------------------------------------------- NAME command */
-        if (abbrev("NAME",p,2))                     /* META okay here */
+        if (uftx_abbrev("NAME",p,2))                /* META okay here */
           { /* if this comes before a FILE command that is an error   */
             if (us.uft_size < 0) { mc = 0; mn = 45; rc = -1; break; }
 
@@ -328,46 +328,46 @@ int main(int argc,char*argv[])
             continue; }                             /* loop on header */
 
         /* --------------------------------------------- NOOP command */
-        if (abbrev("NOOP",p,2) || abbrev("NOP",p,3)) continue;
+        if (uftx_abbrev("NOOP",p,2) || uftx_abbrev("NOP",p,3)) continue;
 
         /* --------------------------------------------- DATA command */
-        if (abbrev("DATA",p,3) && meta == 0) break;
+        if (uftx_abbrev("DATA",p,3) && meta == 0) break;
 
         /* --------------------------- illegal commands in batch mode */
-        if (abbrev("EXIT",p,2)     ||
-            abbrev("HELP",p,1)     ||
-            abbrev("EOF",p,1)      ||
-            abbrev("ABORT",p,1)    ||
-            abbrev("QUIT",p,3)     ||
-            abbrev("AUXDATA",p,4)  ||
-            abbrev("AGENT",p,4)    ||
-            abbrev("CPQ",p,3)      ||
-           (abbrev("MSG",p,1) && meta == 0))
+        if (uftx_abbrev("EXIT",p,2)     ||
+            uftx_abbrev("HELP",p,1)     ||
+            uftx_abbrev("EOF",p,1)      ||
+            uftx_abbrev("ABORT",p,1)    ||
+            uftx_abbrev("QUIT",p,3)     ||
+            uftx_abbrev("AUXDATA",p,4)  ||
+            uftx_abbrev("AGENT",p,4)    ||
+            uftx_abbrev("CPQ",p,3)      ||
+           (uftx_abbrev("MSG",p,1) && meta == 0))
               { mv[1] = p; mc = 2; mn = 81; rc = -1 ; break; }
 
         /* -------------------------------------------- META commands */
-        if (abbrev("DATE",p,2)      ||  abbrev("XDATE",p,2)     ||
-            abbrev("PROT",p,4)      ||  abbrev("XPERM",p,5)     ||
-            abbrev("RECFMT",p,4)    ||
-            abbrev("RECLEN",p,4)    ||  abbrev("LRECLEN",p,5)   ||
-            abbrev("CLASS",p,2)     ||
-            abbrev("FORM",p,2)      ||
-            abbrev("DESTINATION",p,4) ||
-            abbrev("DISTRIBUTION",p,4) ||
-            abbrev("TITLE",p,2)     ||
-            abbrev("OWNER",p,3)     ||  abbrev("GROUP",p,3)     ||
-            abbrev("VERSION",p,3)   ||
-            abbrev("HOLD",p,3)      ||
-            abbrev("COPY",p,2)      ||  abbrev("COPIES",p,4)    ||
-            abbrev("KEEP",p,3))
+        if (uftx_abbrev("DATE",p,2)      ||  uftx_abbrev("XDATE",p,2)     ||
+            uftx_abbrev("PROT",p,4)      ||  uftx_abbrev("XPERM",p,5)     ||
+            uftx_abbrev("RECFMT",p,4)    ||
+            uftx_abbrev("RECLEN",p,4)    ||  uftx_abbrev("LRECLEN",p,5)   ||
+            uftx_abbrev("CLASS",p,2)     ||
+            uftx_abbrev("FORM",p,2)      ||
+            uftx_abbrev("DESTINATION",p,4) ||
+            uftx_abbrev("DISTRIBUTION",p,4) ||
+            uftx_abbrev("TITLE",p,2)     ||
+            uftx_abbrev("OWNER",p,3)     ||  uftx_abbrev("GROUP",p,3)     ||
+            uftx_abbrev("VERSION",p,3)   ||
+            uftx_abbrev("HOLD",p,3)      ||
+            uftx_abbrev("COPY",p,2)      ||  uftx_abbrev("COPIES",p,4)    ||
+            uftx_abbrev("KEEP",p,3))
             _sift_send(fd,copy,0);
 
-/*         (abbrev("MSG",p,1) && meta != 0))                       // */
-/*          abbrev("CHARSET",p,5)   ||                             // */
-/*          abbrev("UCS",p,3)       ||  abbrev("TRAIN",p,2) ||     // */
-/*          abbrev("FCB",p,3)       ||  abbrev("CTAPE",p,2) ||     // */
-/*          abbrev("SEQ",p,3)       ||                             // */
-/*          abbrev("NOTIFY",p,3)                                   // */
+/*         (uftx_abbrev("MSG",p,1) && meta != 0))                            // */
+/*          uftx_abbrev("CHARSET",p,5)   ||                                  // */
+/*          uftx_abbrev("UCS",p,3)       ||  uftx_abbrev("TRAIN",p,2) ||     // */
+/*          uftx_abbrev("FCB",p,3)       ||  uftx_abbrev("CTAPE",p,2) ||     // */
+/*          uftx_abbrev("SEQ",p,3)       ||                                  // */
+/*          uftx_abbrev("NOTIFY",p,3)                                        // */
 /*        { **  put this variable into the control file  ** }      // */
 
       }                                 /* end of header-loading loop */

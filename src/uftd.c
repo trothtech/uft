@@ -221,7 +221,7 @@ int main(int argc,char*argv[])
         /* q now points to the args (if any), and p to the verb       */
 
         /* differentiate "META" from other commands ----------------- */
-        if (abbrev("META",p,4))
+        if (uftx_abbrev("META",p,4))
           { char *p2, *q2;                      /* alternate pointers */
 
             /* skip leading white space */
@@ -257,7 +257,7 @@ int main(int argc,char*argv[])
     XPERM
  */
 
-/*          if (abbrev("NAME",p,2)) ... then put it into the struct   */
+/*          if (uftx_abbrev("NAME",p,2)) ... then put it into the struct   */
 
             /* put this variable into the control file (sans "META_") */
             (void) sprintf(temp,"%s='%s'",p2,q2);
@@ -271,7 +271,7 @@ int main(int argc,char*argv[])
           }
 
         /* --------------------------------------------- FILE command */
-        if (abbrev("FILE",p,4))
+        if (uftx_abbrev("FILE",p,4))
           { /* parse another (SIZE) */
             for (p = q; *q > ' '; q++);
             if (*q != 0x00) *q++ = 0x00;
@@ -314,7 +314,7 @@ int main(int argc,char*argv[])
 
         /* --------------------------------------------- EXIT command */
         /* --------------------------------------------- QUIT command */
-        if (abbrev("EXIT",p,2) || abbrev("QUIT",p,3))
+        if (uftx_abbrev("EXIT",p,2) || uftx_abbrev("QUIT",p,3))
           {
 #ifdef UFT_POSIX
  (void) seteuid(0);
@@ -323,7 +323,7 @@ int main(int argc,char*argv[])
             break; }         /* "221 goodbye" follows outside of loop */
 
         /* --------------------------------------------- HELP command */
-        if (abbrev("HELP",p,1))
+        if (uftx_abbrev("HELP",p,1))
           { (void) sprintf(temp,"114 HELP: protocol: %s",UFT_PROTOCOL);
             (void) tcpputs(1,temp);
 #ifndef         UFT_ANONYMOUS
@@ -343,12 +343,12 @@ int main(int argc,char*argv[])
           }
 
         /* --------------------------------------------- NOOP command */
-        if (abbrev("NOOP",p,2) || abbrev("NOP",p,3))
+        if (uftx_abbrev("NOOP",p,2) || uftx_abbrev("NOP",p,3))
           { (void) tcpputs(1,"200 ACK");      /* do nothing, then ACK */
             rc = 0; continue; }                 /* continue after ACK */
 
         /* --------------------------------------------- USER command */
-        if (abbrev("USER",p,1))
+        if (uftx_abbrev("USER",p,1))
           { if (user[0] != 0x00)             /* one at a time, please */
               { (void) sprintf(temp,"403 protocol sequence error.");
                 (void) uftdstat(1,temp);  /* signal 4xx NAK to client */
@@ -480,7 +480,7 @@ int main(int argc,char*argv[])
           }
 
         /* --------------------------------------------- DATA command */
-        if (abbrev("DATA",p,3))
+        if (uftx_abbrev("DATA",p,3))
           { if (df < 0)                  /* data file was not opened? */
               { (void) sprintf(temp,"403 protocol sequence error.");
                 (void) uftdstat(1,temp);          /* stat and logging */
@@ -508,7 +508,7 @@ int main(int argc,char*argv[])
           }
 
         /* ---------------------------------------------------------- */
-        if (abbrev("AUXDATA",p,4))
+        if (uftx_abbrev("AUXDATA",p,4))
           { if (ef < 0)
               { (void) sprintf(temp,"403 protocol sequence error.");
                 (void) uftdstat(1,temp);  /* signal 4xx NAK to client */
@@ -534,7 +534,7 @@ int main(int argc,char*argv[])
           }
 
         /* ---------------------------------------------- EOF command */
-        if (abbrev("EOF",p,1))
+        if (uftx_abbrev("EOF",p,1))
           { /* close files */
             (void) close(ef); ef = -1;
             (void) close(df); df = -1;
@@ -592,7 +592,7 @@ int main(int argc,char*argv[])
           }
 
         /* -------------------------------------------- ABORT command */
-        if (abbrev("ABORT",p,1))
+        if (uftx_abbrev("ABORT",p,1))
           { /* close files */
             close(ef); ef = -1;
             close(df); df = -1;
@@ -638,7 +638,7 @@ int main(int argc,char*argv[])
           }
 
         /* -------------------------------------------- AGENT command */
-        if (abbrev("AGENT",p,4))
+        if (uftx_abbrev("AGENT",p,4))
           { int rc;             /* we might should have RC everywhere */
             rc = uftd_agck(q);
             switch (rc)
@@ -654,7 +654,7 @@ int main(int argc,char*argv[])
 
 
         /* ---------------------------------------------- CPQ command */
-        if (abbrev("CPQ",p,3))
+        if (uftx_abbrev("CPQ",p,3))
           { int rc;             /* we might should have RC everywhere */
             char cpqstr[256], *r;
 
@@ -676,7 +676,7 @@ int main(int argc,char*argv[])
 
 
         /* ---------------------------------------------- MSG command */
-        if (abbrev("MSG",p,1))                /* p points to the verb */
+        if (uftx_abbrev("MSG",p,1))                /* p points to the verb */
           { int rc;             /* we might should have RC everywhere */
             char *u, *m;
 
@@ -694,7 +694,7 @@ int main(int argc,char*argv[])
           }
 
         /* --------------------------------------------- TYPE command */
-        if (abbrev("TYPE",p,1))
+        if (uftx_abbrev("TYPE",p,1))
           { /*  put this variable into the control file  */
             (void) sprintf(temp,"%s='%s'",p,q);
             if (tf >= 0) (void) uftx_putline(tf,temp,0);
@@ -709,7 +709,7 @@ int main(int argc,char*argv[])
           }
 
         /* --------------------------------------------- NAME command */
-        if (abbrev("NAME",p,2))
+        if (uftx_abbrev("NAME",p,2))
           {
             /* put this variable SAFELY into the control file         */
             q = uftx_basename(q);
@@ -728,17 +728,17 @@ int main(int argc,char*argv[])
           }
 
         /* known attribute? --------------------- other META commands */
-        if (abbrev("DATE",p,2)  |   abbrev("XDATE",p,2) |
-            abbrev("PERM",p,4)  |   abbrev("CHARSET",p,5) |
-            abbrev("UCS",p,3)   |   abbrev("TRAIN",p,2) |
-            abbrev("RECFMT",p,4) |  abbrev("RECORD_FORMAT",p,8) |
-            abbrev("LRECLEN",p,5) |
-            abbrev("RECLEN",p,4) |  abbrev("RECORD_LENGTH",p,8) |
-            abbrev("CLASS",p,2) |   abbrev("FORM",p,2)|
-            abbrev("FCB",p,3)   |   abbrev("CTAPE",p,2) |
-            abbrev("DESTINATION",p,4) |
-            abbrev("DISTRIBUTION",p,4) |
-            abbrev("TITLE",p,2))
+        if (uftx_abbrev("DATE",p,2)  |   uftx_abbrev("XDATE",p,2) |
+            uftx_abbrev("PERM",p,4)  |   uftx_abbrev("CHARSET",p,5) |
+            uftx_abbrev("UCS",p,3)   |   uftx_abbrev("TRAIN",p,2) |
+            uftx_abbrev("RECFMT",p,4) |  uftx_abbrev("RECORD_FORMAT",p,8) |
+            uftx_abbrev("LRECLEN",p,5) |
+            uftx_abbrev("RECLEN",p,4) |  uftx_abbrev("RECORD_LENGTH",p,8) |
+            uftx_abbrev("CLASS",p,2) |   uftx_abbrev("FORM",p,2)|
+            uftx_abbrev("FCB",p,3)   |   uftx_abbrev("CTAPE",p,2) |
+            uftx_abbrev("DESTINATION",p,4) |
+            uftx_abbrev("DISTRIBUTION",p,4) |
+            uftx_abbrev("TITLE",p,2))
           { /*  put this variable into the control file  */
             (void) sprintf(temp,"%s='%s'",p,q);
             if (tf >= 0) (void) uftx_putline(tf,temp,0);

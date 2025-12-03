@@ -26,20 +26,20 @@
 *         Note: the following line is essential:
 & 3
 *
-0000      2.0
-0001      UFT/2.0 client (CMS)
-0002      UFT/2.0 server (z/VM)
-0003    E invalid option &1
-0004      UFT/&1
-0005      UFT/&1 client
-0006      UFT/&1 server
-0007      2.0
+   0      2.0
+   1      UFT/2.0 client (CMS)
+   2      UFT/2.0 server (z/VM)
+   3    E invalid option &1
+   4      UFT/&1
+   5      UFT/&1 client
+   6      UFT/&1 server
+   7      2.0
 *008    X ........
 *009    X ........
 *010    X ........
-0011      VMCMSUFT/&1
-0012      POSIXUFT/&1
-0013      UFT/redacted
+  11      VMCMSUFT/&1
+  12      POSIXUFT/&1
+  13      UFT/redacted
 *014    X ........
 *
 *304    E Invalid operand value &1
@@ -60,6 +60,7 @@
   26    E socket or stream closed without a QUIT command
 * 36    E operand missing or invalid
   42    E user &1 spoolid &2 does not exist
+  44    E connection cannot be established
   45    E protocol sequence error
   50    E invalid spoolid &1
 * 53    E &1 not in CP directory
@@ -80,10 +81,10 @@
   97    I from &1: &2
 *395    E invalid value &1 for &2 option
 *116    E invalid value &1 for &2 in &3
-
-#  There is no logmsg data
+*
+*#  There is no logmsg data
 *507    E no preserved data to restore
-
+*
 *   HCP002E invalid operand - operand
 *   HCP003E invalid option - command contains extra option(s) starting with operand
 *   HCP007E invalid userid - userid
@@ -93,7 +94,6 @@
 *   HCP6706E invalid {group name|account ID} - {groupname|accountid}
 *   HCP6734E support for file-based LOGMSG is not enabled.
 *   HCP6771E LOGMSG support based on {Account ID|ACI group|Userid} is not enabled.
-
 *
 * spontaneous info messages (including deprecated UFT/1 herald)
 0100      100 &1 UFT/1 VMCMSUFT/1.2.2 ready.
@@ -169,7 +169,7 @@
 0222      222 &1 UFT/2 VMCMSUFT/&3 &4 ; ready.
 0223      223 &1 UFT/2 POSIXUFT/&3 &4 ; ready.
 0224      224 *anonymous UFT/2 UFT/redacted 0 ; ready.
-0225      225 &1 UFT/2 &3 &4 ; ready.
+0228      228 &1 UFT/2 &3 &4 ; ready.
 0230      230 Local username okay, proceed.
 0250      250 Requested file action okay, completed.
 *
@@ -249,23 +249,22 @@
 *
 * from the CMS implementation:
 1200    E Code level mis-match: expected &1 but found &2
-
+*
 *2000 range
-
+*
 *3000 range
-
+*
 *4000 reserved range
-
+*
 *5000 reserved range
-
+*
 *6000 reserved range
-
+*
 *7000 reserved range
-
+*
 8416      From &1(&2): &3
 8712      File &1 sent to &2 at &3 on &4
 *DMTNTR147I Sent file 0716 (1995) on link NYNJGATE to NEWYORK(MATTHEW)
-
 *
 * TAG on the file for RDRLIST and RECEIVE:
 *         FILE (*UFT) ORIGIN host from date time tz
@@ -296,7 +295,6 @@
 9823      X-SIFT/metafile
 9824      X-SIFT/datafile
 9825      X-SIFT/auxdata
-*
 *
 *740    I Execution begins...
 *440    E RXSOCKET requires TCPIP Version 2 or higher               1440

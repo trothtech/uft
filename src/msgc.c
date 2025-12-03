@@ -50,7 +50,7 @@ int main(int argc,char*argv[])
 
 /* ------------------------------------------------------------------ */
             case '-':                          /* long format options */
-                if (abbrev("--version",argv[i],5) > 0)
+                if (uftx_abbrev("--version",argv[i],5) > 0)
                   { sprintf(msgbuf,"%s: %s Internet TELL client",
                                 arg0,UFT_VERSION);
                     uftx_putline(2,msgbuf,0);

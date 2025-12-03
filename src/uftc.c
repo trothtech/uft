@@ -101,41 +101,41 @@ int     uftv;           /* protocol level (1 or 2) */
 
 /* ------------------------------------------------------------------ */
             case '-':                          /* long format options */
-                if (abbrev("--version",argv[i],6) > 0)
+                if (uftx_abbrev("--version",argv[i],6) > 0)
                   { sprintf(temp,"%s: %s %s",arg0,UFT_VERSION,ptitle);
                     uftx_putline(2,temp,0);
                     return 0; } else           /* exit from help okay */
-                if (abbrev("--verbose",argv[i],6) > 0)
+                if (uftx_abbrev("--verbose",argv[i],6) > 0)
                   { uftcflag |= UFT_VERBOSE; } else
-                if (abbrev("--ascii",argv[i],5) > 0 ||
-                    abbrev("--text",argv[i],6) > 0)
+                if (uftx_abbrev("--ascii",argv[i],5) > 0 ||
+                    uftx_abbrev("--text",argv[i],6) > 0)
                   { uftcflag &= ~UFT_BINARY; type = "A"; } else
-                if (abbrev("--binary",argv[i],5) > 0 ||
-                    abbrev("--image",argv[i],4) > 0)
+                if (uftx_abbrev("--binary",argv[i],5) > 0 ||
+                    uftx_abbrev("--image",argv[i],4) > 0)
                   { uftcflag |= UFT_BINARY; type = "I"; } else
 #ifdef  OECS
-                if (abbrev("--ebcdic",argv[i],8) > 0)
+                if (uftx_abbrev("--ebcdic",argv[i],8) > 0)
                   { uftcflag |= UFT_BINARY; type = "E"; } else
 #endif
-                if (abbrev("--proxy",argv[i],7) > 0)
+                if (uftx_abbrev("--proxy",argv[i],7) > 0)
                   { i++; proxy = argv[i]; } else
-                if (abbrev("--type",argv[i],6) > 0)
+                if (uftx_abbrev("--type",argv[i],6) > 0)
                   { i++; type = argv[i]; } else
-                if (abbrev("--name",argv[i],6) > 0)
+                if (uftx_abbrev("--name",argv[i],6) > 0)
                   { i++; name = argv[i]; } else
-                if (abbrev("--verbose",argv[i],6) > 0)
+                if (uftx_abbrev("--verbose",argv[i],6) > 0)
                   { uftcflag |= UFT_VERBOSE; } else
-                if (abbrev("--class",argv[i],4) > 0)
+                if (uftx_abbrev("--class",argv[i],4) > 0)
                   { i++; class = argv[i]; } else
 /*                          --dest
                             --dist --ms --mailstop
                             --form
                             --title                                   */
-                if (abbrev("--mail",argv[i],6) > 0 ||
-                    abbrev("--email",argv[i],4) > 0)
+                if (uftx_abbrev("--mail",argv[i],6) > 0 ||
+                    uftx_abbrev("--email",argv[i],4) > 0)
                   { uftcflag &= ~UFT_BINARY; type = "M"; } else
-                if (abbrev("--copy",argv[i],4) > 0 ||
-                    abbrev("--copies",argv[i],4) > 0)
+                if (uftx_abbrev("--copy",argv[i],4) > 0 ||
+                    uftx_abbrev("--copies",argv[i],4) > 0)
                   { i++; copy = atoi(argv[i]); } else
                   {     mv[1] = argv[i];
                 rc = uftx_message(temp,sizeof(temp)-1,3,"CLI",2,mv);

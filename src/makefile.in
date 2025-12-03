@@ -39,7 +39,6 @@ uftd:		makefile uftd.o \
 			uftdimsg.o \
 			uftdlist.o \
 			uftdcpq.o \
-			abbrev.o \
 			tcpio.o \
 			aecs.o \
 			uftlib.o \
@@ -52,7 +51,6 @@ uftd:		makefile uftd.o \
 			uftdimsg.o \
 			uftdlist.o \
 			uftdcpq.o \
-			abbrev.o \
 			tcpio.o \
 			aecs.o \
 			uftlib.o \
@@ -92,15 +90,13 @@ sf:		makefile uftc.o \
 			uftlib.o \
 			tcpio.o \
 			xmitmsgx.o \
-			aecs.o \
-			abbrev.o
+			aecs.o
 		$(CC) $(LDFLAGS) -o sf \
 			uftc.o \
 			uftlib.o \
 			tcpio.o \
 			xmitmsgx.o \
 			aecs.o \
-			abbrev.o \
 			$(LIBS)
 
 uftc.o: 	makefile uft.h uftc.c
@@ -145,15 +141,13 @@ cpq:		makefile cpq.o \
 			uftlib.o \
 			tcpio.o \
 			xmitmsgx.o \
-			aecs.o \
-			abbrev.o
+			aecs.o
 		$(CC) $(LDFLAGS) -o cpq \
 			cpq.o \
 			uftlib.o \
 			tcpio.o \
 			xmitmsgx.o \
 			aecs.o \
-			abbrev.o \
 			$(LIBS)
 
 cpqu:		makefile cpqu.o \
@@ -169,15 +163,13 @@ uftxdspl:       uftxdspl.o makefile \
 			uftlib.o \
 			tcpio.o \
 			xmitmsgx.o \
-			aecs.o \
-			abbrev.o
+			aecs.o
 		$(CC) $(LDFLAGS) -o uftxdspl \
 			uftxdspl.o \
 			uftlib.o \
 			tcpio.o \
 			xmitmsgx.o \
 			aecs.o \
-			abbrev.o \
 			$(LIBS)
 
 uftxdspl.o:     uftxdspl.c uft.h makefile
@@ -188,15 +180,13 @@ uftctcp2:       uftctcp2.o makefile \
 			uftlib.o \
 			tcpio.o \
 			xmitmsgx.o \
-			aecs.o \
-			abbrev.o
+			aecs.o
 		$(CC) $(LDFLAGS) -o uftctcp2 \
 			uftctcp2.o \
 			uftlib.o \
 			tcpio.o \
 			xmitmsgx.o \
 			aecs.o \
-			abbrev.o \
 			$(LIBS)
 
 uftctcp2.o:     uftctcp2.c uft.h makefile
@@ -237,8 +227,8 @@ help:
 #
 #
 
-abbrev.o:	makefile abbrev.c
-		$(CC) $(CFLAGS) -c abbrev.c
+#abbrev.o:	makefile abbrev.c
+#		$(CC) $(CFLAGS) -c abbrev.c
 
 tcpio.o:	makefile tcpio.c
 		$(CC) $(CFLAGS) -o tcpio.o \
@@ -312,15 +302,13 @@ tell:		makefile msgc.o \
 			uftlib.o \
 			tcpio.o \
 			xmitmsgx.o \
-			aecs.o \
-			abbrev.o
+			aecs.o
 	$(CC) $(LDFLAGS) -o tell \
 			msgc.o \
 			uftlib.o \
 			tcpio.o \
 			xmitmsgx.o \
 			aecs.o \
-			abbrev.o \
 			$(LIBS)
 #	strip tell
 # msgcmsp.o msgcuftd.o msglocal.o homedir.o

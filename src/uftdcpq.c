@@ -246,20 +246,20 @@ int uftdcpq(char*a,char*cpqstr,int cpqsl)
       { if (islower(*a)) *a = toupper(*a);   a++; }
     *a++ = 0x00; b = a; a = msg2;
 
-    if (abbrev("CPLEVEL",a,3))  return uftdcpq_cplevel(cpqstr,cpqsl);
-    if (abbrev("CPUID",a,3))    return uftdcpq_cpuid(cpqstr,cpqsl);
-    if (abbrev("FILES",a,1))    return uftdcpq_files(cpqstr,cpqsl);
-    if (abbrev("INDICATE",a,3)) return uftdcpq_indicate(cpqstr,cpqsl);
-    if (abbrev("LOGMSG",a,3))   return uftdcpq_logmsg(cpqstr,cpqsl);
-    if (abbrev("NAMES",a,1))    return uftdcpq_names(cpqstr,cpqsl);
-    if (abbrev("TIME",a,1))     return uftdcpq_time(cpqstr,cpqsl);
-    if (abbrev("USERS",a,5) && *b == 0x00) return uftdcpq_users(cpqstr,cpqsl);
-    if (abbrev("USER",a,1) && *b != 0x00) return uftdcpq_user(cpqstr,cpqsl,b);
+    if (uftx_abbrev("CPLEVEL",a,3))  return uftdcpq_cplevel(cpqstr,cpqsl);
+    if (uftx_abbrev("CPUID",a,3))    return uftdcpq_cpuid(cpqstr,cpqsl);
+    if (uftx_abbrev("FILES",a,1))    return uftdcpq_files(cpqstr,cpqsl);
+    if (uftx_abbrev("INDICATE",a,3)) return uftdcpq_indicate(cpqstr,cpqsl);
+    if (uftx_abbrev("LOGMSG",a,3))   return uftdcpq_logmsg(cpqstr,cpqsl);
+    if (uftx_abbrev("NAMES",a,1))    return uftdcpq_names(cpqstr,cpqsl);
+    if (uftx_abbrev("TIME",a,1))     return uftdcpq_time(cpqstr,cpqsl);
+    if (uftx_abbrev("USERS",a,5) && *b == 0x00) return uftdcpq_users(cpqstr,cpqsl);
+    if (uftx_abbrev("USER",a,1) && *b != 0x00) return uftdcpq_user(cpqstr,cpqsl,b);
 
-    if (abbrev("CERTIFICATE",a,4)) return uftdcpq_certificate(cpqstr,cpqsl);
+    if (uftx_abbrev("CERTIFICATE",a,4)) return uftdcpq_certificate(cpqstr,cpqsl);
 
     /* CPQ USER requires an additional operand                        */
-    if (abbrev("USER",a,1)) {
+    if (uftx_abbrev("USER",a,1)) {
     uftx_message(cpqstr,cpqsl,416,"CPQ",0,NULL);
     return 4; }
 

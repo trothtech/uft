@@ -46,14 +46,14 @@ int main(int argc,char*argv[])
 
 /* ------------------------------------------------------------------ */
             case '-':                          /* long format options */
-                if (abbrev("--version",argv[i],6) > 0)
+                if (uftx_abbrev("--version",argv[i],6) > 0)
                   { sprintf(buff,"%s: %s %s",arg0,UFT_VERSION,ptitle);
                     uftx_putline(2,buff,0);
                     return 0; } else           /* exit from help okay */
-                if (abbrev("--verbose",argv[i],6) > 0)
+                if (uftx_abbrev("--verbose",argv[i],6) > 0)
                   { uftcflag |= UFT_VERBOSE; } else
-                if (abbrev("--keep",argv[i],6) > 0) keep = 1; else
-                if (abbrev("--hold",argv[i],6) > 0) hold = 1; else
+                if (uftx_abbrev("--keep",argv[i],6) > 0) keep = 1; else
+                if (uftx_abbrev("--hold",argv[i],6) > 0) hold = 1; else
                   { mv[1] = argv[i];
                 rc = uftx_message(buff,sizeof(buff)-1,3,"DSP",2,mv);
                 if (rc >= 0) fprintf(stderr,"%s\n",buff); else

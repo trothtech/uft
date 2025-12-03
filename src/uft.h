@@ -20,18 +20,18 @@
 
 #include "tcpio.h"
 
-/*        Note: define UFT_ANONYMOUS to use 'uftd' via Tor            *
+/*        Note: define UFT_ANONYMOUS to use 'uftd' via Tor.           *
  * What that does is mute certain announcements from UFTD which       *
  * would render the server identifyable (means to de-anonymize it).   */
 
 /* the version number and copyright */
 #define         UFT_PROTOCOL    "UFT/2"
 #ifndef         UFT_VERSION
- #define        UFT_VERSION     "POSIXUFT/2.0.14"
+ #define        UFT_VERSION     "POSIXUFT/2.0.15"
 #endif
 #define         UFT_COPYRIGHT   "© Copyright 1995-2025 Richard M. Troth"
-#define         UFT_VRM         "2.0.14"
-#define    UFT_VERINT    (((2) << 24) + ((0) << 16) + ((14) << 8) + (0))
+#define         UFT_VRM         "2.0.15"
+#define    UFT_VERINT    (((2) << 24) + ((0) << 16) + ((15) << 8) + (0))
 
 #ifndef         UFT_TAG
  #define        UFT_TAG         "UFT"
@@ -39,7 +39,7 @@
 
 /* server constants follow */
 
-/* the SPOOLDIR has a sub-directory for each recipient */
+/* the SPOOLDIR has a sub-directory for each recipient                */
 #ifndef         UFT_SPOOLDIR
  #define        UFT_SPOOLDIR    "/var/spool/uft"
              /*                 "C:/ProgramData/uft" */
@@ -80,7 +80,9 @@
 #define         UFT_PORT        608
 #define         IDENT_PORT      113
 
-#define         UFT_BUFSIZ      64512
+/* define       UFT_BUFSIZ      64512 */
+/* reduced from 64K-512 to 32K-512 for more reliable file transfer    */
+#define         UFT_BUFSIZ      32256
 
 #define         UFT_SYSLOG_FACILITY     LOG_UUCP
 
@@ -224,8 +226,8 @@ static char *uft_copyright = UFT_COPYRIGHT;
 #define         MSG_UFT_PORT            608
 
 /* The following struct is best used to describe a UFT "spool file".  *
- * It is populated by uft_stat() and referenced by routines which     *
- * routines which need to know attributes of a "spooled" UFT file.    *
+ * It is populated by uft_stat() and referenced by routines           *
+ * which need to know attributes of a "spooled" UFT file.             *
  * Some of the members are named to follow POSIX "stat" struct.       */
 typedef struct  UFTSTAT {
     int         uft_ino;        /* UFT spoolid */
@@ -238,9 +240,9 @@ typedef struct  UFTSTAT {
     time_t      uft_mtime,      /* UFT time of last mod, as sent      */
                 uft_stime;      /* time stamp on spool file           */
 
-    char        uft_type,       /* UFT type (A, I, so on) */
-                uft_cc,         /* ASA, machine, or none */
-                uft_class,      /* "spool class" letter */
+    char        uft_type,                   /* UFT type (A, I, so on) */
+                uft_cc,                      /* ASA, machine, or none */
+                uft_class,                    /* "spool class" letter */
                 uft_rudev,      /* record-unit device type, "devtype" */
                 uft_hold,       /* a z/VM or other mainframe concept  */
                 uft_keep,       /* a z/VM or other mainframe concept  */
@@ -332,7 +334,7 @@ int uftctext(int,char*,int);
 
 char*uftcprot(mode_t);
 
-int abbrev(char*,char*,int);
+int uftx_abbrev(char*,char*,int);
 
 /* functions from the library */
 int uftx_message(char*,int,int,char*,int,char*[]);
