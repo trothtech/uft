@@ -34,10 +34,10 @@
       UFTCUSER REXX     *  -- client, IBM also                         y
       UFTCHOST REXX     *  -- client, IBM also                         y
       UFTXINMR REXX     *  -- client, IBM also                         y
-      UFTCTCP  REXX     *  -- client, IBM also
-      UFTCTCP2 REXX     *  -- client, replaces UFTCTCP REXX
-      UFTCRSCS REXX     *  -- client, for sending via RSCS             y
-      UFTCMAIL REXX     *  -- client, IBM also, for sending via email
+      UFTCTCP  REXX     *  -- client, IBM also, deprecated in UFT project
+      UFTCTCP2 REXX     *  -- client, replaces UFTCTCP REXX, fw
+      UFTCRSCS REXX     *  -- client, for sending via RSCS, fw         y
+      UFTCMAIL REXX     *  -- client, IBM also, for sending via email, fw
       MAKETEXT REXX     *  -- client and server
       MAKETEXT HELPPIPE *  -- client and server
       UFTULIST REXX     *  -- client (formerly USERLIST REXX)          y
@@ -48,11 +48,12 @@
       UFTUME   MESSAGES *  -- message repository source
       UFTUME   TEXT     *  -- message repository for client and server
 *
-      UFTCMAIN REXX     *  -- process a SIFT job                       y
+      UFTCMAIN REXX     *  -- process a SIFT job, fw                   y
       UFTCMAIN HELPPIPE *  --
 * NOTE: there is redundancy between UFTCMAIN and UFTCHOST+UFTCUSER
       UFTXDSPL REXX     *  -- despool a file into a SIFT job           y
       UFTXDSPL HELPPIPE *  --
+*     UFTCLCL  REXX     *  -- for FORWARD, missing
 *
 * help files:
       UFT      HELPTASK *  -- IBM also
@@ -123,15 +124,12 @@
 *     PIPESOCKET REXX   *  -- deprecated
 *     USERLIST REXX     *  -- deprecated, see UFTULIST REXX
 *
-*
 ***** 19980319 *********************************************************
 *     SENDFILE EXEC     *  -- 19980319
 *     SENDFILE HELPCMS  *  -- 19980319
 *     USERLIST REXX     *  -- 19980319
 *     SENDMAIL REXX     *  -- 19980319
 *     HOSTNAME EXEC     *  -- 19980319
-*     FORWARD  EXEC     *  -- 19980319
-*     FORWARD  HELPCMS  *  -- 19980319
 *     UFTDHELP TXT      *  -- 19980319
 *     UFTD     HELPCMS  *  -- 19980319
 *     TCPSHELL EXEC     *  -- 19980319
@@ -149,8 +147,6 @@
 *     SENDFILE HELPCMS  *  -- 19971009
 *     USERLIST REXX     *  -- 19971009
 *     SENDMAIL REXX     *  -- 19971009
-*     FORWARD  EXEC     *  -- 19971009
-*     FORWARD  HELPCMS  *  -- 19971009
 *     UFTDHELP TXT      *  -- 19971009
 *     UFTD     HELPCMS  *  -- 19971009
 *     TCPSHELL EXEC     *  -- 19971009

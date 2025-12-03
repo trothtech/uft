@@ -23,7 +23,7 @@ argl = '*' || arg0 || ':'                                  /* logging */
 Parse Arg host port . '(' opts ')' .
 If host = "" Then host = "localhost"
 If POS('@',host) > 0 Then Parse Var host user '@' host
-                       Else user = ""
+                     Else user = ""
 Parse Var host host ':' port
 If port = "" Then port = 608
 

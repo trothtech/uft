@@ -1,0 +1,32 @@
+.cm Copyright 1996, Richard M. Troth
+.cm
+
+¢|FORWARD EXEC¢%
+
+ Use the FORWARD EXEC to reroute files and mail in your virtual reader queue
+ to other users on this or another NJE- (BITNET) or IP- (InterNet) connnected
+ computer system.   FORWARD EXEC makes assumptions about the file to be sent
+ based on the filetype as it appears in your reader queue.   A filetype of
+ MAIL means that FORWARD will try to prepend the required RFC 822 "resent"
+ headers and hand-off the file to the SENDMAIL pipeline stage.   All other
+ file types mean that FORWARD will treat them as non-mail,  sending them
+ via NJE (RSCS) or IP (UFT, Internet SENDFILE protocol) as available.
+
+ The syntax for the FORWARD command is:
+ +---------------------+-----------------------------------------------+
+ |                     |                                               |
+ |   [EXEC]  FORWARD   |   spoolid  [TO]  user  [AT]  host             |
+ |                     |                                               |
+ +---------------------+-----------------------------------------------+
+
+ where:
+
+ spoolid
+         is the VM spoolid the file you wish to resend
+
+ user
+         is the user to whom you wish to send this file, and
+
+ host
+         is the NJE or Internet node for that user
+

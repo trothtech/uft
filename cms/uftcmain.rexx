@@ -39,6 +39,8 @@ End /* If .. Do */
 i = 0
 file = ""
 user = ""
+type = ""; cc = ""
+shim = ""
 
 /* consume the metafile */
 Do Forever
@@ -60,6 +62,7 @@ Do Forever
 
         When Abbrev("FILE",verb,1) & ^meta Then file = record
         When Abbrev("USER",verb,1) & ^meta Then Parse Var record . user .
+        When Abbrev("TYPE",verb,1) & ^meta Then Parse Var record . type cc .
         When Abbrev("DATA",verb,1) & ^meta Then Leave
 
         Otherwise Do                      /* collect this meta record */
@@ -144,6 +147,12 @@ Parse Var user user '@' .
 'OUTPUT' "USER" user
 If rc ^= 0 Then Exit rc
 
+/* [re]place the TYPE command into the job */
+If type = "V" & cc = "M" Then type = "A C"
+shim = "MCTOASA"
+'OUTPUT' "TYPE" type
+If rc ^= 0 Then Exit rc
+
 /* now the rest of the meta-data */
 'CALLPIPE STEM META. | *:'
 If rc ^= 0 Then Exit rc
@@ -153,7 +162,8 @@ If rc ^= 0 Then Exit rc
 If rc ^= 0 Then Exit rc
 
 /* and now pass the rest as-is */
-'CALLPIPE *: | *:'
+If shim = "" Then 'CALLPIPE *: | *:'
+             Else 'CALLPIPE *: |' shim '| *:'
 If rc ^= 0 Then Exit rc
 
 Exit

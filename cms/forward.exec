@@ -1,0 +1,110 @@
+/* © Copyright 1993, 1994, 1995, 1996, 1997, 2025, Richard M. Troth, all rights reserved. <plaintext>
+ *
+ *        Name: FORWARD EXEC (formerly REROUTE EXEC)
+ *              resubmit RDR files to RSCS destined for someone else
+ *      Author: Rick Troth, Rice University, Information Systems
+ *              Rick Troth, Houston, Texas, USA
+ *        Date: 1990-Dec-29, 1993-Nov-01, 1997-Aug-07, 2025-Dec-02
+ *
+ *     co-reqs: SENDMAIL REXX, UFTXDSPL, UFTCMAIN, and friends
+ */
+
+'PIPE COMMAND IDENTIFY | XLATE LOWER | VAR IDENTITY'
+Parse Var identity userid . nodeid . rscsid date time tz day .
+/*  Parse Upper Var identity . . . . rscsid . . tz . .  */
+Upper rscsid tz
+
+Parse Arg file dest '(' . ')' .
+If ^Datatype(file,'N') Then Do
+    'XMITMSG 650 FILE (ERRMSG'
+    Exit 24
+    End /* If .. Do */
+If dest = "" Then Do
+    'XMITMSG 386 (ERRMSG'
+    Exit 24
+    End /* If .. Do */
+
+Parse Upper Var dest to .
+If to = "TO" Then Parse Var dest . dest
+
+Parse Upper Var dest . at .
+If at = "AT" Then Parse Var dest user . node .
+             Else Parse Var dest user "@" node .
+
+If user = ""  Then user = userid         /* myself at some other node */
+If user = "*" Then user = userid         /* myself at some other node */
+If node = "" Then Do                           /* look it up in NAMES */
+    'MAKEBUF'
+    'NAMEFIND :NICK' user ':USERID :NODE (FIFO'
+    If rc = 0 Then Do; Parse Pull user . ; Parse Pull node . ; End
+              Else node = nodeid
+    If node = "" Then node = nodeid
+    'DROPBUF'
+    End /* If .. Do */
+
+Parse Value Diag(08,'QUERY RDR' file 'ALL') ,
+    With . '15'x . . c . +63 ft +8 . '15'x .
+ft = Strip(ft)
+
+Select
+    /* RiceMAIL's definition of "mail" ignores CLASS */
+    When ft = "MAIL" | ft = "NOTE" Then Do
+        Parse Value Diagrc(08,'ORDER RDR' file) ,
+            With 1 rc 10 . 17 rs '15'x .
+        /* build an RFC 822 style date construct */
+        Parse Var date mm '/' dd '/' yy
+        maildate = Left(day,3) || ',' dd mon(mm) yy time tz
+        'PIPE READER | NLOCATE 1.1 /' || '03'x || '/ | SPEC 2-* 1' ,
+            '| CHANGE 1.7 /Resent-/X-Resent/' ,
+            '| CHANGE 1.7 /RESENT-/X-Resent/' ,
+            '| CHANGE 1.7 /resent-/X-Resent/' ,
+                '| LITERAL Resent-To:' user || '@' || node ,
+                    '| LITERAL Resent-From:' userid || '@' || nodeid ,
+                        '| LITERAL Resent-Date:' maildate ,
+                            '| sendmail -t'
+        End /* When .. Do */
+    When Index(node,'.') > 0 Then Do
+        user = user || '@' || node
+        'PIPE UFTXDSPL' file '| UFTCMAIN' user
+        End /* When .. Do */
+    Otherwise Do
+        'CP TAG FILE' file node user '50'
+        'CP TRANSFER RDR' file 'TO' rscsid 'RDR'
+        End /* Otherwise Do */
+    End /* Select */
+
+Exit
+
+Address "COMMAND" 'GLOBALV SELECT MAIL GET' ,
+        'MAIL_OPTION.LOCAL.DOMAIN'
+
+/* ----------------------------------------------------------------- MON
+ */
+MON: Procedure
+
+Parse Arg mm
+If ^Datatype(mm,'N') Then Return mm
+
+/* first try extracting month name from the message repository */
+'PIPE COMMAND XMITMSG 8559 (APPLID DMS' ,
+    'FORMAT' mm 'LINE 2 NOHEADER | VAR MONTH'
+If rc = 0 Then Return month
+
+/* if that failed, then you're stuck with AMENG equivalents */
+Select /* mm */
+    When mm = 1  Then Return "Jan"
+    When mm = 2  Then Return "Feb"
+    When mm = 3  Then Return "Mar"
+    When mm = 4  Then Return "Apr"
+    When mm = 5  Then Return "May"
+    When mm = 6  Then Return "Jun"
+    When mm = 7  Then Return "Jul"
+    When mm = 8  Then Return "Aug"
+    When mm = 9  Then Return "Sep"
+    When mm = 10 Then Return "Oct"
+    When mm = 11 Then Return "Nov"
+    When mm = 12 Then Return "Dec"
+    Otherwise Return mm
+    End /* Select mm */
+
+
