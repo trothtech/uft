@@ -1723,12 +1723,12 @@ int uftx_ndfd(int fdi,int fdo,int flag)
   { static char _eyecatcher[] = "uftx_ndfd()";
     int rc, type, plen, i;
     char *part, b1[65536], b2[65536];
+    struct UFTNDIO ndio;
 
     /* focus the flag variable on "translate or not"                  */
     flag = flag & (UFT_DOTRANS|UFT_NOTRANS);
 
     /* initialize the UFTNDIO struct                                  */
-    struct UFTNDIO ndio;
     ndio.buffer = b1;
     ndio.bufmax = sizeof(b1);
     ndio.buflen = 0;
@@ -1783,15 +1783,15 @@ int uftx_isbinary(char*b,int l)
                     0x02,
                     0x03,
                     0x04,
-                 /* 0x05 = E TAB */
+                 /* 0x05  =  E TAB */
                     0x06,
-                    0x07,
-                    0x08,
-                 /* 0x09 = A TAB */
-                 /* 0x0A = A LF */
+                    0x07, /* A BEL */
+                    0x08, /* A BS */
+                 /* 0x09  =  A TAB */
+                 /* 0x0A  =  A LF */
                     0x0B,
-                 /* 0x0C = X FF */
-                 /* 0x0D = A CR */
+                    0x0C, /* X FF */
+                 /* 0x0D  =  X CR */
                     0x0E,
                     0x0F,
                     0x10,
@@ -1799,13 +1799,13 @@ int uftx_isbinary(char*b,int l)
                     0x12,
                     0x13,
                     0x14,
-                 /* 0x15 = E NL */
-                    0x16,
+                 /* 0x15  =  E NL */
+                    0x16, /* E BS */
                     0x17,
                     0x18,
                     0x19,
                     0x1A,
-                 /* 0x1B = A ESC */
+                    0x1B, /* A ESC */
                     0x1C,
                     0x1D,
                     0x1E,
