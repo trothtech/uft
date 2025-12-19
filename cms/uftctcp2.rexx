@@ -104,9 +104,11 @@ buffer = ""
 u = "-"
 qs = 65024
 qs = 32256
+grc = 0
 
 /* read the herald from the server - standard for UFT since forever   */
 line = getline()
+If grc ^= 0 Then Exit grc
 retry = 5 ; Do While line = "" & retry > 0
                      line = getline() ; retry = retry - 1 ; End
 If line = "" Then Do
@@ -297,7 +299,7 @@ Return
  *              that all other 'PEEKTO' and 'READTO' want stream 0
  *              so it explicitly switches back to stream 0.
  */
-GETLINE: Procedure Expose buffer uft aex.
+GETLINE: Procedure Expose buffer uft aex. grc
 
 'SELECT INPUT TCP'
 
@@ -307,6 +309,7 @@ Do While POS('0A'x,buffer) = 0 & POS('00'x,buffer) = 0 ,
 
     'PEEKTO RECORD'
     If rc = 0 Then Do ; buffer = buffer || record ; 'READTO' ; End
+              Else Do ; grc = rc ; Return ; End
     retry = retry - 1
 
 End /* Do While */
@@ -324,10 +327,10 @@ Return Translate(line,aex.2,aex.1)
  *  Response codes starting with '2' are ACK, '1' are informational
  *  (thus, iterate), '5' and '4' error, '3' means "send more".
  */
-UFTCWACK: Procedure Expose buffer uft aex.
+UFTCWACK: Procedure Expose buffer uft aex. grc
 Do Forever
-    line = getline()
-    If line = "" Then line = getline()
+    line = getline() ; If grc ^= 0 Then Return 1
+    If line = "" Then line = getline() ; If grc ^= 0 Then Return 1
 /*  If line = "" Then Return 0 "ACK (NULL)"                           */
     If line = "" Then Return 1 "ACK (NULL)"
     If Left(line,1) = '1' Then Iterate
