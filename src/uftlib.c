@@ -1428,14 +1428,12 @@ int uftctext(int s,char*b,int l)
     p = t;
     for (i = 0; i < j; i++)
       {
-        if (*p == '\n')
-          {
-            b[i] = '\r';
-            i++;  j++;
-          }
+        if (*p == '\n') { b[i] = '\r'; i++;  j++; }
         b[i] = *p++;
       }
  */
+
+//  t[j] = 0x00;
     j = htonb(b,t,j);
 
     return j;

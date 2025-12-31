@@ -229,7 +229,8 @@ fprintf(stderr,"%s: open('%s.df',) returned %d\n",arg0,us.uft_sidp,rc);
     else  while (1)
       { rc = i = uftctext(fd,buff,sizeof(buff)); if (rc == 0)
         rc = i = uftctext(fd,buff,sizeof(buff)); if (rc < 1) break;
-        rc = uftx_putline(1,buff,0); }
+//      rc = uftx_putline(1,buff,i); }
+        rc = write(1,buff,i); }
 
     /* if the spool file is not held nor kept then delete it */
     if (hold || keep) { if (uftcflag & UFT_VERBOSE)
