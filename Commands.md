@@ -4,7 +4,8 @@ These are the commands provided in the UFT project.
 
 UFT is mostly a command-line facility as of this writing.
 On z/VM there are full-screen tools, native to the operating system,
-which can work with UFT. But there are no equivalents on Unix/Linux.
+which can work with UFT. But there are no equivalents on Unix/Linux
+so the project supplies some simplistic work-alikes.
 
 ## Commands
 
@@ -33,21 +34,21 @@ On CMS, use the IBM-supplied `receive` command.
 * `rls`
 
 Use the `rls` shell script on Unix and Unix-like systems
-to list files waiting on your virtual loading dock.
+to list files waiting on your virtual delivery dock.
 
 On z/VM systems, use `q rdr` or `#cp q rdr` to list incoming files.
 
 * `rrm`
 
 Use the `rrm` shell script on Unix and Unix-like systems
-to remove files (to purge them) from your virtual loading dock.
+to remove files (to purge them) from your virtual delivery dock.
 
 On z/VM systems, `purge rdr` or `#cp purge rdr`.
 
 * `rstat`
 
 Use the `rstat` shell script on Unix and Unix-like systems
-to display attributes of a file in your virtual loading dock.
+to display attributes of a file in your virtual delivery dock.
 
 Every incoming UFT file will have at least a `.cf` and `.df`
 physical file representing it and you can source the `.cf` file
@@ -69,7 +70,7 @@ There is no counterpart for VM/CMS as of time of writing.
 
 The `uftxdspl` command on Unix and Unix-like systems retrieves attributes
 from the `.cf` file and content from the `.df` file of a UFT file
-waiting in your virtual reader (waiting on your virtual loading dock).
+waiting in your virtual reader (waiting on your virtual delivery dock).
 
 The output from `uftxdspl` consists of metadata statements,
 followed by `DATA` on a line by itself, and then the body of the file.

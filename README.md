@@ -31,7 +31,7 @@ The only option it takes is `--prefix`.
 The `sf` UFT client command sends files to UFT servers. <br/>
 Use either "-a" for plain text files or "-i" for binary files.
 
-Files received by the UFT server are held in a sort of "loading dock"
+Files received by the UFT server are held in a sort of "delivery dock"
 for disposition by the target user. There are two commands: `rls`
 to list files waiting on the dock, and `rcv` to receive selected files.
 
