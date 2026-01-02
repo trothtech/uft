@@ -86,14 +86,14 @@
 *507    E no preserved data to restore
 *
 *   HCP002E invalid operand - operand
-*   HCP003E invalid option - command contains extra option(s) starting with operand
+*   HCP003E invalid option - command has extra option(s) starting with operand
 *   HCP007E invalid userid - userid
 *   HCP041E LOGMSG nn does not exist.
 *   HCP1506E the last line (50) in the log message is already in use.
 *   HCP6704E missing token at end of line
 *   HCP6706E invalid {group name|account ID} - {groupname|accountid}
 *   HCP6734E support for file-based LOGMSG is not enabled.
-*   HCP6771E LOGMSG support based on {Account ID|ACI group|Userid} is not enabled.
+*   HCP6771E LOGMSG support based on {Account ID|ACI group|Userid} not enabled.
 *
 * spontaneous info messages (including deprecated UFT/1 herald)
 0100      100 &1 UFT/1 VMCMSUFT/1.2.2 ready.
@@ -241,6 +241,7 @@
 0571    E 571 User &1 not available
 0597    E 597 User validation function &1 not found
 *
+0614      614 HELP:
  699      699 &1
 *
  999      © Copyright 1995, 1997, 2025 Richard M. Troth, all rights reserved.

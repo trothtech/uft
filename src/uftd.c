@@ -322,20 +322,20 @@ int main(int argc,char*argv[])
 
         /* --------------------------------------------- HELP command */
         if (uftx_abbrev("HELP",p,1))
-          { (void) sprintf(temp,"114 HELP: protocol: %s",UFT_PROTOCOL);
+          { (void) sprintf(temp,"614 HELP: protocol: %s",UFT_PROTOCOL);
             (void) tcpputs(1,temp);
 #ifndef         UFT_ANONYMOUS
-            (void) sprintf(temp,"114 HELP: server: %s",UFT_VERSION);
+            (void) sprintf(temp,"614 HELP: server: %s",UFT_VERSION);
             (void) tcpputs(1,temp);
 #endif
-            (void) tcpputs(1,"114 HELP: commands:");
-            (void) tcpputs(1,"114 HELP: FILE <size> <from> <auth>");
-            (void) tcpputs(1,"114 HELP: USER <recipient>");
-            (void) tcpputs(1,"114 HELP: TYPE <filetype>");
-            (void) tcpputs(1,"114 HELP: NAME <filename>");
-            (void) tcpputs(1,"114 HELP: DATA <burst_size>");
-            (void) tcpputs(1,"114 HELP: EOF");
-            (void) tcpputs(1,"114 HELP: QUIT");
+            (void) tcpputs(1,"614 HELP: commands:");
+            (void) tcpputs(1,"614 HELP: FILE <size> <from> <auth>");
+            (void) tcpputs(1,"614 HELP: USER <recipient>");
+            (void) tcpputs(1,"614 HELP: TYPE <filetype>");
+            (void) tcpputs(1,"614 HELP: NAME <filename>");
+            (void) tcpputs(1,"614 HELP: DATA <burst_size>");
+            (void) tcpputs(1,"614 HELP: EOF");
+            (void) tcpputs(1,"614 HELP: QUIT");
             (void) tcpputs(1,"214 HELP: end of HELP");
             continue;                           /* continue after ACK */
           }
