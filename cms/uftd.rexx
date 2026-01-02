@@ -383,7 +383,7 @@ Do Forever
             'CALLPIPE COMMAND XMITMSG 114' ,
                 '(APPLID UFT CALLER SRV NOHEADER | *.OUTPUT:'
             'CALLPIPE < UFTDHELP TXT' ,
-                '| SPEC /114 / 1 1-* NEXT | *.OUTPUT:'
+                '| SPEC /614 / 1 1-* NEXT | *.OUTPUT:'
             'CALLPIPE COMMAND XMITMSG 214' ,
                 '(APPLID UFT CALLER SRV NOHEADER | *.OUTPUT:'
         End /* When .. Do */

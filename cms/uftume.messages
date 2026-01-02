@@ -86,14 +86,14 @@
 *507    E no preserved data to restore
 *
 *   HCP002E invalid operand - operand
-*   HCP003E invalid option - command contains extra option(s) starting with operand
+*   HCP003E invalid option - command has extra option(s) starting with operand
 *   HCP007E invalid userid - userid
 *   HCP041E LOGMSG nn does not exist.
 *   HCP1506E the last line (50) in the log message is already in use.
 *   HCP6704E missing token at end of line
 *   HCP6706E invalid {group name|account ID} - {groupname|accountid}
 *   HCP6734E support for file-based LOGMSG is not enabled.
-*   HCP6771E LOGMSG support based on {Account ID|ACI group|Userid} is not enabled.
+*   HCP6771E LOGMSG support based on {Account ID|ACI group|Userid} not enabled.
 *
 * spontaneous info messages (including deprecated UFT/1 herald)
 0100      100 &1 UFT/1 VMCMSUFT/1.2.2 ready.
@@ -120,36 +120,36 @@
  199      199 &1
 *
 * help for curious telnetters and netcatters
-0101  01  101
-0101  02  101 Universal File Transfer (UFT) command summary
-0101  03  101
-0101  04  101 Primary commands:
-0101  05  101    FILE   size  from
-0101  06  101    USER   user
-0101  07  101    TYPE   type  [cc]
-0101  08  101    NAME   name
-0101  09  101    DATE   date  time  tz
-0101  10  101
-0101  11  101 Commands meaningful for print jobs:
-0101  12  101    FORM   form
-0101  13  101    DEST   dest
-0101  14  101    DIST   dist
-0101  15  101    COPY   copy
-0101  16  101    CLASS  class  [devtype]
-0101  17  101
-0101  18  101 Commands meaningful for IBM print jobs:
-0101  19  101    FCB    fcb
-0101  20  101    UCS    ucs
-0101  21  101    HOLD   hold
-0101  22  101    KEEP   keep
-0101  23  101    MSG    msg
-0101  24  101
-0101  25  101 Other commands:
-0101  26  101    DATA   burst-size
-0101  27  101    EOF
-0101  28  101    QUIT
-0101  29  101    HELP
-0101  30  101
+*101  01  101
+*101  02  101 Universal File Transfer (UFT) command summary
+*101  03  101
+*101  04  101 Primary commands:
+*101  05  101    FILE   size  from
+*101  06  101    USER   user
+*101  07  101    TYPE   type  [cc]
+*101  08  101    NAME   name
+*101  09  101    DATE   date  time  tz
+*101  10  101
+*101  11  101 Commands meaningful for print jobs:
+*101  12  101    FORM   form
+*101  13  101    DEST   dest
+*101  14  101    DIST   dist
+*101  15  101    COPY   copy
+*101  16  101    CLASS  class  [devtype]
+*101  17  101
+*101  18  101 Commands meaningful for IBM print jobs:
+*101  19  101    FCB    fcb
+*101  20  101    UCS    ucs
+*101  21  101    HOLD   hold
+*101  22  101    KEEP   keep
+*101  23  101    MSG    msg
+*101  24  101
+*101  25  101 Other commands:
+*101  26  101    DATA   burst-size
+*101  27  101    EOF
+*101  28  101    QUIT
+*101  29  101    HELP
+*101  30  101
 *
 * 2XX range are ACKs:
 0200      200 ACK
@@ -241,6 +241,7 @@
 0571    E 571 User &1 not available
 0597    E 597 User validation function &1 not found
 *
+0614      614 HELP:
  699      699 &1
 *
  999      © Copyright 1995, 1997, 2025 Richard M. Troth, all rights reserved.
