@@ -233,15 +233,13 @@ int main(int argc,char*argv[])
 
 /* FIXME: we need a safety scan both here and "traditional" (below)   */
 /* the following are explicitly okay:
-    CLASS
-    COPY
-    DATE
+    CLASS               okay
+    DATE                okay
     DEST
     DIST
     FCB
-    FORM
+    FORM                okay
     GROUP
-    HOLD
     NAME
     NOTIFY
     OWNER
@@ -249,9 +247,9 @@ int main(int argc,char*argv[])
     RECLEN
     SEQ
     TITLE
-    UCS
+    UCS                 okay
     VERSION
-    XDATE
+    XDATE               okay
     XPERM
  */
 
@@ -723,16 +721,20 @@ int main(int argc,char*argv[])
           }
 
         /* known attribute? --------------------- other META commands */
-        if (uftx_abbrev("DATE",p,2)  |   uftx_abbrev("XDATE",p,2) |
-            uftx_abbrev("PERM",p,4)  |   uftx_abbrev("CHARSET",p,5) |
-            uftx_abbrev("UCS",p,3)   |   uftx_abbrev("TRAIN",p,2) |
-            uftx_abbrev("RECFMT",p,4) |  uftx_abbrev("RECORD_FORMAT",p,8) |
-            uftx_abbrev("LRECLEN",p,5) |
-            uftx_abbrev("RECLEN",p,4) |  uftx_abbrev("RECORD_LENGTH",p,8) |
-            uftx_abbrev("CLASS",p,2) |   uftx_abbrev("FORM",p,2)|
-            uftx_abbrev("FCB",p,3)   |   uftx_abbrev("CTAPE",p,2) |
+        if (uftx_abbrev("DATE",p,2)     | uftx_abbrev("XDATE",p,2)     |
+            uftx_abbrev("PERM",p,4)     | uftx_abbrev("CHARSET",p,5)   |
+            uftx_abbrev("UCS",p,3)      | uftx_abbrev("TRAIN",p,2)     |
+            uftx_abbrev("RECFMT",p,4)   | uftx_abbrev("RECORD_FORMAT",p,8) |
+            uftx_abbrev("LRECLEN",p,5)  |
+            uftx_abbrev("RECLEN",p,4)   | uftx_abbrev("RECORD_LENGTH",p,8) |
+            uftx_abbrev("CLASS",p,2)    | uftx_abbrev("FORM",p,2)      |
+            uftx_abbrev("FCB",p,3)      | uftx_abbrev("CTAPE",p,2)     |
             uftx_abbrev("DESTINATION",p,4) |
             uftx_abbrev("DISTRIBUTION",p,4) |
+            uftx_abbrev("COPY",p,3)     | uftx_abbrev("COPIES",p,2)    |
+            uftx_abbrev("HOLD",p,4)     |
+            uftx_abbrev("KEEP",p,4)     |
+            uftx_abbrev("TAG",p,4)      |
             uftx_abbrev("TITLE",p,2))
           { /*  put this variable into the control file  */
             (void) sprintf(temp,"%s='%s'",p,q);

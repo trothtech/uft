@@ -27,11 +27,11 @@
 /* the version number and copyright */
 #define         UFT_PROTOCOL    "UFT/2"
 #ifndef         UFT_VERSION
- #define        UFT_VERSION     "POSIXUFT/2.0.15"
+ #define        UFT_VERSION     "POSIXUFT/2.0.16"
 #endif
 #define         UFT_COPYRIGHT   "© Copyright 1995-2025 Richard M. Troth"
-#define         UFT_VRM         "2.0.15"
-#define    UFT_VERINT    (((2) << 24) + ((0) << 16) + ((15) << 8) + (0))
+#define         UFT_VRM         "2.0.16"
+#define    UFT_VERINT    (((2) << 24) + ((0) << 16) + ((16) << 8) + (0))
 
 #ifndef         UFT_TAG
  #define        UFT_TAG         "UFT"
@@ -367,7 +367,8 @@ int uftx_wtl(int,char*,int);                      /* write text local */
 int uftx_e2l(int,char*,int);                 /* write EBCDIC to local */
 int uftx_getndr(int,struct UFTNDIO*,int*,char**,int*);     /* netdata */
 int uftx_ndfd(int,int,int);                 /* Netdata stream via FDs */
-int uftx_isbinary(char*,int);
+int uftx_isbinary(char*,int);               /* content appears binary */
+int uftx_ccap(int*,char*,char*,int,char*,int);  /* UFT command output */
 
 void uftdstat(int,char*);
 

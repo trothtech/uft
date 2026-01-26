@@ -300,7 +300,7 @@ int msgd_umsg(char*user,char*text,char*from)
     return rc;
   }
 
-/* -------------------------------------------------- File Announce FANN
+/* --------------------------------------------- File Announce UFTD_FANN
  *    This routine announces the arrival of a file.
  *       Calls: msgd_xmsg_sock(), msgd_xmsg_fifo(), uftd_message()
  */
@@ -380,7 +380,7 @@ int uftd_fann(char*user,char*spid,char*from)
     return rc;
   }
 
-/* -------------------------------------------------- File Announce TANN
+/* --------------------------------------------- File Announce UFTD_TANN
  *    This routine announces the transfer of a file.
  *       Calls: msgd_xmsg_sock(), msgd_xmsg_fifo(), uftd_message()
  */
@@ -471,7 +471,7 @@ int uftd_tann(char*user,char*spid,char*from)
  *
  */
 
-/* -------------------------------------------------------------- USERID
+/* -- USERID ------------------------------------------------- UFTX_USER
  *    return login name from the best of several standard sources
  *
  *        Note: Size is limited to 63 characters because we force it
@@ -651,7 +651,7 @@ char*uftx_home(char*user)
 #endif
   }
 
-/* ------------------------------------------------------------- GETLINE
+/* -------------------------------------------------------- UFTX_GETLINE
  *        Name: GETLINE/UFTXGETS/UFTXRCVS
  *              common Get/Receive String function
  *   Operation: Reads a CR/LF terminated string from stream s
@@ -717,7 +717,7 @@ int uftx_getline(int s,char*b,int l)
     return i;
   }
 
-/* ------------------------------------------------------------- PUTLINE
+/* -------------------------------------------------------- UFTX_PUTLINE
  *        Name: PUTLINE/UFTXPUTS
  *              common Put String function
  *   Operation: Writes the NULL terminated string from buffer b
@@ -998,7 +998,7 @@ int uftd_agck(char*k)
     return 5;
   }
 
-/* -------------------------------------------------------------- GETENV
+/* --------------------------------------------------------- UFTX_GETENV
  *    Returns a pointer to the value of the requested variable,
  *    or points to the end of the environment buffer. (double null)
  */
@@ -1033,7 +1033,7 @@ char*uftx_getenv(char*var,char*env)
 /*  p = "MSGTYPE=IMSG";         ** 7 - IMSG      */
 /*  p = "MSGTYPE=FMSG";         ** 8 - SCIF      */
 
-/* ------------------------------------------------------------ BASENAME
+/* ------------------------------------------------------- UFTX_BASENAME
  *    Returns a pointer to the filename at the enf of a path.
  */
 char*uftx_basename(char*s)
@@ -1047,7 +1047,7 @@ char*uftx_basename(char*s)
     return p;
   }
 
-/* -------------------------------------------------------------- PARSE1
+/* --------------------------------------------------------- UFTX_PARSE1
  *    Terminates a string AFTER the first blank-delimited token.
  */
 char*uftx_parse1(char*s)
@@ -1059,7 +1059,7 @@ char*uftx_parse1(char*s)
     return s;
   }
 
-/* --------------------------------------------------------------- PROXY
+/* ---------------------------------------------------------- UFTX_PROXY
  *    Launch a proxy program with its stdin and stdout connected,
  *    something like ... ProxyCommand='netcat -x 127.0.0.1:9050 %h %p'
  *
@@ -1125,9 +1125,9 @@ int uftx_proxy(char*host,char*prox,int*fd)
  *    This routine parses a UFT "control file" on the receiving host.
  *    Compare with standard Unix/POSIX stat() system call.
  *
- *        Note: a UFT "spool file" should not have ".cf" or ".df"
+ *        Note: a UFT "spool file" should not have the ".cf" or ".df"
  *              or similar qualifiers. It should be numeric, four digits
- *              (unless more digits are needed), and comprised of
+ *              (unless more digits are needed), file comprised of
  *              (at least) the ".cf" and ".df" physical Unix files.
  */
 int uft_stat(char*sid,struct UFTSTAT*us)
@@ -1287,7 +1287,7 @@ us->uft_from[0] = 0x00;
 #endif
   }
 
-/* --------------------------------------------------------------- PURGE
+/* ----------------------------------------------------------- UFT_PURGE
  *    Remove all files (per known extensions) for this spool file.
  */
 int uft_purge(struct UFTSTAT*us)
@@ -1652,7 +1652,7 @@ int uftx_e2l(int s,char*b,int l)
     return rc;
   }
 
-/* -------------------------------------------------------------- GETNDR
+/* --------------------------------------------------------- UFTX_GETNDR
  *    Get a NETDATA Record
  *    need: fd, buffer, bufmax, buflen, bufdex
  *    give: output (pointer), outlen (size/len), and adjust the buffer
@@ -1713,7 +1713,7 @@ int uftx_getndr(int fd,struct UFTNDIO*uftndio,int*flag,char**output,int*outlen)
     return 0;
   }
 
-/* ---------------------------------------------------------------- NDFD
+/* ----------------------------------------------------------- UFTX_NDFD
  *    UFT Netdata Stream Decoder - Netdata via File Descriptors
  *        Note: maximum recovered record size is 64K bytes
  */
@@ -1769,7 +1769,7 @@ int uftx_ndfd(int fdi,int fdo,int flag)
     return rc;
   }
 
-/* ------------------------------------------------------------ ISBINARY
+/* ------------------------------------------------------- UFTX_ISBINARY
  *    This routine makes a best guess about the content, whether it is
  *    "binary" or textual, based on the record supplied to it.
  *     Returns: non-zero if the record appears to contain binary content
@@ -1817,7 +1817,7 @@ int uftx_isbinary(char*b,int l)
     return 0;
   }
 
-/* -------------------------------------------------------------- ABBREV
+/* --------------------------------------------------------- UFTX_ABBREV
  * Returns length of info if info is an abbreviation of informat.
  * Returns zero if info does not match or is shorter than minlen.
  * Comparison is not case sensitive.
@@ -1829,6 +1829,55 @@ int uftx_abbrev(char*informat,char*info,int minlen)
         if (toupper(informat[i]) != toupper(info[i])) return 0;
     if (i < minlen) return 0;
     return i;
+  }
+
+/* ----------------------------------------------------------- UFTX_CCAP
+      "Command Capture" (capture the output of a UFT command)
+      This is a client-mode function used by both clients and servers.
+      Send a UFT command to the (connected) server
+      then read the response: 6 to buffer, 2 good, others bad.
+      Feed 6XX to main buffer and status (2, 3, 4, 5) to alternate.
+      Returns: positive (length of string in main), negative (error)
+      Negative return values usually convey code from UFT server.
+ */
+int uftx_ccap(int*fd,char*c,char*rb,int rl,char*sb,int sl)
+  {
+    int rc, l, n;
+    char mybuff[1024], *p;
+
+    rl = rl - 1; sl = sl - 1;      /* room for NULL string terminator */
+    n = 0;                            /* initial response length zero */
+
+    rc = tcpputs(fd[1],c);                       /* issue the command */
+
+    while (1)
+      { rc = uftx_getline(fd[0],mybuff,sizeof(mybuff)); /* get a line */
+        p = mybuff;  while (*p <= ' ' && *p != 0x00) p++;
+        switch (*p)
+          {
+            case '1':          /* output only if "verbose", then loop */
+                if (uftcflag & UFT_VERBOSE) /* putline */ ;
+                break;                                        /* loop */
+            case '2':                         /* store status, return */
+/*              while (*p > ' ') p++; if (*p == ' ') p++;             */
+                l = strlen(p); if (l > sl) l = sl;
+                memcpy(sb,p,l);
+                sb[l] = 0x00;
+                return n;           /* return 0 or length of response */
+                break;
+            case '6':                      /* queue into buffer, loop */
+                while (*p > ' ') p++; if (*p == ' ') p++;
+                l = strlen(p); if (l > rl) l = rl;
+                memcpy(rb,p,l);
+/*              rb[l++] = '\r';                                       */
+                rb[l++] = '\n'; rb[l] = 0x00; n = n + l;
+                rb = &rb[l];                 /* point to next segment */
+                break;                                        /* loop */
+            default:           /* report or store error, return error */
+                return -1;
+                break;
+          }
+      }
   }
 
 /* ------------------------------------------------------------ MSGWRITE
