@@ -7,7 +7,8 @@
  *              to avoid mixing Rexx/Sockets with CMS Pipelines.
  *      Author: Rick Troth, Cedarville, Ohio, USA
  *        Date: 2025-09-15
- *    See also: UFTCTCP REXX, UFTCFILE, UFTCUSER, UFTCHOST
+ *    See also: UFTCFILE, UFTCUSER, UFTCHOST, UFTXDSPL
+ *    Revision: 2.0.16
  *
  *        Note: UFTCTCP2 is not a user-level pipeline stage.
  *
@@ -17,7 +18,7 @@
 
 /* identify this stage to itself */
 Parse Source . . arg0 .
-argl = '*' || arg0 || ':'                                  /* logging */
+argl = '*' || arg0 || ':'                              /* for logging */
 
 /* parse command line arguments */
 Parse Arg host port . '(' opts ')' .
@@ -100,13 +101,15 @@ If rc ^= 0 Then Exit rc
          || '5CF7535455565758595AB2D4D6D2D3D530313233343536373839B3DBDCD9DA9F'x
 aex.1 = XRANGE('00'x,'FF'x)     /* need this even if we have TCPXLBIN */
 
-buffer = ""
+buffer = ""             /* initially empty input (from server) buffer */
 u = "-"
 qs = 65024
-qs = 32256
+qs = 32256              /* recommended burst size */
 grc = 0
 
 /* read the herald from the server - standard for UFT since forever   */
+/* a UFT/1 server should send a 1xx herald                            */
+/* a UFT/2 server should send a 2xx herald                            */
 line = getline()
 If grc ^= 0 Then Exit grc
 retry = 5 ; Do While line = "" & retry > 0
@@ -119,8 +122,8 @@ End /* If .. Do */
 /* does the server want UFT/1 or UFT/2? (and we hope for the latter)  */
 If Left(line,1) = '2' Then uft = 2
                       Else uft = 1        /* really REALLY not likely */
-'OUTPUT' line
-'OUTPUT' argl "UFT level" uft
+'OUTPUT' line                                              /* logging */
+'OUTPUT' argl "UFT level" uft                              /* logging */
 
 type = "";  cc = ""
 /* send the commands (parmeters; ie: the "meta" file) and controls    */
@@ -130,7 +133,7 @@ Do Forever
     If rc ^= 0 Then Leave
 
     /* echo the command from our input stage and then parse it        */
-    'OUTPUT' line
+    'OUTPUT' line                                          /* logging */
     Parse Upper Var line cmnd .
     If cmnd = "META" Then Do
         Parse Var line . line
@@ -146,18 +149,19 @@ Do Forever
     If Abbrev("TYPE",cmnd,4) & ^meta Then ,
         Parse Upper Var line . type cc .
 
-    /* if user specified on command line then do NOT sent from stream */
+    /* if user specified on command line then do NOT send from stream */
     If Abbrev("USER",cmnd,4) & ^meta & user ^= "" Then Do
-        'OUTPUT' argl "USER statement overridden/ignored"
+        'OUTPUT' argl "USER statement overridden/ignored"  /* logging */
         'READTO'
         Iterate
     End /* If .. Do */
 
-    /* but do collect USER commands if none specified on command line */
+    /* but do collect USER commands if not specified on command line  */
     If Abbrev("USER",cmnd,4) & ^meta Then Parse Var line . u .
 
     /* watch the swizzle - FILE statement might signal USER statement */
     If Abbrev("FILE",cmnd,4) & ^meta & user ^= "" Then Do
+        'OUTPUT' line                                      /* logging */
         Call PUTLINE line          /* go ahead and send FILE stmt now */
         Parse Value uftcwack() With ac as        /* and expect an ACK */
         If ac ^= 0 Then Do
@@ -168,13 +172,13 @@ Do Forever
     End
 
     /* send a packet */
+    If meta Then line = "META" line
+    'OUTPUT' line                                          /* logging */
     Call PUTLINE line
 
-    /* for some commands, DON'T wait for ACK */
+    /* for certain commands (e.g., comments), DON'T wait for ACK      */
     If Left(line,1) = '*' | Left(line,1) = '#' Then Do
-        'READTO'
-        Iterate
-    End /* If .. Do */
+        'READTO' ; Iterate ; End
 
     /* Recover some response (ACK or NAK) */
     Parse Value uftcwack() With ac as
@@ -243,6 +247,7 @@ Do Forever
     If rc ^= 0 Then Leave
 
     /* tell the server it's coming */
+    'OUTPUT' "DATA" Length(data)                           /* logging */
     Call PUTLINE "DATA" Length(data)
 
     If uft = 2 Then Do
@@ -270,22 +275,22 @@ End /* Do Forever */
 If rc ^= 0 & rc ^= 12 Then Exit rc
 
 /* log this completion */
-'OUTPUT' argl j "records sent;" i "bytes sent"
+'OUTPUT' argl j "records sent;" i "bytes sent"             /* logging */
 
 /* provide an explicit 8712 for clarity saying "the file got through" */
 date = Date("S") || "-" || Time()
 If user = "" Then user = u
 Address "COMMAND" 'XMITMSG 8712 "*" USER HOST DATE' ,
                         '(APPLID UFT CALLER TCP VAR'
-If rc = 0 Then 'OUTPUT' argl message.1
+If rc = 0 Then 'OUTPUT' argl message.1                     /* logging */
 
 /* send an EOF command */
-'OUTPUT' "EOF"
+'OUTPUT' "EOF"                                             /* logging */
 Call PUTLINE "EOF"
 Call UFTCWACK                      /* ignoring the response condition */
 
 /* send a QUIT command */
-'OUTPUT' "QUIT"
+'OUTPUT' "QUIT"                                            /* logging */
 Call PUTLINE "QUIT"
 Call UFTCWACK                      /* ignoring the response condition */
 

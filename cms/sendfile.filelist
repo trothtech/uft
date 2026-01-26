@@ -31,16 +31,24 @@
 * use the command 'sf' to not conflict with IBM 'sendfile'
 *
       UFTCFILE REXX     *  -- client, IBM also                         y
+      UFTCFILE HELPPIPE *  --
       UFTCUSER REXX     *  -- client, IBM also                         y
+      UFTCUSER HELPPIPE *  --
       UFTCHOST REXX     *  -- client, IBM also                         y
+      UFTCHOST HELPPIPE *  --
       UFTXINMR REXX     *  -- client, IBM also                         y
-      UFTCTCP  REXX     *  -- client, IBM also, deprecated in UFT project
+      UFTXINMR HELPPIPE *  --
+*     UFTCTCP  REXX     *  -- client, IBM also, deprecated in UFT project
       UFTCTCP2 REXX     *  -- client, replaces UFTCTCP REXX, fw
+      UFTCTCP2 HELPPIPE *  --
       UFTCRSCS REXX     *  -- client, for sending via RSCS, fw         y
+      UFTCRSCS HELPPIPE *  --
       UFTCMAIL REXX     *  -- client, IBM also, for sending via email, fw
+      UFTCMAIL HELPPIPE *  --
       MAKETEXT REXX     *  -- client and server
       MAKETEXT HELPPIPE *  -- client and server
       UFTULIST REXX     *  -- client (formerly USERLIST REXX)          y
+      UFTULIST HELPPIPE *  --
 *
       64ENCODE REXX     *  -- http://vm.marist.edu/~pipeline/64encode.rexx
       64DECODE REXX     *  -- http://vm.marist.edu/~pipeline/64decode.rexx

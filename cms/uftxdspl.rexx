@@ -5,6 +5,7 @@
  *      Author: Rick Troth, Houston, Texas, USA
  *        Date: 1995-Jan-25
  *              2025-02-11
+ *    Revision: 2.0.16
  *
  *        Note: UFTXDSPL is not a user-level pipeline stage.
  *              The usual output is to the UFTCMAIN stage.
@@ -128,7 +129,7 @@ If form  ^= "" Then 'OUTPUT' "META FORM" form
 If dest  ^= "" Then 'OUTPUT' "META DEST" dest
 If dist  ^= "" Then 'OUTPUT' "META DIST" dist
 If keep  ^= "" Then 'OUTPUT' "META KEEP" keep
-If msg   ^= "" Then 'OUTPUT' "META MSG" msg
+/* msg   ^= "" Then 'OUTPUT' "META MSG" msg                           */
 
 /*  pass the file contents  */
 'OUTPUT' "DATA"       /* this is a special case of the "data" command */

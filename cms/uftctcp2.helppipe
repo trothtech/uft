@@ -1,0 +1,53 @@
+.cm Copyright 1997-2025 Richard M. Troth, all rights reserved. <plaintext>
+.cm
+.cm       Name: UFTCTCP2 HELPPIPE
+.cm     Author: Rick Troth, Cedarville, Ohio, USA
+.cm
+.cs 1 on
+ UFTCTCP2 REXX
+
+ Use the UFTCTCP2 pipeline stage to process "SIFT jobs".
+ UFTCTCP2 invokes CMS Pipelines 'TCPCLIENT' and other stages
+ to communicate directly with the target UFT server.
+.cs 1 off
+.cs 2 on
+
+ The syntax for the UFTCTCP2 stage is:
+ +-----------------------+---------------------------------------------+
+ |                       |                                             |
+ |   [REXX]   UFTCTCP2   |   [user[@host]]                             |
+ |                       |                                             |
+ +-----------------------+---------------------------------------------+
+
+.cs 2 off
+.cs 5 on
+
+ notes:
+
+ UFTCTCP2 is used by other applications to transmit files.
+ It is not usually invoked from the command line.
+
+ UFTCTCP2's operation provides the "on the wire" operation needed by a
+ UFT transaction. The input is a "SIFT job" (batch version of UFT).
+
+ streams:
+
+ PRIMARY INPUT
+ The primary input stream is a SIFT job, consisting of file attributes
+ followed by file content. The content will be canonized for
+ transmission by UFTCTCP2 according to the TYPE specified in the job.
+
+ PRIMARY OUTPUT
+ The primary output may contain error messages or other output
+ suitable for logging from the stages which UFTCTCP2 invokes.
+ Leaving primary output unconnected is not harmful.
+
+.cs 5 off
+.cs 7 on
+UFTCTCP2 REXX related topics:
+
+
+UFT      UFTTYPES       UFT TYPE values recognized by UFTCTCP2 REXX
+
+.cs 7 off
+
