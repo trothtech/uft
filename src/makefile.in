@@ -353,11 +353,11 @@ corral:		$(DELIVERABLES)
 		rm -f sf tell uftcndd uftd
 
 install:	$(DELIVERABLES)
-		mkdir -p $(PREFIX)/bin $(PREFIX)/etc/xinetd.d \
+		mkdir -p $(PREFIX)/bin \
 			$(PREFIX)/share/locale/$(LOCALE) $(PREFIX)/libexec
 		cp -p sf rls rcv rstat rrm uftcndd tell cpq $(PREFIX)/bin/.
 		cp -p uftd uftxdspl uftctcp2 $(PREFIX)/libexec/.
-		cp -p uft.inet $(PREFIX)/etc/xinetd.d/uft
+#		cp -p uft.inet $(PREFIX)/etc/xinetd.d/uft
 		cp -p uft.msgs $(PREFIX)/share/locale/$(LOCALE)/.
 
 ########################################################################

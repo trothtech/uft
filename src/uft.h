@@ -27,11 +27,11 @@
 /* the version number and copyright */
 #define         UFT_PROTOCOL    "UFT/2"
 #ifndef         UFT_VERSION
- #define        UFT_VERSION     "POSIXUFT/2.0.16"
+ #define        UFT_VERSION     "POSIXUFT/2.0.17"
 #endif
 #define         UFT_COPYRIGHT   "© Copyright 1995-2025 Richard M. Troth"
-#define         UFT_VRM         "2.0.16"
-#define    UFT_VERINT    (((2) << 24) + ((0) << 16) + ((16) << 8) + (0))
+#define         UFT_VRM         "2.0.17"
+#define    UFT_VERINT    (((2) << 24) + ((0) << 16) + ((17) << 8) + (0))
 
 #ifndef         UFT_TAG
  #define        UFT_TAG         "UFT"

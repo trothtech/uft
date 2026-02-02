@@ -133,7 +133,7 @@ Do Forever
     If rc ^= 0 Then Leave
 
     /* echo the command from our input stage and then parse it        */
-    'OUTPUT' line                                          /* logging */
+/*  'OUTPUT' line                                          ** logging */
     Parse Upper Var line cmnd .
     If cmnd = "META" Then Do
         Parse Var line . line
@@ -314,7 +314,7 @@ Do While POS('0A'x,buffer) = 0 & POS('00'x,buffer) = 0 ,
 
     'PEEKTO RECORD'
     If rc = 0 Then Do ; buffer = buffer || record ; 'READTO' ; End
-              Else Do ; grc = rc ; Return ; End
+              Else Do ; grc = rc ; Return "" ; End
     retry = retry - 1
 
 End /* Do While */

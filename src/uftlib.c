@@ -10,13 +10,6 @@
  *
  *        Note: This is for UFT but includes MSG functions also.
  *
-
-needed:
-int uftc_open(char*,char*,int*);
-uftc_write()
-uftc_read()
-int uftc_close(int*);
-
  */
 
 #ifndef PREFIX
@@ -42,6 +35,10 @@ int uftc_close(int*);
  #include <pwd.h>
  #include <errno.h>
 #endif
+
+#include <netinet/in.h>
+
+#include <netdb.h>
 
 #include <ctype.h>
 #include "aecs.h"
@@ -923,14 +920,21 @@ int uftc_wack(int s,char*b,int l)
 
 /* ----------------------------------------------------------- UFTC_OPEN
  *    open a connection to the UFT server - direct TCP or via proxy
+ *    Note: 2.0.17 revision eliminates use of tcpopen() from tcpio.c
  */
 int uftc_open(char*peer,char*prox,int*pipe)
   { static char _eyecatcher[] = "uftc_open()";
-    int s;
-    char temp[256];
+    int s, rc;
+    char temp[256], *host, *port, *tail;
+    union addr {
+    struct sockaddr addr4;
+    struct sockaddr_in6 addr6;
+               };
+    struct addrinfo *res, *res2;
 
-    /* if the supplied peer is bogus then stop right here             */
-    if (peer == NULL && *peer == 0x00) return -1; /* FIXME: set errno */
+    /* if either supplied peer or pipe is bogus then stop right here  */
+    if (peer == NULL && *peer == 0x00) { errno = EINVAL; return -1; }
+    if (pipe == NULL) { errno = EINVAL; return -1; }
 
     /* tack-on the TCP port number                                    */
     snprintf(temp,sizeof(temp)-1,"%s:%d",peer,UFT_PORT);
@@ -938,11 +942,40 @@ int uftc_open(char*peer,char*prox,int*pipe)
     /* if a proxy string was provided then try connecting that way    */
     if (prox != NULL && *prox != 0x00) return uftx_proxy(temp,prox,pipe);
 
-    /* normal connection is direct TCP with built-in DNS resolution   */
-    s = tcpopen(temp,0,0);
-/*  if (s < 0) { perror(peer); return -1; }            ** open failed */
-    if (s < 0) return s;                               /* open failed */
-    pipe[0] = pipe[1] = s;      /* input and output are the same here */
+    /* parse host address and port number by colon                    */
+    host = port = temp;
+    if (*peer == '[') { host++; port++;
+        while (*port != ']' && *port != 0x00) port++;
+        if (*port == ']') *port++ = 0x00; }
+                 else
+        while (*port != ':' && *port != 0x00) port++;
+    if (*port == ':') *port++ = 0x00;
+    tail = port; while (*tail != ':' && *tail != 0x00) tail++;
+    if (*tail == ':') *tail = 0x00;
+
+    /* drop the heavy lifting onto getaddrinfo()                      */
+    rc = getaddrinfo(host,port,NULL,&res);
+    if (rc != 0) return rc;
+
+    /* just in case ... prep the pipe pair as "disconnected"          */
+    pipe[0] = pipe[1] = -1;
+
+    /* step through the addrinfo structures from getaddrinfo()        */
+    res2 = res;
+    while (res2 != NULL)
+      {
+/*      saprint(res2->ai_addr,res2->ai_addrlen);                      */
+        rc = s = socket(res2->ai_family,SOCK_STREAM,0);
+        if (rc >= 0)
+        rc = connect(s,res2->ai_addr,res2->ai_addrlen);
+        if (rc >= 0) break;      /* on success break out of this loop */
+        res2 = res2->ai_next;
+      }
+    freeaddrinfo(res);
+
+    /* a proper Berkeley socket handles both input (0) and output (1) */
+    pipe[0] = pipe[1] = s;
+
     return 0;
   }
 
@@ -1433,7 +1466,7 @@ int uftctext(int s,char*b,int l)
       }
  */
 
-//  t[j] = 0x00;
+/*  t[j] = 0x00;                                                      */
     j = htonb(b,t,j);
 
     return j;
@@ -1597,13 +1630,16 @@ int uftx_wtl(int s,char*b,int l)
 #ifdef OECS
             stratoe(b);       /* optionally translate ASCII to EBCDIC */
 #endif
-            b[o] = '\n';               /* put that newline at the end */
+//          b[o] = '\n';               /* put that newline at the end */
+            b[o-1] = '\n';             /* put that newline at the end */
             rc = write(s,b,o);
             if (rc < 0) return rc;      /* if error then bail out now */
             n = n + o;                        /* old school but works */
             o = 0;
           } else if (l <= 0 && o > 0) {
+#ifdef OECS
             for (i = 0; i < o; i++) b[i] = chratoe(b[i]);
+#endif
             rc = write(s,b,o);
             if (rc < 0) return rc;    } /* if error then bail out now */
         b = p;                           /* point to next line-o-text */

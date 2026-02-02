@@ -92,6 +92,8 @@
       HOSTNAME EXEC     *  --
       RLS      EXEC     *  -- 'rls' (from the POSIX version) work-alike
       RLS      REXX     *  --
+      RSTAT    EXEC     *  -- 'rstat' (from the POSIX version) work-alike
+      RSTAT    REXX     *  --
 *
 *     UFTCINMR REXX     *  -- replaced by UFTXINMR REXX
 *     UFTD     HELPABBR *  -- IBM

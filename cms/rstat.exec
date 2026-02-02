@@ -1,0 +1,17 @@
+/* © Copyright 2026 Richard M. Troth, all rights reserved. <plaintext>
+ *                                                                    *
+ *        Name: RSTAT EXEC                                            *
+ *        Date: 2025-09-09 (Tuesday)                                  *
+ *              This EXEC is just a wrapper for the Pipelines gem.    *
+ *      Author: Rick Troth, Cedarville, Ohio, USA                     *
+ *        Date: 2025-02-02                                            *
+ *    Revision: 2.0.17                                                *
+ *                                                                    *
+ *                                                                    */
+
+Parse Arg args
+Parse Source . . . . . arg0 .
+'pipe' arg0 args
+Exit rc
+
+
