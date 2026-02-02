@@ -68,7 +68,7 @@ LOCDIR=$PREFIX/share/locale                               # for xmitmsgx
 #
 # identify this environment/system
 US=`uname -s | sed 's#/##g'`
-UM=`uname -m | sed 's#^i.86$#i386#' | sed 's#^armv.l$#arm#'`
+UM=`uname -m | sed 's#^i.86$#i386#' | sed 's#^armv.l$#arm#' | sed 's#^evbarm$#arm#'`
 case "$US" in
 
     Darwin)

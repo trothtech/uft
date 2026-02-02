@@ -559,7 +559,7 @@ int htonb(unsigned char*p,unsigned char*q,size_t l)
 #endif
         v = q[i];
       }
-//  p[j] = 0x00;
+/*  p[j] = 0x00;                                                      */
     return j;
   }
 

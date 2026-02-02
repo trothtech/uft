@@ -21,15 +21,15 @@ Z=`basename "$0"`
 #
 # some environments have a non-POSIX side:
 case `uname -s` in
-    VM/ESA|z/VM) # this section depends on the CMS implementation
+    VM/ESA|z/VM) # this section depends on the VM/CMS implementation
         cms " pipe rls | > /tmp/$$.rls "
-        cat /tmp/$$.rls ; RC="$?"
+        RC=$? ; if [ $RC -eq 0 ] ; then cat /tmp/$$.rls ; RC=$? ; fi
         rm -f /tmp/$$.rls
         exit $RC
         ;;
     OS/390)
         echo "$Z: operation not supported on MVS" 1>&2
-        exit 28
+        exit 1
         ;;
 esac
 
@@ -47,6 +47,8 @@ mkdir -m 0700 "$D" 2> /dev/null
 if [ ! -d "$D" ] ; then D=/usr/spool/uft/$U ; fi
 mkdir -m 0700 "$D" 2> /dev/null
 if [ ! -d "$D" ] ; then D=/var/spool/uft/$U ; fi
+mkdir -m 0700 "$D" 2> /dev/null
+if [ ! -d "$D" ] ; then D=C:/ProgramData/uft/$U ; fi
 mkdir -m 0700 "$D" 2> /dev/null
 if [ ! -d "$D" ] ; then
     echo "$Z: UFT configuration problem: no spool directory" 1>&2

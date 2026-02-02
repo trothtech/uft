@@ -272,7 +272,7 @@ int main(int argc,char*argv[])
             if (us.uft_size < 0) { mc = 0; mn = 45; rc = -1; break; }
 
             /* point to token and discard any extra tokens            */
-            p = q; while (*q > ' ') *q++; *q = 0x00;
+            p = q; while (*q > ' ') q++; *q = 0x00;
 
             /* if user token is blank or missing that is an error     */
             if (*p == 0x00) { mc = 0; mn = 16; rc = -1; break; }

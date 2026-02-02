@@ -36,7 +36,7 @@ int main(int argc,char*argv[])
         if (rc < 0) { if (errno != 0) perror("uftx_getndr"); /* break; */ }
         if (rc < 0) fprintf(stderr,"uftx_getndr() returned %d\n",rc);
         if (rc < 0) break;
-//fprintf(stderr,"TYPE %02X\n",type);
+/* fprintf(stderr,"TYPE %02X\n",type);                                */
 
         if (type & UFT_ND_CTRL)                   /* a control record */
           { if (memcmp(part,UFT_ND_INMR06,6) == 0) break;
