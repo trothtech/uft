@@ -110,6 +110,8 @@ already built-into the CMS commands and utilities.
 * `uftd`
 
 `uftd` is the server daemon.
-It is not a user command. It is intended to be launched via INETD or XINETD.
+It is not a user command. It is intended to be launched via INETD or XINETD,
+providing UFT service for incoming files. If the launcher (INETD or XINETD)
+supports IPv6 then `uftd` will also.
 
 
