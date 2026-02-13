@@ -926,10 +926,6 @@ int uftc_open(char*peer,char*prox,int*pipe)
   { static char _eyecatcher[] = "uftc_open()";
     int s, rc;
     char temp[256], *host, *port, *tail;
-    union addr {
-    struct sockaddr addr4;
-    struct sockaddr_in6 addr6;
-               };
     struct addrinfo *res, *res2;
 
     /* if either supplied peer or pipe is bogus then stop right here  */
@@ -963,18 +959,69 @@ int uftc_open(char*peer,char*prox,int*pipe)
     /* step through the addrinfo structures from getaddrinfo()        */
     res2 = res;
     while (res2 != NULL)
-      {
-/*      saprint(res2->ai_addr,res2->ai_addrlen);                      */
+      { /* saprint(res2->ai_addr,res2->ai_addrlen);                   */
         rc = s = socket(res2->ai_family,SOCK_STREAM,0);
         if (rc >= 0)
         rc = connect(s,res2->ai_addr,res2->ai_addrlen);
         if (rc >= 0) break;      /* on success break out of this loop */
-        res2 = res2->ai_next;
-      }
+        res2 = res2->ai_next; }
     freeaddrinfo(res);
 
     /* a proper Berkeley socket handles both input (0) and output (1) */
     pipe[0] = pipe[1] = s;
+
+    return 0;
+  }
+
+/* ----------------------------------------------------------- UFTC_PEER
+ *    Rough equivalent to tcpident() from tcpip.c sans IDENT logic.
+ */
+int uftc_peer(int s,char*buff,int blen)
+  { static char _eyecatcher[] = "uftc_peer()";
+    int rc, alen;
+    union insa {
+        struct sockaddr sa;                 /* as generic as possible */
+        struct sockaddr_in sa4;               /* sockaddr for AF_INET */
+        struct sockaddr_in6 sa6;             /* sockaddr for AF_INET6 */
+        unsigned short int family;     /* common address family value */
+               } insa;                           /* internet sockaddr */
+    void*aptr;
+    char *user, host[256];
+
+    aptr = &insa;
+    user = "";
+
+    /* first, tell me about this end  */
+    alen = sizeof(insa);
+    rc = getsockname(s,aptr,&alen);
+    if (rc != 0)
+      { if (errno != 0) perror("getsockname()");
+        if (rc < 0) return rc; else return -1; }
+/*      On success, zero is returned.  On error, -1 is returned,      *
+ *      and errno is set to indicate  the error.                      */
+
+/*      saprint(aptr,alen);                                           */
+
+    /*  what's the host on the other end?  */
+    alen = sizeof(insa);
+    rc = getpeername(s,aptr,&alen);
+    if (rc != 0)
+      { if (errno != 0) perror("getpeername()");
+        if (rc < 0) return rc; else return 0 - rc; }
+/*      On success, zero is returned.  On error, -1 is returned,      *
+ *      and errno is set to indicate  the error.                      */
+
+/*      saprint(aptr,alen);                                           */
+
+    /*  what host is at that address?  */
+    rc = getnameinfo(aptr,alen,host,sizeof(host),NULL,0,NI_NAMEREQD);
+    if (rc != 0)
+      { if (errno != 0) perror("getnameinfo()");
+        if (rc < 0) return rc; else return 0 - rc; }
+/*      On success, 0 is returned, node and service names are filled. *
+ *      On error, one of the nonzero error codes is returned.         */
+
+    snprintf(buff,blen,"%s@%s",user,host);
 
     return 0;
   }
@@ -1356,7 +1403,8 @@ int uft_purge(struct UFTSTAT*us)
   }
 
 /* ----------------------------------------------------------- UFTX_ATOI
- *    Convert string to integer recognizing K or M qualifiers.
+ *    Convert string to integer recognizing K, M, or G qualifiers.
+ *    FIXME: we should also have an atol for larger than 32-bit
  */
 int uftx_atoi(char*s)
   { static char _eyecatcher[] = "uftx_atoi()";
@@ -1366,7 +1414,8 @@ int uftx_atoi(char*s)
       { switch (*s)
           { case 0x00: return i; break;
             case 'K': case 'k': i = i * 1024; return i; break;
-            case 'M': case 'm': i = i * 1048576; return i; break;
+            case 'M': case 'm': i = i * 1024 * 1024; return i; break;
+            case 'G': case 'g': i = i * 1024 * 1024 * 1024; return i; break;
             default: i = i * 10 + (*s & 0x0F); break; }
         s++; }
     return i;
@@ -1853,6 +1902,18 @@ int uftx_isbinary(char*b,int l)
     return 0;
   }
 
+/* ------------------------------------------------------- UFTX_AUTOTYPE
+ */
+int uftx_autotype(char*b,int l,int f)
+  { static char _eyecatcher[] = "uftx_autotype()";
+
+    if (f & UFT_DOTRANS) return 0;       /* if ASCII already selected */
+    if (f & UFT_NOTRANS) return 0;      /* if binary already selected */
+    if (uftx_isbinary(b,l) == 0) f = f | UFT_DOTRANS;
+                            else f = f | UFT_NOTRANS;
+    return 0;
+  }
+
 /* --------------------------------------------------------- UFTX_ABBREV
  * Returns length of info if info is an abbreviation of informat.
  * Returns zero if info does not match or is shorter than minlen.
@@ -1914,6 +1975,50 @@ int uftx_ccap(int*fd,char*c,char*rb,int rl,char*sb,int sl)
                 break;
           }
       }
+  }
+
+/* ------------------------------------------------------------- SAPRINT
+ *        Name: saprint.c
+ */
+int saprint(void*buff,int blen)
+  {
+    int i, j, k, l;
+    char *strn;
+
+    union insa {                    /* to support either IPv4 or IPv6 */
+        struct sockaddr sa;                 /* as generic as possible */
+        struct sockaddr_in sa4;               /* sockaddr for AF_INET */
+        struct sockaddr_in6 sa6;             /* sockaddr for AF_INET6 */
+        unsigned short int family;     /* common address family value */
+               } insa;                           /* internet sockaddr */
+
+    if (blen > sizeof(insa)) blen = sizeof(insa);   /* cap the length */
+    memcpy((void*)&insa,buff,blen);           /* copy to local struct */
+    /* in this routine we only use insa to get the address family     */
+
+    strn = buff;               /* use the buffer as a string of bytes */
+
+    if (insa.family == AF_INET)                    /* an IPv4 address */
+      { j = (int) strn[4]; j = j & 0xff;               /* just 8 bits */
+        fprintf(stderr,"%d",j);                    /* the first octet */
+        k = blen; if (k > 8) k = 8;               /* mark end of addr */
+        for (i = 5; i < k; i++)               /* loop all after first */
+          { j = (int) strn[i]; j = j & 0xff;           /* just 8 bits */
+            fprintf(stderr,".%d",j); } }
+
+    if (insa.family == AF_INET6)                   /* an IPv6 address */
+      { j = (((int)strn[8]) * 256) + ((int)strn[9]);
+        j = j & 0xffff;                        /* truncate to 16 bits */
+        fprintf(stderr,"%x",j);                   /* the first nibble */
+        k = blen; if (k > 24) k = 24;             /* mark end of addr */
+        for (i = 10; i < k; i = i + 2)        /* loop all after first */
+          { j = (((int)strn[i]) * 256) + ((int)strn[i+1]);
+            j = j & 0xffff;                    /* truncate to 16 bits */
+            fprintf(stderr,":%x",j); } }
+
+    fprintf(stderr,"\n");
+
+    return 0;
   }
 
 /* ------------------------------------------------------------ MSGWRITE

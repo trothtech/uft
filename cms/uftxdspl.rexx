@@ -48,7 +48,8 @@ End /* If .. Do */
 Parse Var tbl 1 . ,
         30 flash 35 . 36 fcb 39 . 40 mdfy 45 . ,
         46 flshc 51 . 52 load 56 . 57 chars . 77 size 81 .
-If Datatype(size,'W') Then size = (size * 4) || "K"
+If Datatype(size,'N') Then size = size * 4096
+                      Else size = kilomega(size) * 4096
 
 /* and finally, get and parse the long form query */
 Parse Value DiagRC(08,'QUERY READER *' sid 'ALL') With ,
@@ -283,5 +284,26 @@ yy  DIST
 'CP TAG DEV PUN' tagnode taguser tagprio tagopts
 
  */
+
+/* ------------------------------------------------------------ KILOMEGA
+ *    Convert denominated numeric values to base numeric values.
+ *    In English: if it ends in "K", multiply by 1024, "M" by 1048576.
+ *    Converts nnnP or nnnK or nnnM into their base equivalents.
+ */
+kilomega: Procedure
+Parse Upper Arg n . , .
+If Datatype(n,"N") Then Return n
+
+d = Right(n,1) ; n = Left(n,Length(n)-1)
+Select /* denominator */
+    When d = "K" Then n = n * 1024                            /* kilo */
+    When d = "P" Then n = n * 4096                            /* page */
+    When d = "M" Then n = n * 1024 * 1024                     /* mega */
+    When d = "G" Then n = n * 1024 * 1024 * 1024              /* giga */
+    When d = "T" Then n = n * 1024 * 1024 * 1024 * 1024       /* tera */
+    Otherwise         n = 0
+End /* Select denominator */
+
+Return n
 
 

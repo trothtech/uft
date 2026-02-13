@@ -8,7 +8,7 @@
  *      Author: Rick Troth, Cedarville, Ohio, USA
  *        Date: 2025-09-15
  *    See also: UFTCFILE, UFTCUSER, UFTCHOST, UFTXDSPL
- *    Revision: 2.0.16
+ *    Revision: 2.0.17
  *
  *        Note: UFTCTCP2 is not a user-level pipeline stage.
  *

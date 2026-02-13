@@ -339,15 +339,15 @@ int uftx_abbrev(char*,char*,int);
 /* functions from the library */
 int uftx_message(char*,int,int,char*,int,char*[]);
 int uftd_message(char*,char*);          /* FKA msglocal(user,text)    */
-char*uftx_home(char*);
+char*uftx_home(char*);                 /* home directory of this user */
 int msgd_umsg(char*,char*,char*);                 /* user, text, from */
 int uftx_getline(int,char*,int);        /* sock or fd, buffer, buflen */
 int uftx_putline(int,char*,int);        /* sock or fd, buffer, buflen */
 
 char*uftx_user();
-char*uftx_getenv(char*,char*);
-char*uftx_basename(char*);
-char*uftx_parse1(char*);
+char*uftx_getenv(char*,char*);       /* extract a var=val from buffer */
+char*uftx_basename(char*);          /* point to basename of file path */
+char*uftx_parse1(char*);          /* point to, and delimit, one token */
 
 int msgc_uft(char*,char*);
 int msgc_rdm(char*,char*);
@@ -360,23 +360,26 @@ int uftd_agck(char*);
 int uftc_wack(int,char*,int);                         /* wait for ACK */
 
 int uftx_proxy(char*,char*,int*);
-int uft_stat(char*,struct UFTSTAT*);
-int uft_purge(struct UFTSTAT*);
-int uftx_atoi(char*);
+int uft_stat(char*,struct UFTSTAT*);         /* info about a UFT file */
+int uft_purge(struct UFTSTAT*);               /* discard the UFT file */
+int uftx_atoi(char*);                         /* character to integer */
 int uftx_wtl(int,char*,int);                      /* write text local */
 int uftx_e2l(int,char*,int);                 /* write EBCDIC to local */
 int uftx_getndr(int,struct UFTNDIO*,int*,char**,int*);     /* netdata */
 int uftx_ndfd(int,int,int);                 /* Netdata stream via FDs */
-int uftx_isbinary(char*,int);               /* content appears binary */
+int uftx_isbinary(char*,int);         /* content appears to be binary */
+int uftx_autotype(char*,int,int);             /* set tran/notran flag */
 int uftx_ccap(int*,char*,char*,int,char*,int);  /* UFT command output */
+int saprint(void*,int);                             /* sockaddr print */
 
 void uftdstat(int,char*);
 
-int uftdcpq(char*,char*,int);
+int uftdcpq(char*,char*,int);                  /* issue a CPQ command */
 int uftdl699(int,char*);
 
-int uftc_open(char*,char*,int*);
-int uftc_close(int*);
+int uftc_open(char*,char*,int*);          /* open a client connection */
+int uftc_peer(int,char*,int);         /* info about this network peer */
+int uftc_close(int*);                    /* close a client connection */
 
 int sendimsg(char*,char*);
 int msglocal(char*,char*);

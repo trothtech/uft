@@ -174,7 +174,8 @@ int main(int argc,char*argv[])
     (void) uftdstat(1,p);        /* 200 series herald indicates UFT/2 */
 
     /* who's on the other end of the socket? */
-    (void) tcpident(0,from,256);      /* IDENT got a bad rap and died */
+//  (void) tcpident(0,from,256);      /* IDENT got a bad rap and died */
+    rc = uftc_peer(0,from,sizeof(from)-1);        /* fd 0 is our peer */
     (void) sprintf(line,"REMOTE=%s",from);
     (void) uftx_putline(tffd,line,0);                      /* logging */
     (void) strncpy(uftfile0.from,from,sizeof(uftfile0.from));
