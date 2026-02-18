@@ -368,7 +368,9 @@ int uftx_e2l(int,char*,int);                 /* write EBCDIC to local */
 int uftx_getndr(int,struct UFTNDIO*,int*,char**,int*);     /* netdata */
 int uftx_ndfd(int,int,int);                 /* Netdata stream via FDs */
 int uftx_isbinary(char*,int);         /* content appears to be binary */
-int uftx_autotype(char*,int,int);             /* set tran/notran flag */
+
+int uftx_autotype(char*,int,int*);          /* set dotran/notran flag */
+
 int uftx_ccap(int*,char*,char*,int,char*,int);  /* UFT command output */
 int saprint(void*,int);                             /* sockaddr print */
 

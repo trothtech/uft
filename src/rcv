@@ -1,11 +1,12 @@
 #!/bin/sh
-# Copyright 1995-2025 Richard M. Troth, all rights reserved. <plaintext>
+# Copyright 1995-2026 Richard M. Troth, all rights reserved. <plaintext>
 #
 #         Name: rcv (shell script)
 #               "receive" a file sent via UFT
 #         Date: 2024-04-19 (Fri) Gallatin, and prior
+#               2026-02-16 (Mon) Cedarville, added type options
 #
-#         Note: this is a *really* simplistic script
+#         Note: this is (even now) a *really* simplistic script
 #               The layout of the UFT spooling directories along with
 #               the format of each ".cf" control file is intended to
 #               simplify scripting, should you choose to do your own.
@@ -19,6 +20,40 @@
 #
 # get basename of this script for reporting
 Z=`basename "$0"`
+
+#
+# prime the options and type override variables
+RCV_OPTS=""
+RCV_TYPE=""
+
+#
+# parse arguments and options
+while [ ! -z "$*" ] ; do
+    case "$1" in
+        --vers*)
+            exec sf --version
+            ;;
+        --verb*|-v)
+            RCV_OPTS="$RCV_OPTS --verbose"
+            ;;
+        --text|--ascii|-a|-t)
+            RCV_OPTS="$RCV_OPTS --text"
+            RCV_TYPE="A"
+            ;;
+        --binary|--image|-i|-b)
+            RCV_OPTS="$RCV_OPTS --binary"
+            RCV_TYPE="I"
+            ;;
+        -*)
+            echo "$0: unrecognized option '$1'"
+            exit 1
+            ;;
+        *)
+            break
+            ;;
+    esac
+    shift
+done
 
 #
 # some environments have a non-POSIX side:
@@ -57,7 +92,7 @@ if [ ! -d "$D" ] ; then
 UFT_SPOOLDIR="$D"
 
 #
-# clean-up the spool ID .. four digits for historical reasons
+# clean-up the spool ID .. four digits for history and consistency
 S="$1"
 if [ -z "$S" ] ; then S=1 ; fi
 S=`echo "0000$S" | awk '{print substr($0,length($0)-3,4)}'`
@@ -79,7 +114,7 @@ if [ -z "$T" ] ; then T=`basename "$UFT_NAME"` ; fi
 if [ -z "$T" ] ; then
     echo "$Z: UFT file $S needs a name" 1>&2
     exit 1 ; fi
-# files might be sent unnamed, such as output from a command
+# files might be sent unnamed, such as print or output from a command
 
 #
 # report and receive
@@ -89,18 +124,29 @@ echo "$Z: receiving UFT file $S as '$T'"
 # be selective about canonization
 case "$UFT_TYPE" in
     a*|A*|t*|T*)                # "ASCII" or plain text
-        cat $D/$S.df | sed 's#\r$##' > $T
+        # command line options can override
+        if [ "$RCV_TYPE" = "I" ] ; then
+#     echo "cat $D/$S.df > $T"
+            cat $D/$S.df > $T ; else
+#     echo "cat $D/$S.df | sed 's#\r$##' > $T"
+            cat $D/$S.df | sed 's#\r$##' > $T ; fi
         RC=$?
         ;;
     n*|N*)                      # IBM NETDATA (convert to plain text)
-        uftcndd $D/$S.df > $T
+        uftcndd $RCV_OPTS $D/$S.df > $T
         RC=$?
         ;;
     *)                          # all others treat as binary
-        cat $D/$S.df > $T
+        # command line options can override
+        if [ "$RCV_TYPE" = "A" ] ; then
+#     echo "cat $D/$S.df | sed 's#\r$##' > $T"
+            cat $D/$S.df | sed 's#\r$##' > $T ; else
+#     echo "cat $D/$S.df > $T"
+            cat $D/$S.df > $T ; fi
         RC=$?
         ;;
 esac
+#echo "RC $RC"
 if [ $RC -ne 0 ] ; then exit $RC ; fi
 
 #

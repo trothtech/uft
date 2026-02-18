@@ -1904,13 +1904,13 @@ int uftx_isbinary(char*b,int l)
 
 /* ------------------------------------------------------- UFTX_AUTOTYPE
  */
-int uftx_autotype(char*b,int l,int f)
+int uftx_autotype(char*b,int l,int*f)
   { static char _eyecatcher[] = "uftx_autotype()";
 
-    if (f & UFT_DOTRANS) return 0;       /* if ASCII already selected */
-    if (f & UFT_NOTRANS) return 0;      /* if binary already selected */
-    if (uftx_isbinary(b,l) == 0) f = f | UFT_DOTRANS;
-                            else f = f | UFT_NOTRANS;
+    if (*f & UFT_DOTRANS) return 0;      /* if ASCII already selected */
+    if (*f & UFT_NOTRANS) return 0;     /* if binary already selected */
+    if (uftx_isbinary(b,l) == 0) *f = *f | UFT_DOTRANS;
+                            else *f = *f | UFT_NOTRANS;
     return 0;
   }
 
