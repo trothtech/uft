@@ -1837,16 +1837,19 @@ int uftx_ndfd(int fdi,int fdo,int flag)
             case UFT_ND_LAST:
                 memcpy(&b2[i],part,plen);
                 i = i + plen;
+                if (flag == 0x0000) rc = uftx_autotype(b2,i,&flag);
                 if (flag & UFT_DOTRANS) uftx_e2l(fdo,b2,i);
                                    else write(fdo,b2,i);
                 i = 0;
                 break;
-            case UFT_ND_FIRST|UFT_ND_LAST:
+            case UFT_ND_FIRST|UFT_ND_LAST:       /* first, last, only */
+                if (flag == 0x0000) rc = uftx_autotype(part,plen,&flag);
                 if (flag & UFT_DOTRANS) uftx_e2l(fdo,part,plen);
                                    else write(fdo,part,plen);
                 break;
             default:
-                fprintf(stderr,"mixed records\n");
+                fprintf(stderr,"uftx_ndfd(): mixed records\n");
+/* FIXME:       rc = ???                            set a return code */
                 break;
           }
       }
@@ -1903,6 +1906,7 @@ int uftx_isbinary(char*b,int l)
   }
 
 /* ------------------------------------------------------- UFTX_AUTOTYPE
+ *    Modifies the flag based on binary/text interpretation of buffer.
  */
 int uftx_autotype(char*b,int l,int*f)
   { static char _eyecatcher[] = "uftx_autotype()";
