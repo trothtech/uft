@@ -2153,19 +2153,22 @@ int uftx_b64dec(char*ib,int il,char*ob,int ol)
     while (1)
       { /* snag input */          c = uftx_b64dq((int)ib[i++]); il--;
         while (c < 0 && il > 3) { c = uftx_b64dq((int)ib[i++]); il--; }
+
         if (il < 0 || j >= ol) break;
         ob[j] = (char) c<<2;          /* output block-of-three plus 0 */
 
         /* bump input to 1 */     c = uftx_b64dq((int)ib[i++]); il--;
         while (c < 0 && il > 3) { c = uftx_b64dq((int)ib[i++]); il--; }
+
         if (il < 0 || j >= ol) break;
-        ob[j++] |= (char) c>>6;        /* current output still plus 0 */
+        ob[j++] |= (char) c>>4;        /* current output still plus 0 */
 
         if (il < 0 || j >= ol) break;
         ob[j] = (char) c<<4;          /* output block-of-three plus 1 */
 
         /* bump input to 2 */     c = uftx_b64dq((int)ib[i++]); il--;
         while (c < 0 && il > 3) { c = uftx_b64dq((int)ib[i++]); il--; }
+
         if (il < 0 || j >= ol) break;
         ob[j++] |= (char) c>>2;        /* current output still plus 1 */
 
@@ -2174,6 +2177,7 @@ int uftx_b64dec(char*ib,int il,char*ob,int ol)
 
         /* bump input to 3 */     c = uftx_b64dq((int)ib[i++]); il--;
         while (c < 0 && il > 3) { c = uftx_b64dq((int)ib[i++]); il--; }
+
         if (il < 0 || j >= ol) break;
         ob[j++] |= (char) c;           /* current output still plus 2 */
       }
