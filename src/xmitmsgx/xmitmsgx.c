@@ -40,10 +40,9 @@
 #include <ctype.h>
 
 #include "xmitmsgx.h"
-extern unsigned char *xmmprefix;    /* install prefix not appl prefix */
+extern char *xmmprefix;       /* install prefix not appliction prefix */
 
 /* These are the locale environment variables we will interrogate:    */
-unsigned
 char *localevars[] = {
                 "LANG",
                 "LC_CTYPE",
@@ -66,7 +65,6 @@ char *localevars[] = {
 /*              <LANGUAGE>_<TERRITORY>.<CODESET>[@<MODIFIERS>]        */
 
 /* These are the directories where we might find locale support:      */
-unsigned
 char *localedirs[] = {
                 "%s/share/locale/%s/%s.msgs",
                 "%s/lib/nls/msg/%s/%s.msgs",
@@ -105,13 +103,13 @@ static struct MSGSTRUCT *msglobal = NULL, msstatic;
  * This routine looks in several places using a variety of names.
  * If we cannot find the messages file then we cannot proceed.
  */
-int xmopen(unsigned char*file,int opts,struct MSGSTRUCT*ms)
+int xmopen(char*file,int opts,struct MSGSTRUCT*ms)
   {
     int rc, fd, memsize, i, j, filesize;
-    unsigned char *p, *q, *locale, filename[256];
+    char *p, *q, *locale, filename[256];
     struct stat statbuf;
 
-    static unsigned char ampersand[2] = "&";   /* default escape char */
+    static char ampersand[2] = "&";       /* default escape character */
 
     /* NULL struct pointer means to use global static storage         *
      * unless it was already established, in which case "busy".       */
@@ -137,7 +135,7 @@ int xmopen(unsigned char*file,int opts,struct MSGSTRUCT*ms)
     while (*localevars[i] != 0x00) {         /* localevars loop 1 top */
     /* if that didn't work then try filename plus locale variables    */
     if (rc != 0) {
-        locale = (unsigned char*)getenv(localevars[i]);
+        locale = getenv(localevars[i]);
         if (locale != NULL && *locale != 0x00) {
             (void) strncpy(ms->locale,locale,sizeof(ms->locale)-1);
             (void) snprintf(filename,sizeof(filename)-1,
@@ -321,7 +319,7 @@ int xmopen(unsigned char*file,int opts,struct MSGSTRUCT*ms)
       }
 
     /* use basename of the file as the applid */
-    p = (unsigned char*) basename(ms->msgfile);
+    p = basename(ms->msgfile);
     (void) strncpy(ms->applid,p,sizeof(ms->applid)-1);
     p = ms->applid;
     while (*p != 0x00 && *p != '.') p++; *p = 0x00;
@@ -369,7 +367,7 @@ int xmopen(unsigned char*file,int opts,struct MSGSTRUCT*ms)
 int xmmake(struct MSGSTRUCT*ms)
   {
     int  rc, i, j;
-    unsigned char *p, *q;
+    char *p, *q;
 
     if (ms == NULL) return EINVAL; /* invalid argument */
     if (ms->msgnum <= 0) return EINVAL; /* invalid argument */
@@ -451,11 +449,11 @@ int xmmake(struct MSGSTRUCT*ms)
  * Return value does not reflect SYSLOG effects or errors.
  * The VM/CMS counterpart is the APPLMSG macro (high level assembler).
  */
-int xmprint(int msgnum,int msgc,unsigned char*msgv[],int msgopts,struct MSGSTRUCT*ms)
+int xmprint(int msgnum,int msgc,char*msgv[],int msgopts,struct MSGSTRUCT*ms)
   {
     int  rc;
     struct MSGSTRUCT ts;
-    unsigned char buffer[256];
+    char buffer[256];
 
     /* NULL message struct means use the static common struct */
     if (ms == NULL) ms = msglobal;
@@ -496,11 +494,11 @@ int xmprint(int msgnum,int msgc,unsigned char*msgv[],int msgopts,struct MSGSTRUC
  * The return value does not reflect SYSLOG effects or errors.
  * The VM/CMS counterpart is the APPLMSG macro (high level assembler).
  */
-int xmwrite(int fd,int msgnum,int msgc,unsigned char*msgv[],int msgopts,struct MSGSTRUCT*ms)
+int xmwrite(int fd,int msgnum,int msgc,char*msgv[],int msgopts,struct MSGSTRUCT*ms)
   {
     int  rc;
     struct MSGSTRUCT ts;
-    unsigned char buffer[256];
+    char buffer[256];
 
     /* NULL message struct means use the static common struct */
     if (ms == NULL) ms = msglobal;
@@ -536,8 +534,8 @@ int xmwrite(int fd,int msgnum,int msgc,unsigned char*msgv[],int msgopts,struct M
  * Calls: xmmake()
  * The VM/CMS counterpart (for Rexx variables) is the XMITMSG command.
  */
-int xmstring(unsigned char*output,int outlen,int msgnum,
-                      int msgc,unsigned char*msgv[],struct MSGSTRUCT*ms)
+int xmstring(char*output,int outlen,int msgnum,
+                      int msgc,char*msgv[],struct MSGSTRUCT*ms)
   {
     int  rc;
     struct MSGSTRUCT ts;
@@ -602,7 +600,7 @@ int xmclose(struct MSGSTRUCT*ms)
  *  Return an integer priority for a given severity level letter.
  *  This routine is not presently used because xmmake() handles it.
  */
-int xm_lev2pri(unsigned char*l)
+int xm_lev2pri(char*l)
   {
     switch (*l) {
       case 'I': case 'i':       /* MSGLEVEL_INFO */

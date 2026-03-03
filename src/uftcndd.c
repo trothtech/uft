@@ -18,7 +18,8 @@
 int main(int argc,char*argv[])
   { static char _eyecatcher[] = "uftcndd.c main()";
     int rc, fd, i, plen, type, uftxflag;
-    char buffer[65536], *part, bufalt[65536], *arg0, *ptitle, *mv[16];
+    char buffer[65536], *part, bufalt[65536], *arg0, *ptitle, *mv[16],
+               *flga, *flgb;
 
     /* initialize the UFTNDIO struct                                  */
     struct UFTNDIO ndio;
@@ -31,6 +32,7 @@ int main(int argc,char*argv[])
             arg0 = uftx_basename(argv[0]);
     ptitle = "UFT Client NETDATA Decoder";           /* program title */
     uftxflag = 0x0000;                         /* reset all flag bits */
+    flga = flgb = "";
 
     /*          UFT_VERBOSE     0x4000                                */
     /*          UFT_DOTRANS     0x2000         ** translation implied */
@@ -47,10 +49,12 @@ int main(int argc,char*argv[])
             case 'a':   case 'A':       /* ASCII (ie: plain text)     */
             case 't':   case 'T':
                         uftxflag |= UFT_DOTRANS;
+                        flga = argv[i];
                         break;
             case 'b':   case 'B':       /* BINARY                     */
             case 'i':   case 'I':       /* aka IMAGE                  */
                         uftxflag |= UFT_NOTRANS;
+                        flgb = argv[i];
                         break;
 #ifdef  OECS
             case 'e':   case 'E':       /* EBCDIC (IBM plain text)    */
@@ -67,11 +71,11 @@ int main(int argc,char*argv[])
                 if (uftx_abbrev("--verbose",argv[i],6) > 0)
                   { uftxflag |= UFT_VERBOSE; } else
                 if (uftx_abbrev("--ascii",argv[i],5) > 0 ||
-                    uftx_abbrev("--text",argv[i],6) > 0)
-                        uftxflag |= UFT_NOTRANS; else
+                    uftx_abbrev("--text",argv[i],6) > 0) {
+                    uftxflag |= UFT_DOTRANS; flga = argv[i]; } else
                 if (uftx_abbrev("--binary",argv[i],5) > 0 ||
-                    uftx_abbrev("--image",argv[i],4) > 0)
-                        uftxflag |= UFT_DOTRANS; else
+                    uftx_abbrev("--image",argv[i],4) > 0) {
+                    uftxflag |= UFT_NOTRANS; flgb = argv[i]; } else
 #ifdef  OECS
 //              if (uftx_abbrev("--ebcdic",argv[i],8) > 0)
 //                { uftxflag |= UFT_BINARY; type = "E"; } else
@@ -95,7 +99,7 @@ int main(int argc,char*argv[])
 
     /* user may indicated ASCII or IMAGE (or neither) but not both    */
     if ((uftxflag & UFT_DOTRANS) && (uftxflag & UFT_NOTRANS))
-      { mv[1] = "--text"; mv[2] = "--binary";
+      { mv[1] = flga;     mv[2] = flgb;
         rc = uftx_message(buffer,sizeof(buffer)-1,66,"CLI",3,mv);
         if (rc >= 0) fprintf(stderr,"%s\n",buffer); else
         fprintf(stderr,"%s: conflicting options\n",arg0);

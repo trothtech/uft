@@ -295,7 +295,6 @@ tqcdhkm--- cpy user     host         size year mm dd time  sid  name
                         } UFTSTAT ;
 
 /*
-
         unsigned long  st_dev;          see uft_rudev
         unsigned long  st_ino;          OKAY
         unsigned short st_mode;         OKAY
@@ -382,6 +381,9 @@ int uftdl699(int,char*);
 int uftc_open(char*,char*,int*);          /* open a client connection */
 int uftc_peer(int,char*,int);         /* info about this network peer */
 int uftc_close(int*);                    /* close a client connection */
+
+int uftx_b64enc(char*,int,char*,int);
+int uftx_b64dec(char*,int,char*,int);
 
 int sendimsg(char*,char*);
 int msglocal(char*,char*);

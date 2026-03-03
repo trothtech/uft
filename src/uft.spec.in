@@ -85,14 +85,17 @@ rsync -a -u -x -H -O -S -v %SPEC_STAGING%/. $HOME/rpmbuild/BUILDROOT/%SPEC_APPLI
 %SPEC_PREFIX%/bin/rls
 %SPEC_PREFIX%/bin/rcv
 %SPEC_PREFIX%/bin/rstat
+%SPEC_PREFIX%/bin/rrm
 %SPEC_PREFIX%/bin/uftcndd
 %SPEC_PREFIX%/bin/tell 
 %SPEC_PREFIX%/bin/cpq
 %SPEC_PREFIX%/libexec/uftd
+%SPEC_PREFIX%/libexec/uftxdspl
+%SPEC_PREFIX%/libexec/uftctcp2
 #%dir /usr/spool/uft
 #/usr/src/redhat/RPMS/*
 #%SPEC_PREFIX%/etc/xinetd.d/uft
-/etc/xinetd.d/uft
+#/etc/xinetd.d/uft
 %SPEC_PREFIX%/share/locale/%SPEC_LOCALE%/uft.msgs
 
 %clean

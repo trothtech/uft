@@ -34,13 +34,14 @@ int main(int argc,char*argv[])
   { static char _eyecatcher[] = "uftc.c main()";
     int         i, fd0, size, copy, fda, rc, fd[2], uftxflag;
     char        temp[256], targ[256], b[UFT_BUFSIZ], akey[256], *mv[16],
-               *host, *name, *type, *auth, *class, *proxy, *ptitle;
+               *host, *name, *type, *auth, *class, *proxy, *ptitle,
+               *flga, *flgb;
     struct  stat  uftcstat;
     time_t      mtime;
     mode_t      prot;
     struct tm *gmtstamp;
-char   *arg0;
-int     uftv;           /* protocol level (1 or 2) */
+    char   *arg0;
+    int     uftv;           /* protocol level (1 or 2) */
 
     ptitle = "Internet SENDFILE client";             /* program title */
 
@@ -52,6 +53,7 @@ int     uftv;           /* protocol level (1 or 2) */
     copy = 0;
     proxy = "";
     uftxflag = 0x0000;                         /* reset all flag bits */
+    flga = flgb = "";
 
     /* process command-line options */
     for (i = 1; i < argc && argv[i][0] == '-' &&
@@ -63,14 +65,16 @@ int     uftv;           /* protocol level (1 or 2) */
                         break;
             case 'a':   case 'A':       /* ASCII (ie: plain text)     */
                         uftcflag &= ~UFT_BINARY;
-                        uftxflag |= UFT_NOTRANS;
                         type = "A";
+                        uftxflag |= UFT_DOTRANS;
+                        flga = argv[i];
                         break;
             case 'b':   case 'B':       /* BINARY                     */
             case 'i':   case 'I':       /* aka IMAGE                  */
                         uftcflag |= UFT_BINARY;
-                        uftxflag |= UFT_DOTRANS;
                         type = "I";
+                        uftxflag |= UFT_NOTRANS;
+                        flgb = argv[i];
                         break;
 #ifdef  OECS
             case 'e':   case 'E':       /* EBCDIC (IBM plain text)    */
@@ -109,10 +113,12 @@ int     uftv;           /* protocol level (1 or 2) */
                   { uftcflag |= UFT_VERBOSE; } else
                 if (uftx_abbrev("--ascii",argv[i],5) > 0 ||
                     uftx_abbrev("--text",argv[i],6) > 0)
-                  { uftcflag &= ~UFT_BINARY; type = "A"; } else
+                  { uftcflag &= ~UFT_BINARY; type = "A";
+                    uftxflag |= UFT_DOTRANS; flga = argv[i]; } else
                 if (uftx_abbrev("--binary",argv[i],5) > 0 ||
                     uftx_abbrev("--image",argv[i],4) > 0)
-                  { uftcflag |= UFT_BINARY; type = "I"; } else
+                  { uftcflag |= UFT_BINARY; type = "I";
+                    uftxflag |= UFT_NOTRANS; flgb = argv[i]; } else
 #ifdef  OECS
                 if (uftx_abbrev("--ebcdic",argv[i],8) > 0)
                   { uftcflag |= UFT_BINARY; type = "E"; } else
@@ -175,7 +181,7 @@ int     uftv;           /* protocol level (1 or 2) */
 
     /* ensure the user indicated ASCII or IMAGE but not both          */
     if ((uftxflag & UFT_DOTRANS) && (uftxflag & UFT_NOTRANS))
-      { mv[1] = "--text"; mv[2] = "--binary";
+      { mv[1] = flga;     mv[2] = flgb;
         rc = uftx_message(temp,sizeof(temp)-1,66,"CLI",3,mv);
         if (rc >= 0) fprintf(stderr,"%s\n",temp); else
         fprintf(stderr,"%s: conflicting options\n",arg0);

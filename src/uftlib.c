@@ -98,14 +98,14 @@ int uftx_message(char*mo,int ml,                    /* buffer, buflen */
     uftmsgs.msglevel = 0;
 
     /* using pfxmaj and pfxmin is definitely outside the XMITMSGX API */
-    strncpy(uftmsgs.pfxmaj,"UFT",4);
+    strncpy(uftmsgs.pfxmaj,UFT_TAG,4);
     strncpy(uftmsgs.pfxmin,mq,4);
     /* also remember to up-case the latter */
     uftmsgs.pfxmin[3] = 0x00;
     for (p = uftmsgs.pfxmin; *p != 0x00; p++) if (islower(*p)) *p = toupper(*p);
 
     /* Generate a message and store it as a string.                   */
-    rc = xmstring(mo,ml,mn,mc,(unsigned char**)mv,&uftmsgs);
+    rc = xmstring(mo,ml,mn,mc,mv,&uftmsgs);
 
     return rc;
   }
@@ -1865,19 +1865,20 @@ int uftx_ndfd(int fdi,int fdo,int flag)
 int uftx_isbinary(char*b,int l)
   { static char _eyecatcher[] = "uftx_isbinary()";
     int i; char *j;
-    char binz[] = { 0x01,
+    char binz[] = { 0x00,
+                    0x01,
                     0x02,
                     0x03,
                     0x04,
-                 /* 0x05  =  E TAB */
+                 /* 0x05  =  E TAB is textual */
                     0x06,
                     0x07, /* A BEL */
                     0x08, /* A BS */
-                 /* 0x09  =  A TAB */
-                 /* 0x0A  =  A LF */
+                 /* 0x09  =  A TAB is textual */
+                 /* 0x0A  =  A LF is textual */
                     0x0B,
                     0x0C, /* X FF */
-                 /* 0x0D  =  X CR */
+                 /* 0x0D  =  X CR is textual */
                     0x0E,
                     0x0F,
                     0x10,
@@ -1885,7 +1886,7 @@ int uftx_isbinary(char*b,int l)
                     0x12,
                     0x13,
                     0x14,
-                 /* 0x15  =  E NL */
+                 /* 0x15  =  E NL is textual */
                     0x16, /* E BS */
                     0x17,
                     0x18,
@@ -1896,11 +1897,12 @@ int uftx_isbinary(char*b,int l)
                     0x1D,
                     0x1E,
                     0x1F,
-                    0x00 };             /* null terminates the string */
+                    0xFF };            /* all ones terminates the set */
 
-    for (i = 0; i < l; i++)
-        for (j = binz; *j != 0x00; j++)
-            if (b[i] == *j) return 1;
+    /* if any byte in sample buffer is in above list call it binary   */
+    for (i = 0; i < l; i++)       /* step through the supplied sample */
+        for (j = binz; *j != 0xFF; j++)   /* looking for chars in set */
+            if (b[i] == *j) return 1;   /* if char in set then binary */
 
     return 0;
   }
@@ -2023,6 +2025,160 @@ int saprint(void*buff,int blen)
     fprintf(stderr,"\n");
 
     return 0;
+  }
+
+/* --------------------------------------------------------- UFTX_B64ENC
+ *    Encode content as base64.
+ */
+int uftx_b64enc(char*ib,int il,char*ob,int ol)
+  {
+    int i, j;
+    char *b64;
+
+    /*  define the Base 64 character set  */ 
+    b64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdef"
+          "ghijklmnopqrstuvwxyz0123456789+/";
+
+    i = j = 0;
+    while (il > 2)
+      {
+        ob[j++] = b64[ib[i]>>2]; 
+        ob[j++] = b64[((ib[i]<<4)+(ib[i+1]>>4))&0x3F]; 
+        ob[j++] = b64[((ib[i+1]<<2)+(ib[i+2]>>6))&0x3F]; 
+        ob[j++] = b64[ib[i+2]&0x3F]; 
+        i = i + 3;
+        il = il - 3;
+      }
+
+    switch (il)
+      {
+        case 0: break;
+        case 1: ob[j++] = b64[ib[i]>>2];
+                ob[j++] = b64[(ib[i]<<4)&0x3F];
+                ob[j++] = '=';
+                ob[j++] = '=';
+                break;
+        case 2: ob[j++] = b64[ib[i]>>2];
+                ob[j++] = b64[((ib[i]<<4)+(ib[i+1]>>4))*0x3F];
+                ob[j++] = b64[(ib[i+1]<<2)&0x3F];
+                ob[j++] = '=';
+                break;
+      }
+    ob[j] = 0x00;                      /* terminate the base64 string */
+
+    return j;
+  }
+
+/* --------------------------------------------------------- UFTX_B64DEC
+ *    Decode base64 into original content.
+ */
+int uftx_b64dq(int c)      /* just a helper routine for uftx_b64dec() */
+  { switch (c)
+      { case 'A': return 0x00;                                    break;
+        case 'B': return 0x01;                                    break;
+        case 'C': return 0x02;                                    break;
+        case 'D': return 0x03;                                    break;
+        case 'E': return 0x04;                                    break;
+        case 'F': return 0x05;                                    break;
+        case 'G': return 0x06;                                    break;
+        case 'H': return 0x07;                                    break;
+        case 'I': return 0x08;                                    break;
+        case 'J': return 0x09;                                    break;
+        case 'K': return 0x0a;                                    break;
+        case 'L': return 0x0b;                                    break;
+        case 'M': return 0x0c;                                    break;
+        case 'N': return 0x0d;                                    break;
+        case 'O': return 0x0e;                                    break;
+        case 'P': return 0x0f;                                    break;
+        case 'Q': return 0x10;                                    break;
+        case 'R': return 0x11;                                    break;
+        case 'S': return 0x12;                                    break;
+        case 'T': return 0x13;                                    break;
+        case 'U': return 0x14;                                    break;
+        case 'V': return 0x15;                                    break;
+        case 'W': return 0x16;                                    break;
+        case 'X': return 0x17;                                    break;
+        case 'Y': return 0x18;                                    break;
+        case 'Z': return 0x19;                                    break;
+        case 'a': return 0x1a;                                    break;
+        case 'b': return 0x1b;                                    break;
+        case 'c': return 0x1c;                                    break;
+        case 'd': return 0x1d;                                    break;
+        case 'e': return 0x1e;                                    break;
+        case 'f': return 0x1f;                                    break;
+        case 'g': return 0x20;                                    break;
+        case 'h': return 0x21;                                    break;
+        case 'i': return 0x22;                                    break;
+        case 'j': return 0x23;                                    break;
+        case 'k': return 0x24;                                    break;
+        case 'l': return 0x25;                                    break;
+        case 'm': return 0x26;                                    break;
+        case 'n': return 0x27;                                    break;
+        case 'o': return 0x28;                                    break;
+        case 'p': return 0x29;                                    break;
+        case 'q': return 0x2a;                                    break;
+        case 'r': return 0x2b;                                    break;
+        case 's': return 0x2c;                                    break;
+        case 't': return 0x2d;                                    break;
+        case 'u': return 0x2e;                                    break;
+        case 'v': return 0x2f;                                    break;
+        case 'w': return 0x30;                                    break;
+        case 'x': return 0x31;                                    break;
+        case 'y': return 0x32;                                    break;
+        case 'z': return 0x33;                                    break;
+        case '0': return 0x34;                                    break;
+        case '1': return 0x35;                                    break;
+        case '2': return 0x36;                                    break;
+        case '3': return 0x37;                                    break;
+        case '4': return 0x38;                                    break;
+        case '5': return 0x39;                                    break;
+        case '6': return 0x3a;                                    break;
+        case '7': return 0x3b;                                    break;
+        case '8': return 0x3c;                                    break;
+        case '9': return 0x3d;                                    break;
+        case '+': return 0x3e;                                    break;
+        case '/': return 0x3f;                                    break;
+        default:  return -1;                                  break; } }
+
+int uftx_b64dec(char*ib,int il,char*ob,int ol)
+  {   /* eye catcher */
+    int rc, i, j, c;
+
+    if (il == 0) il = strlen(ib);         /* input length is optional */
+    /* if input length given as zero then catch end-of-string marker  */
+
+    i = j = 0;
+
+    /* step through the input one byte at a time ignoring chaff       */
+    while (1)
+      { /* snag input */          c = uftx_b64dq((int)ib[i++]); il--;
+        while (c < 0 && il > 3) { c = uftx_b64dq((int)ib[i++]); il--; }
+        if (il < 0 || j >= ol) break;
+        ob[j] = (char) c<<2;          /* output block-of-three plus 0 */
+
+        /* bump input to 1 */     c = uftx_b64dq((int)ib[i++]); il--;
+        while (c < 0 && il > 3) { c = uftx_b64dq((int)ib[i++]); il--; }
+        if (il < 0 || j >= ol) break;
+        ob[j++] |= (char) c>>6;        /* current output still plus 0 */
+
+        if (il < 0 || j >= ol) break;
+        ob[j] = (char) c<<4;          /* output block-of-three plus 1 */
+
+        /* bump input to 2 */     c = uftx_b64dq((int)ib[i++]); il--;
+        while (c < 0 && il > 3) { c = uftx_b64dq((int)ib[i++]); il--; }
+        if (il < 0 || j >= ol) break;
+        ob[j++] |= (char) c>>2;        /* current output still plus 1 */
+
+        if (il < 0 || j >= ol) break;
+        ob[j] = (char) c<<6;          /* output block-of-three plus 2 */
+
+        /* bump input to 3 */     c = uftx_b64dq((int)ib[i++]); il--;
+        while (c < 0 && il > 3) { c = uftx_b64dq((int)ib[i++]); il--; }
+        if (il < 0 || j >= ol) break;
+        ob[j++] |= (char) c;           /* current output still plus 2 */
+      }
+
+    return j;
   }
 
 /* ------------------------------------------------------------ MSGWRITE
