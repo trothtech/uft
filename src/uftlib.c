@@ -926,7 +926,22 @@ int uftc_open(char*peer,char*prox,int*pipe)
   { static char _eyecatcher[] = "uftc_open()";
     int s, rc;
     char temp[256], *host, *port, *tail;
+
+#ifdef          __OPEN_VM
+struct addrinfo
+{
+  int ai_flags;                 /* Input flags.  */
+  int ai_family;                /* Protocol family for socket.  */
+  int ai_socktype;              /* Socket type.  */
+  int ai_protocol;              /* Protocol for socket.  */
+  socklen_t ai_addrlen;         /* Length of socket address.  */
+  struct sockaddr *ai_addr;     /* Socket address for socket.  */
+  char *ai_canonname;           /* Canonical name for service location.  */
+  void *ai_next;                /* Pointer to next in list.  */
+} *res, *res2;
+#else
     struct addrinfo *res, *res2;
+#endif
 
     /* if either supplied peer or pipe is bogus then stop right here  */
     if (peer == NULL && *peer == 0x00) { errno = EINVAL; return -1; }
@@ -982,7 +997,9 @@ int uftc_peer(int s,char*buff,int blen)
     union insa {
         struct sockaddr sa;                 /* as generic as possible */
         struct sockaddr_in sa4;               /* sockaddr for AF_INET */
+#ifdef AF_INET6
         struct sockaddr_in6 sa6;             /* sockaddr for AF_INET6 */
+#endif
         unsigned short int family;     /* common address family value */
                } insa;                           /* internet sockaddr */
     void*aptr;
@@ -1014,7 +1031,11 @@ int uftc_peer(int s,char*buff,int blen)
 /*      saprint(aptr,alen);                                           */
 
     /*  what host is at that address?  */
+#ifndef NI_NAMEREQD
+    rc = getnameinfo(aptr,alen,host,sizeof(host),NULL,0,0);
+#else
     rc = getnameinfo(aptr,alen,host,sizeof(host),NULL,0,NI_NAMEREQD);
+#endif
     if (rc != 0)
       { if (errno != 0) perror("getnameinfo()");
         if (rc < 0) return rc; else return 0 - rc; }
@@ -1516,7 +1537,7 @@ int uftctext(int s,char*b,int l)
  */
 
 /*  t[j] = 0x00;                                                      */
-    j = htonb(b,t,j);
+    j = htonb((char*)b,t,j);
 
     return j;
   }
@@ -1994,7 +2015,9 @@ int saprint(void*buff,int blen)
     union insa {                    /* to support either IPv4 or IPv6 */
         struct sockaddr sa;                 /* as generic as possible */
         struct sockaddr_in sa4;               /* sockaddr for AF_INET */
+#ifdef AF_INET6
         struct sockaddr_in6 sa6;             /* sockaddr for AF_INET6 */
+#endif
         unsigned short int family;     /* common address family value */
                } insa;                           /* internet sockaddr */
 
@@ -2012,6 +2035,7 @@ int saprint(void*buff,int blen)
           { j = (int) strn[i]; j = j & 0xff;           /* just 8 bits */
             fprintf(stderr,".%d",j); } }
 
+#ifdef AF_INET6
     if (insa.family == AF_INET6)                   /* an IPv6 address */
       { j = (((int)strn[8]) * 256) + ((int)strn[9]);
         j = j & 0xffff;                        /* truncate to 16 bits */
@@ -2021,6 +2045,7 @@ int saprint(void*buff,int blen)
           { j = (((int)strn[i]) * 256) + ((int)strn[i+1]);
             j = j & 0xffff;                    /* truncate to 16 bits */
             fprintf(stderr,":%x",j); } }
+#endif
 
     fprintf(stderr,"\n");
 

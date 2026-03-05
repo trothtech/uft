@@ -7,7 +7,11 @@
  */
 
 #ifndef AECS_HEADER
-#define AECS_HEADER 1
+
+#ifdef          __OPEN_VM
+ /* this is a stupid hack to relax the CMS compiler's aggressive type matching */
+ #define unsigned
+#endif
 
 /* ASCII ---> EBCDIC */
 
@@ -86,6 +90,7 @@ int stratoe(unsigned char*);
 int chretoa(int);
 int stretoa(unsigned char*);
 
+#define AECS_HEADER 1
 #endif
 
 

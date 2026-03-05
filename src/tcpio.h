@@ -26,16 +26,18 @@
 
 /* if we're on IBM OpenVM, define OECS */
 #ifdef          __OPEN_VM
-#ifndef         OECS
-#define         OECS
-#endif
+ #ifndef        OECS
+  #define       OECS
+ #endif
+ /* this is a stupid hack to relax the CMS compiler's aggressive type matching */
+ #define unsigned
 #endif
 
 /* if we're on IBM OpenEdition, define OECS */
 #ifdef          _OE_SOCKETS
-#ifndef         OECS
-#define         OECS
-#endif
+ #ifndef        OECS
+  #define       OECS
+ #endif
 #endif
 
 int tcpopen(char*,int,int);
