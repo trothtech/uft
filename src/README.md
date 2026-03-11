@@ -1,7 +1,8 @@
 # POSIX UFT
 
 This is the source content, primarily C, for the Unix/Linux/POSIX
-implementation of UFT.
+implementation of UFT. Shell scripts are included for some operations
+and UFT is intended to support shell scripting.
 
 `uftd` is launched (typically by `inetd` or `xinetd`) for handling
 traffic on TCP port 608 and stores incoming files under `/usr/spool/uft`.
@@ -32,10 +33,10 @@ Location: /usr/bin/rcv
 Location: /usr/bin/rrm
 
 * `rstat`    - "stat" a receivable file <br/>
-Location: /usr/bin/
+Location: /usr/bin/rstat
 
 * `uftcndd`  - Netdata decoder <br/>
-Location: /usr/bin/
+Location: /usr/bin/uftcndd
 
 * `tell`     - send an interactive message <br/>
 Location: /usr/bin/tell
@@ -46,7 +47,7 @@ Location: /usr/bin/cpq
 * `uftd`     - UFT daemon <br/>
 Location: /usr/libexec/uftd
 
-* `ufta`     - anonymized UFT daemon <br/>
+* `ufta`     - anonymized UFT daemon (optional) <br/>
 Location: /usr/libexec/ufta
 
 * `uftxdspl` - de-spooler (for a receivable file) <br/>
