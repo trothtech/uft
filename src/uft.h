@@ -313,6 +313,8 @@ tqcdhkm--- cpy user     host         size year mm dd time  sid  name
         unsigned long  st_ctime_nsec;   N/A
  */
 
+/* function prototypes follow */
+
 ssize_t getuftentries(int,char*,size_t,off_t*);
 /* ssize_t getuftentries(int fd,char*buf,size_t nbytes,off_t*basep);  */
 
@@ -342,6 +344,9 @@ char*uftx_home(char*);                 /* home directory of this user */
 int msgd_umsg(char*,char*,char*);                 /* user, text, from */
 int uftx_getline(int,char*,int);        /* sock or fd, buffer, buflen */
 int uftx_putline(int,char*,int);        /* sock or fd, buffer, buflen */
+
+int msgd_xmsg_sock(char*,char*,int);
+int msgd_xmsg_fifo(char*,char*,int);
 
 char*uftx_user();
 char*uftx_getenv(char*,char*);       /* extract a var=val from buffer */
