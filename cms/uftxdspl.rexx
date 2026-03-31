@@ -25,10 +25,7 @@ Parse Arg sid . '(' . ')' .
 /* does the file exist? */
 Parse Value DiagRC(08,'QUERY READER *' sid) With ,
     1 rc 10 . 17 rs '15'x rdr '15'x .
-If rc ^= 0 Then Do
-    Say rs
-    Exit rc
-End /* If .. Do */
+If rc ^= 0 Then Do ; Say rs ; Exit rc ; End
 
 /* now parse the response from CP */
 Parse Var rdr 1 from 9 . 15 class 16 . 17 devtype 20 . ,
@@ -39,10 +36,7 @@ from = Translate(Strip(from),lc,uc)
 /* also get the "table" data */
 Parse Value DiagRC(08,'QUERY READER *' sid 'TBL') With ,
     1 rc 10 . 17 rs '15'x tbl '15'x .
-If rc ^= 0 Then Do
-    Say rs
-    Exit rc
-End /* If .. Do */
+If rc ^= 0 Then Do ; Say rs ; Exit rc ; End
 
 /* and parse that */
 Parse Var tbl 1 . ,
@@ -52,23 +46,15 @@ If Datatype(size,'N') Then size = size * 4096
                       Else size = kilomega(size) * 4096
 
 /* and finally, get and parse the long form query */
-Parse Value DiagRC(08,'QUERY READER *' sid 'ALL') With ,
+Parse Value DiagRC(08,'QUERY READER *' sid 'ALL ISODATE') With ,
     1 rc 10 . 17 rs '15'x info '15'x .
-If rc ^= 0 Then Do
-    Say rs
-    Exit rc
-End /* If .. Do */
+If rc ^= 0 Then Do ; Say rs ; Exit rc ; End
 
-Parse Value Diag(08,'QUERY DATEFORMAT') With . . . df . '15'x .
-If df = "ISODATE" Then Parse Var info 1 . ,
-        39 date 49 . 50 time 58 . 59 fn 67 . ,
-            69 ft 77 . 78 dist 86 .
-                  Else Parse Var info 1 . ,
-        39 date 44 . 45 time 53 . 54 fn 62 . ,
-            64 ft 72 . 73 dist 81 .
+Parse Var info 1 . 39 date 49 . 50 time 58 . ,
+                   59 fn 67 . 69 ft 77 . 78 dist 86 .
 fn = Strip(fn) ; ft = Strip(ft)
 If fn ^= "" | ft ^= "" Then fn = fn || "." || ft
-                           Else name = ""
+                       Else name = ""
 fn = Translate(fn,lc,uc)
 
 /* spin-up a temporary virtual reader */
@@ -76,23 +62,17 @@ Address CMS 'GETFMADR'
 If rc ^= 0 Then Exit rc
 Parse Pull . . va .
 Parse Value DiagRC(08,'DEFINE READER' va) With 1 rc 10 . 17 rs '15'x .
-If rc ^= 0 Then Do
-    Say rs
-    Exit rc
-End /* If .. Do */
-Call Diag 08, 'SPOOL' va 'KEEP CLASS *'
+If rc ^= 0 Then Do ; Say rs ; Exit rc ; End
+
+Call Diag 08, 'SPOOL' va 'KEEP CLASS *'   /* temporary reader defined */
 
 /* order this file to top-of-queue */
 Parse Value DiagRC(08,'ORDER * READER' sid) With 1 rc 10 . 17 rs '15'x .
-If rc ^= 0 Then Do
-    Say rs
-    Call Diag 08, 'DETACH' va
-    Exit rc
-End /* If .. Do */
+If rc ^= 0 Then Do ; Say rs ; Call Diag 08, 'DETACH' va ; Exit rc ; End
 
 /* attach reader stage to input */
 'ADDPIPE READER' va 'FILE' sid '| *.INPUT:'
-If rc ^= 0 Then Do; Call Diag 08, 'DETACH' va; Exit rc; End
+If rc ^= 0 Then Do ; Call Diag 08, 'DETACH' va ; Exit rc ; End
 
 /* examine the TAG record (should be a NOP CCW) */
 'READTO TAG'
@@ -137,9 +117,8 @@ If keep  ^= "" Then 'OUTPUT' "META KEEP" keep
 'CALLPIPE *: | *:'
 
 'SEVER INPUT'
-Call Diag 08, 'CLOSE' va
+Call Diag 08, 'CLOSE' va 'HOLD'
 Call Diag 08, 'DETACH' va
-Call Diag 08, 'PURGE * READER' sid
 
 Exit
 
@@ -188,7 +167,7 @@ If type = "V" & cc = "M" Then Return
 
 /* else, remove CCWs from stream, and possibly pad the records */
 'ADDPIPE *.INPUT: | NLOCATE 1.1' '000300'x '| SPEC 2-* 1 | *.INPUT:'
-If rc ^= 0 Then Do;  Call Diag 08, 'DETACH' va;  Exit rc;  End
+If rc ^= 0 Then Do ; Call Diag 08, 'DETACH' va ; Exit rc ; End
 If devtype = "PUN" Then 'ADDPIPE *.INPUT: | PAD 80 | *.INPUT:'
 
 Return
@@ -201,7 +180,7 @@ NDATAUFT:
 type = "N"
 /* remove CCWs from stream, and possibly pad the records */
 'ADDPIPE *.INPUT: | NLOCATE 1.1' '000300'x '| SPEC 2-* 1 | *.INPUT:'
-If rc ^= 0 Then Do;  Call Diag 08, 'DETACH' va;  Exit rc;  End
+If rc ^= 0 Then Do ; Call Diag 08, 'DETACH' va ; Exit rc ; End
 If devtype = "PUN" Then 'ADDPIPE *.INPUT: | PAD 80 | *.INPUT:'
 
 Return
@@ -223,7 +202,7 @@ XMAILUFT:
 type = "M"
 /* remove CCWs from stream, and check for RFC 822 header */
 'ADDPIPE *.INPUT: | NLOCATE 1.1' '000300'x '| SPEC 2-* 1 | *.INPUT:'
-If rc ^= 0 Then Do;  Call Diag 08, 'DETACH' va;  Exit rc;  End
+If rc ^= 0 Then Do ; Call Diag 08, 'DETACH' va ; Exit rc ; End
 'PEEKTO RECORD'
 
 Return

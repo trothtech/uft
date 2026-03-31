@@ -260,6 +260,8 @@
 *5000 reserved range
 *
 *6000 reserved range
+*HCPMID6001I  TIME IS 00:00:00 EDT  MONDAY 03/23/26
+*6000   I time is &1 &2 &3 &4
 *
 *7000 reserved range
 *

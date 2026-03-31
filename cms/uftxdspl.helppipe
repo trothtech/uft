@@ -1,4 +1,4 @@
-.cm Copyright 1997, Richard M. Troth, all rights reserved.   <plaintext>
+.cm Copyright 1997-2026 Richard M. Troth, all rights reserved. <plaintext>
 .cm
 .cm       Name: UFTXDSPL HELPPIPE
 .cm       Date: 1997-Aug-06
@@ -7,8 +7,13 @@
 .cs 1 on
  UFTXDSPL REXX
 
- Use the UFTXDSPL pipeline stage to de-spool a file as a "SIFT job".
- The output from UFTXDSPL can be fed to stages like UFTCMAIN.
+ Use the UFTXDSPL pipeline stage to read a file from your virtual reader
+ and de-spool that file as a UFT batch job. The output from UFTXDSPL can be
+ fed to stages like UFTCMAIN.
+
+ As a rule, UFTXDSPL does not change the attributes of the file.
+.cm options: PURGE, KEEP, NOKEEP, HOLD, NOHOLD
+.cm optional 'FILE' ahead of spool ID number
 .cs 1 off
 .cs 2 on
 
@@ -27,8 +32,8 @@
  UFTXDSPL is typically used by other applications to receive files.
  It is not usually invoked from the command line.
 
- File content is not canonicalized.   Content canonicalization is
- handled by UFTCMAIN or other consumer stages that would follow UFTXDSPL.
+ File content is not changed to/from its canonical form. Content canonization
+ is handled by UFTCMAIN or other consumer stages that would follow UFTXDSPL.
 
  UFTXDSPL must be the first stage of a pipeline.
 
@@ -44,7 +49,25 @@
 UFTXDSPL REXX related topics:
 
 
-UFT      UFTTYPES       UFT TYPE values recognized by UFTCMAIN REXX
+UFT      UFTTYPES       UFT TYPE values recognized by UFTCMAIN for canonization
+PIPE     UFTCMAIN       UFTCMAIN pipeline stage to process UFT batch jobs
 
 .cs 7 off
+
+*****************************************
+
+
+
+
+
+
+
+
+  4.  There are at least two no operation CCWs at the beginning of a file
+      that has arrived through RSCS/Networking: the current tag and the ori-
+      ginal tag.
+
+
+
+
 
