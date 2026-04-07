@@ -346,19 +346,21 @@ homedir.o:	makefile homedir.c
 		$(CC) -c homedir.c
 
 corral:		$(DELIVERABLES)
-		mkdir -p ${OUTBIN} > /dev/null
+		@mkdir -p ${OUTBIN} > /dev/null
 		rm -fr *.o
 		rm -fr xmitmsgx/*.o
 		cp -p sf tell uftcndd uftd ${OUTBIN}
 		rm -f sf tell uftcndd uftd
 
 install:	$(DELIVERABLES)
-		mkdir -p $(PREFIX)/bin \
-			$(PREFIX)/share/locale/$(LOCALE) $(PREFIX)/libexec
+		@mkdir -p $(PREFIX)/bin $(PREFIX)/libexec \
+			$(PREFIX)/share/locale/$(LOCALE) \
+			$(PREFIX)/share/man/man1
 		cp -p sf rls rcv rstat rrm uftcndd tell cpq $(PREFIX)/bin/.
 		cp -p uftd uftxdspl uftctcp2 $(PREFIX)/libexec/.
 #		cp -p uft.inet $(PREFIX)/etc/xinetd.d/uft
 		cp -p uft.msgs $(PREFIX)/share/locale/$(LOCALE)/.
+		cp -p *.1 $(PREFIX)/share/man/man1/.
 
 ########################################################################
 # RPM support

@@ -1209,7 +1209,7 @@ int uftx_proxy(char*host,char*prox,int*fd)
     if (rc > 0) { close(ds[0]); close(us[1]); sleep(1);
                       fd[0] = us[0]; fd[1] = ds[1]; return 0; }
 
-    /* if the return from for() is zero then we are the child process */
+    /* if return from fork() is zero then we *are* the child process  */
                   close(ds[1]); close(us[0]);
       close(0); dup(ds[0]); close(ds[0]);
       close(1); dup(us[1]); close(us[1]);

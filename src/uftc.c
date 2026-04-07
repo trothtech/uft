@@ -32,7 +32,7 @@ extern int uftcflag;
 /* ------------------------------------------------------------------ */
 int main(int argc,char*argv[])
   { static char _eyecatcher[] = "uftc.c main()";
-    int         i, fd0, size, copy, fda, rc, fd[2], uftxflag;
+    int         i, fd0, size, copy, fda, rc, fd[2], uftxflag, nop, chf;
     char        temp[256], targ[256], b[UFT_BUFSIZ], akey[256], *mv[16],
                *host, *name, *type, *auth, *class, *proxy, *ptitle,
                *flga, *flgb;
@@ -54,6 +54,7 @@ int main(int argc,char*argv[])
     proxy = "";
     uftxflag = 0x0000;                         /* reset all flag bits */
     flga = flgb = "";
+    nop = chf = 0;           /* winnowing and chaffing off by default */
 
     /* process command-line options */
     for (i = 1; i < argc && argv[i][0] == '-' &&
@@ -131,6 +132,13 @@ int main(int argc,char*argv[])
                   { i++; name = argv[i]; } else
                 if (uftx_abbrev("--verbose",argv[i],6) > 0)
                   { uftcflag |= UFT_VERBOSE; } else
+
+                if (uftx_abbrev("--chaff",argv[i],7) > 0)
+                  { i++; chf = atoi(argv[i]); } else
+                if (uftx_abbrev("--noops",argv[i],6) > 0 ||
+                    uftx_abbrev("--nops",argv[i],5) > 0)
+                  { i++; nop = atoi(argv[i]); } else
+
                 if (uftx_abbrev("--class",argv[i],4) > 0)
                   { i++; class = argv[i]; } else
 /*                          --dest
@@ -355,7 +363,7 @@ int main(int argc,char*argv[])
         sprintf(temp,"DATE %04d-%02d-%02d %02d:%02d:%02d %s",
                 gmtstamp->tm_year, gmtstamp->tm_mon,
                 gmtstamp->tm_mday, gmtstamp->tm_hour,
-                gmtstamp->tm_min, gmtstamp->tm_sec, tzname[0]);
+                gmtstamp->tm_min, gmtstamp->tm_sec, /* tzname[0] */ "GMT");
         if (uftcflag & UFT_VERBOSE) (void) uftx_putline(2,temp,0);
         i = tcpputs(fd[1],temp);
         i = uftc_wack(fd[0],temp,sizeof(temp));
