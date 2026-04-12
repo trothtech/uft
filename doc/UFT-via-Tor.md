@@ -2,6 +2,7 @@
 
 If you are running the C Tor server program
 then enabling UFT via Tor is relatively easy. 
+
 Once enabled, sending via Tor is simply a matter of
 invoking the client `sf` with the `--proxy` option.
 
@@ -14,9 +15,11 @@ or more easily via ...
 
  ... the UFT server is built in such a way that it will reveal less
 to connecting clients about the target system. (thus "anonymous")
-The latter option will produce `ufta` which you can manually install
-to /usr/libexec. It is recommended to run this flavor of UFTD on
-local TCP port 1608. When running under `xinetd` use the ...
+The latter option will produce a `ufta` executable which you can
+manually install to `/usr/libexec`.
+
+It is recommended to run this flavor of UFTD on local TCP port 1608.
+When running under `xinetd` use the ...
 
     port = 1608
     user = root
@@ -46,7 +49,7 @@ You should retrieve the hostname from ...
 There is no change needed to `sf` for enabling Tor.
 Just use a proxy such as `nc` (`netcat`) when running it, like ...
 
-    sf --proxy ' nc -x 127.0.0.1:9050 %h %p ' user@longhostname.onion
+    sf --proxy ' nc -x 127.0.0.1:9050 %h %p ' -a textfile.txt user@*longhostname*.onion
 
 This presumes Tor is providing SOCKS service on local TCP port 9050,
 which is the default. `netcat` will carry the UFT session via proxy.
