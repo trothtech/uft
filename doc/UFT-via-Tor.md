@@ -61,7 +61,8 @@ Building an anonymized UFTD is optional.
 You can use a standard UFTD with Tor, but it will report information
 back to clients including the actual hostname of the server.
 Otherwise the UFT operation is the same. You will, of course, have to
-code `/usr/libexec/uftd` and/or use the standard port 608 under XINETD.
+code `/usr/libexec/uftd` for XINETD or INETD and/or use the standard
+port 608 when defining the hidden service.
 
 The Tor "hidden service" directory is shown in this doc as ...
 
