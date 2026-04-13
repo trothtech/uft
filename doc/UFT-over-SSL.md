@@ -50,12 +50,6 @@ to carry the transaction via `s_client` from the OpenSSL suite.
 `openssl s_client` has many options, some of which might be helpful.
 This document shows the basic invocation.
 
-## Anonymized UFTD
-
-## UFT as a Tor Hidden Service
-
-## Sending to a Tor `.onion` Address
-
 ## Variations
 
 Here we show the UFTD server certificate at ...
