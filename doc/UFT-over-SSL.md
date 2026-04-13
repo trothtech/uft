@@ -45,7 +45,7 @@ Once you have UFTD available via SSL,
 you can use the standard `sf` command and the `--proxy` option
 to carry the transaction via `s_client` from the OpenSSL suite.
 
-    sf --proxy ' openssl s_client -quiet -verify_quiet -connect %h:5608 ' -a textfile.txt user@host
+    sf --proxy 'openssl s_client -quiet -verify_quiet -connect %h -port 5608' -a textfile.txt user@host
 
 `openssl s_client` has many options, some of which might be helpful.
 This document shows the basic invocation.
