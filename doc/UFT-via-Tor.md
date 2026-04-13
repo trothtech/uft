@@ -49,7 +49,7 @@ You should retrieve the hostname from ...
 There is no change needed to `sf` for enabling Tor.
 Just use a proxy such as `nc` (`netcat`) when running it, like ...
 
-    sf --proxy ' nc -x 127.0.0.1:9050 %h %p ' -a textfile.txt user@longhostname.onion
+    sf --proxy 'nc -x 127.0.0.1:9050 %h %p' -a textfile.txt user@longhostname.onion
 
 This presumes Tor is providing SOCKS service on local TCP port 9050,
 which is the default. `netcat` will carry the UFT session via proxy.
