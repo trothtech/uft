@@ -62,4 +62,10 @@ anywhere you like as long as the STunnel configuration references it.
 For that matter, you can house the STunnel configuration anywhere
 as long as `stunnel` is invoked against that file.
 
+## Bugs
+
+The above `openssl s_client` proxy command requires OpenSSL version 3.
+In OpenSSL version 1, the command lacks the `-port` option.
+But UFT 2.0 and prior does not properly process "`%h:%p`" replacement.
+
 
