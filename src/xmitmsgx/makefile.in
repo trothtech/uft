@@ -12,7 +12,7 @@ APPLID          =       xmitmsgx
 VERSION         =       2.2.4
 
 DELIVERABLES    =       xmitmsg xmiterr xmmlogin libxmitmsgx.a libxmitmsgxdyn.so
-SOURCEURL       =       https://raw.githubusercontent.com/trothr/xmitmsgx/master
+SOURCEURL       =       https://raw.githubusercontent.com/trothtech/xmm/master
 LOCALE          =       en_US
 
 ##### configuration #####

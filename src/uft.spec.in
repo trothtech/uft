@@ -21,7 +21,7 @@ Summary: Universal File Transfer (UFT)
 Group: Utilities/System
 
 #Source: https://github.com/trothtech/uft/
-#Source: uft-%{version}.tar.gz
+#Source: uft-%{xersion}.tar.gz
 #Source: uft-%{SPEC_VERSION}.tar.gz
 #Copyright: Casita.Net
 
@@ -42,13 +42,13 @@ URL: http://www.casita.net/pub/uft/
 #Packager: Sir Santa
 
 %description
-UFT is Universal File Transfer, aka is Unsolicited File Transfer.
-One may also call it  "Internet SENDFILE"  or  "Internet TRANSMIT".
+UFT is Universal File Transfer, aka Unsolicited File Transfer.
+One may also call it "Internet SENDFILE" or "Internet TRANSMIT".
 It does over TCP/IP what other tools do over IBM NJE protocol.
 
 # the source has already been fetched
-%prep
-true
+#%prep
+#true
 #%setup -q
 
 # do a 'make install' and this is not needed
@@ -58,7 +58,9 @@ true
 #mkdir -p $HOME/rpmbuild/BUILDROOT/%SPEC_APPLID%-%SPEC_VERSION%-%SPEC_RELEASE%.%SPEC_UNAMEM%/%SPEC_PREFIX%
 mkdir -p $HOME/rpmbuild/BUILDROOT/%SPEC_APPLID%-%SPEC_VERSION%-%SPEC_RELEASE%.%SPEC_UNAMEM%
 #rsync -a -u -x -H -O -S -v %SPEC_STAGING%/. $HOME/rpmbuild/BUILDROOT/%SPEC_APPLID%-%SPEC_VERSION%-%SPEC_RELEASE%.%SPEC_UNAMEM%/%SPEC_PREFIX%/.
-rsync -a -u -x -H -O -S -v %SPEC_STAGING%/. $HOME/rpmbuild/BUILDROOT/%SPEC_APPLID%-%SPEC_VERSION%-%SPEC_RELEASE%.%SPEC_UNAMEM%/.
+#rsync -a -u -x -H -O -S -v %SPEC_STAGING%/. $HOME/rpmbuild/BUILDROOT/%SPEC_APPLID%-%SPEC_VERSION%-%SPEC_RELEASE%.%SPEC_UNAMEM%/.
+#                                           $HOME/rpmbuild/BUILD/uft-2.0.17-build/BUILDROOT/
+rsync -a -u -x -H -O -S -v %SPEC_STAGING%/. $HOME/rpmbuild/BUILD/%SPEC_APPLID%-%SPEC_VERSION%-build/BUILDROOT/.
 
 # we should have done a 'make install' before this step
 %install
@@ -67,7 +69,9 @@ rsync -a -u -x -H -O -S -v %SPEC_STAGING%/. $HOME/rpmbuild/BUILDROOT/%SPEC_APPLI
 #mkdir -p $HOME/rpmbuild/BUILDROOT/%SPEC_APPLID%-%SPEC_VERSION%-%SPEC_RELEASE%.%SPEC_UNAMEM%/%SPEC_PREFIX%
 mkdir -p $HOME/rpmbuild/BUILDROOT/%SPEC_APPLID%-%SPEC_VERSION%-%SPEC_RELEASE%.%SPEC_UNAMEM%
 #rsync -a -u -x -H -O -S -v %SPEC_STAGING%/. $HOME/rpmbuild/BUILDROOT/%SPEC_APPLID%-%SPEC_VERSION%-%SPEC_RELEASE%.%SPEC_UNAMEM%/%SPEC_PREFIX%/.
-rsync -a -u -x -H -O -S -v %SPEC_STAGING%/. $HOME/rpmbuild/BUILDROOT/%SPEC_APPLID%-%SPEC_VERSION%-%SPEC_RELEASE%.%SPEC_UNAMEM%/.
+#rsync -a -u -x -H -O -S -v %SPEC_STAGING%/. $HOME/rpmbuild/BUILDROOT/%SPEC_APPLID%-%SPEC_VERSION%-%SPEC_RELEASE%.%SPEC_UNAMEM%/.
+#                                           $HOME/rpmbuild/BUILD/uft-2.0.17-build/BUILDROOT/
+rsync -a -u -x -H -O -S -v %SPEC_STAGING%/. $HOME/rpmbuild/BUILD/%SPEC_APPLID%-%SPEC_VERSION%-build/BUILDROOT/.
 
 ##mkdir -p $RPM_BUILD_ROOT/usr/src/redhat/SOURCES
 ##mkdir -p $RPM_BUILD_ROOT/usr/src/redhat/RPMS/${RPM_ARCH}
@@ -97,6 +101,10 @@ rsync -a -u -x -H -O -S -v %SPEC_STAGING%/. $HOME/rpmbuild/BUILDROOT/%SPEC_APPLI
 #%SPEC_PREFIX%/etc/xinetd.d/uft
 #/etc/xinetd.d/uft
 %SPEC_PREFIX%/share/locale/%SPEC_LOCALE%/uft.msgs
+#
+%SPEC_PREFIX%/share/man/man1/rcv.1.gz
+%SPEC_PREFIX%/share/man/man1/rls.1.gz
+%SPEC_PREFIX%/share/man/man1/sf.1.gz
 
 %clean
 # Here is where we clean-up after all the building and packaging.

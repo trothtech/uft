@@ -11,8 +11,9 @@
 #ifndef _XMITMSGX_H
 #define _XMITMSGX_H
 
-/* xmitmsgx-2.2.5            v2            r2            m5           */
-#define  XMITMSGX_VERSION  (((2) << 24) + ((2) << 16) + ((5) << 8) + (0))
+/* xmitmsgx-2.2.6            v2            r2            m6           */
+#define  XMITMSGX_VERSION  (((2) << 24) + ((2) << 16) + ((6) << 8) + (0))
+/* version 2.2.6 includes a built-in SYSLOG place holder for Windows  */
 /* version 2.2.5 removes "unsigned char" for to build on IBM VM/CMS   */
 /* but characters are NOT "signed" in practice anyway ... WCGW?       */
 
@@ -88,15 +89,15 @@ extern int xmopen(char*,int,struct MSGSTRUCT*);
 extern int xmmake(struct MSGSTRUCT*);
 
 /* Print to stdout or stderr depending on level, optionally syslog. */
-extern int xmprint(int,int,char*[],int,struct MSGSTRUCT*);
+extern int xmprint(int,int,char**,int,struct MSGSTRUCT*);
 /* args: msgnum, msgc, msgv, opts */
 
 /* Write to file descriptor, optionally syslog. */
-extern int xmwrite(int,int,int,char*[],int,struct MSGSTRUCT*);
+extern int xmwrite(int,int,int,char**,int,struct MSGSTRUCT*);
 /* args: fd, msgnum, msgc, msgv, opts */
 
 /* Generate a message and store it as a string. */
-extern int xmstring(char*,int,int,int,char*[],struct MSGSTRUCT*);
+extern int xmstring(char*,int,int,int,char**,struct MSGSTRUCT*);
 /* args: output, outlen, msgnum, msgc, msgv */
 
 /* Clear the message repository struct. */

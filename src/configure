@@ -80,7 +80,7 @@ case "$US" in
             SHLIB_EXT=".dylib"
         fi
         ;;
-    Linux|FreeBSD)
+    Linux|FreeBSD|NetBSD)
         CFLAGS="$CFLAGS -fPIC"
 #       LDFLAGS=
         SHFLAGS="$LDFLAGS -shared"
