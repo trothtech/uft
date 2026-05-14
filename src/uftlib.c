@@ -1000,7 +1000,7 @@ struct addrinfo
         fprintf(stderr,"Windows socket subsytsem could not be initialized.\n");
         fprintf(stderr,"Error Code: %d. Exiting..\n", WSAGetLastError());
         return -1; }
-fprintf(stderr,"yup, we're on Windows\n");                  /* TRIAGE */
+/* fprintf(stderr,"yup, we're on Windows\n");               ** TRIAGE */
 #endif
 
     /* parse host address and port number by colon                    */
@@ -1042,7 +1042,7 @@ fprintf(stderr,"yup, we're on Windows\n");                  /* TRIAGE */
 
 #ifdef UFTC_OPEN_FALLBACK
     /* here maybe re-try with older methods */
-fprintf(stderr,"retrying with gethostbyname()\n");          /* TRIAGE */
+/* fprintf(stderr,"retrying with gethostbyname()\n");       ** TRIAGE */
 
     /*  figure out where to connect  */
     hent = gethostbyname(host);
