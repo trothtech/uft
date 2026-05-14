@@ -12,10 +12,18 @@
 #include <sys/types.h>
 
 #if defined(_WIN32) || defined(_WIN64)
- typedef int uid_t;
- typedef int gid_t;
+/* typedef int uid_t;
+   typedef int gid_t; */
+ /* the SPOOLDIR has a sub-directory for each recipient               */
+ #ifndef        UFT_SPOOLDIR
+  #define       UFT_SPOOLDIR    "C:/ProgramData/uft"
+ #endif
 #else
  #define UFT_POSIX
+ /* the SPOOLDIR has a sub-directory for each recipient               */
+ #ifndef        UFT_SPOOLDIR
+  #define       UFT_SPOOLDIR    "/usr/spool/uft"
+ #endif
 #endif
 
 #include "tcpio.h"
@@ -38,12 +46,6 @@
 #endif
 
 /* server constants follow */
-
-/* the SPOOLDIR has a sub-directory for each recipient                */
-#ifndef         UFT_SPOOLDIR
- #define        UFT_SPOOLDIR    "/var/spool/uft"
-             /*                 "C:/ProgramData/uft" */
-#endif
 
 #ifndef         UFT_GID
  #define        UFT_GID         0
@@ -77,14 +79,14 @@
 #define         UFT_NOTRANS     0x1000         /* translation not fit */
 
 /* registered port for this service */
-#define         UFT_PORT        608
-#define         IDENT_PORT      113
+#define         UFT_PORT         608
+#define         IDENT_PORT       113
+#define         UFT_ANONPORT    1608
+#define         UFT_SECPORT     5608
 
 /* define       UFT_BUFSIZ      64512 */
 /* reduced from 64K-512 to 32K-512 for more reliable file transfer    */
 #define         UFT_BUFSIZ      32256
-
-#define         UFT_SYSLOG_FACILITY     LOG_UUCP
 
 /* the following struct is best used for active UFT files             */
 typedef struct  UFTFILE {
@@ -327,18 +329,16 @@ int uftddata(int,int,int);
 int uftdnext();
 int uftduser(char*);
 int uftdmove(int,int);
-int uftdimsg(char*,char*,char*,char*);                  /* deprecated */
-int uftdlmsg(char*,char*,char*,char*);                  /* deprecated */
 int uftdlist(int,char*);
-
 int uftctext(int,char*,int);
-
 char*uftcprot(mode_t);
-
 int uftx_abbrev(char*,char*,int);
 
 /* functions from the library */
+
 int uftx_message(char*,int,int,char*,int,char*[]);
+int uftx_msgprtl(int,char*,int,char*[]);
+
 int uftd_message(char*,char*);          /* FKA msglocal(user,text)    */
 char*uftx_home(char*);                 /* home directory of this user */
 int msgd_umsg(char*,char*,char*);                 /* user, text, from */

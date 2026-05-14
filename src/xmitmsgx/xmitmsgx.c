@@ -85,7 +85,7 @@ char *localedirs[] = {
 
 static struct MSGSTRUCT *msglobal = NULL, msstatic;
 
-/* ---------------------------------------------------------------- OPEN
+/* -------------------------------------------------------------- XMOPEN
  * Open the messages file, read it, get ready for service.
  * Returns: zero upon successful operation, or 813 if cannot open the repository file
  * The VM/CMS counterpart does 'SET LANG' to load the messages file.
@@ -328,7 +328,7 @@ int xmopen(char*file,int opts,struct MSGSTRUCT*ms)
     ms->msgopts = opts;
     if (ms->msgopts & MSGFLAG_SYSLOG) {
       /* figure out syslog identity */
-      openlog(ms->applid,LOG_PID,LOG_USER); }
+      openlog(ms->applid,LOG_PID,MSGROUTE_DEFAULT); }
 
     /* default "caller" is the user, but is better as a function name */
 
@@ -348,7 +348,7 @@ int xmopen(char*file,int opts,struct MSGSTRUCT*ms)
     return 0;
   }
 
-/* ---------------------------------------------------------------- MAKE
+/* -------------------------------------------------------------- XMMAKE
  * This is the central function: make a message.
  * All other print, string, and write functions are derivatives.
  * Returns: zero upon successful operation, ENOENT or 814 if no message
@@ -429,7 +429,7 @@ int xmmake(struct MSGSTRUCT*ms)
     return 0;
   }
 
-/* --------------------------------------------------------------- PRINT
+/* ------------------------------------------------------------- XMPRINT
  * Print a message, stdout or stderr depending on level/letter.
  * Newline automatically appended. Optionally SYSLOG the message.
  * Returns: number of characters printed, negative indicates error
@@ -472,7 +472,7 @@ int xmprint(int msgnum,int msgc,char*msgv[],int msgopts,struct MSGSTRUCT*ms)
     return rc;
   }
 
-/* --------------------------------------------------------------- WRITE
+/* ------------------------------------------------------------- XMWRITE
  * Write a message to the indicated file descriptor.
  * Newline automatically appended. Optionally SYSLOG the message.
  * Returns: number of bytes written, negative indicates error
@@ -512,7 +512,7 @@ int xmwrite(int fd,int msgnum,int msgc,char*msgv[],int msgopts,struct MSGSTRUCT*
     return rc;
   }
 
-/* -------------------------------------------------------------- STRING
+/* ------------------------------------------------------------ XMSTRING
  * Build the message and put it into a string buffer. No newline.
  * Returns: number of bytes in string, negative indicates error
  * Calls: xmmake()
@@ -543,7 +543,7 @@ int xmstring(char*output,int outlen,int msgnum,
     return ms->msglen;   /* normal return is length of message string */
   }
 
-/* --------------------------------------------------------------- CLOSE
+/* ------------------------------------------------------------- XMCLOSE
  * Close (figuratively): free common storage and reset static variables.
  * Returns: zero upon successful operation
  */
@@ -578,7 +578,7 @@ int xmclose(struct MSGSTRUCT*ms)
     return 0;
   }
 
-/* ------------------------------------------------------------- LEV2PRI
+/* ---------------------------------------------------------- XM_LEV2PRI
  *  Return an integer priority for a given severity level letter.
  *  This routine is not presently used because xmmake() handles it.
  */
@@ -586,30 +586,60 @@ int xm_lev2pri(char*l)
   {
     switch (*l) {
       case 'I': case 'i':       /* MSGLEVEL_INFO */
-        return LOG_INFO;        /* 6 */
+        return LOG_INFO;        /* 6 */                           break;
       case 'R': case 'r': case 'N': case 'n':
-        return LOG_NOTICE;      /* 5 */
+        return LOG_NOTICE;      /* 5 */                           break;
       case 'W': case 'w':       /* MSGLEVEL_WARNING */
-        return LOG_WARNING;     /* 4 */
+        return LOG_WARNING;     /* 4 */                           break;
       case 'E': case 'e':       /* MSGLEVEL_ERROR */
-        return LOG_ERR;         /* 3 */
+        return LOG_ERR;         /* 3 */                           break;
       case 'S': case 's': case 'C': case 'c':
-        return LOG_CRIT;        /* 2 */
+        return LOG_CRIT;        /* 2 */                           break;
       case 'T': case 't':       /* MSGLEVEL_TERMINAL */
-        return LOG_ALERT;       /* 1 */
+        return LOG_ALERT;       /* 1 */                           break;
       default:
-        return 0;
+        return 0;                                                 break;
                 }
     return 0;
   }
 
-/* ------------------------------------------------------------ NEGATIVE
+/* --------------------------------------------------------- XM_NEGATIVE
  *  Force the supplied integer to be negative. Good for error indications.
  *  Yeah, yeah, ... it's cheezy. But it works.
  */
 int xm_negative(int n)
   { if (n < 0) return n;
           else return 0 - n;
+  }
+
+/* ---------------------------------------------------------- XM_DELIVER
+ *    Deliver a message in a buffer to stdout, stderr, or SYSLOG.
+ *    Buffer is passed as a pointer to a NULL-terminated string.
+ *    Main reason this even exists is to hide SYSLOG variances.
+ */
+int xm_deliver(char*buff,int type)
+  {
+    switch (type) {
+      case 'I': case 'i':       /* MSGLEVEL_INFO */
+        syslog(LOG_INFO,"%s",buff);                               break;
+      case 'R': case 'r': case 'N': case 'n':
+        syslog(LOG_NOTICE,"%s",buff);                             break;
+      case 'W': case 'w':       /* MSGLEVEL_WARNING */
+        syslog(LOG_WARNING,"%s",buff);                            break;
+      case 'E': case 'e':       /* MSGLEVEL_ERROR */
+        syslog(LOG_ERR,"%s",buff);                                break;
+      case 'S': case 's': case 'C': case 'c':
+        syslog(LOG_CRIT,"%s",buff);                               break;
+      case 'T': case 't':       /* MSGLEVEL_TERMINAL */
+        syslog(LOG_ALERT,"%s",buff);                              break;
+      case '*':
+        return fprintf(stdout,"%s\n",buff);                       break;
+      case '!':
+        return fprintf(stderr,"%s\n",buff);                       break;
+      default:
+        return 0;                                                 break;
+                  }
+    return 0;
   }
 
 

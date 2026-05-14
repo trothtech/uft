@@ -36,13 +36,8 @@ int uftdcpq_cplevel(char*cpqstr,int cpqsl)                 /* CPLEVEL */
 #else
 
     cpqstr[0] = 0x00;
-#ifdef UFT_POSIX
     rc = uname(&cpquts);
     if (rc < 0) return rc;
-#else
-    cpquts.sysname[0] = cpquts.nodename[0] = cpquts.release[0] = cpquts.version[0] = cpquts.machine[0] = '-';
-    cpquts.sysname[1] = cpquts.nodename[1] = cpquts.release[1] = cpquts.version[1] = cpquts.machine[1] = 0x00;
-#endif
 
     snprintf(cpqstr,cpqsl,"%s %s %s %s %s",
              cpquts.sysname,    /* -s, --kernel-name */

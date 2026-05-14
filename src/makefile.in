@@ -35,7 +35,6 @@ uftd:		makefile uftd.o \
 			uftddata.o \
 			uftduser.o \
 			uftdmove.o \
-			uftdimsg.o \
 			uftdlist.o \
 			uftdcpq.o \
 			tcpio.o \
@@ -47,7 +46,6 @@ uftd:		makefile uftd.o \
 			uftddata.o \
 			uftduser.o \
 			uftdmove.o \
-			uftdimsg.o \
 			uftdlist.o \
 			uftdcpq.o \
 			tcpio.o \
@@ -68,8 +66,8 @@ uftduser.o:	makefile uft.h uftduser.c
 uftdmove.o:	makefile uft.h uftdmove.c
 		$(CC) $(CFLAGS) -c uftdmove.c
 
-uftdimsg.o:	makefile uft.h uftdimsg.c
-		$(CC) $(CFLAGS) -c uftdimsg.c
+#uftdimsg.o:	makefile uft.h uftdimsg.c
+#		$(CC) $(CFLAGS) -c uftdimsg.c
 
 #uftdlmsg.o:	makefile uft.h uftdlmsg.c
 #		$(CC) $(CFLAGS) -c uftdlmsg.c

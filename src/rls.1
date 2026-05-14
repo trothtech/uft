@@ -1,0 +1,48 @@
+.TH RLS 1 "2026 April 03" "" ""
+
+.SH NAME
+rls \- list "receivable files" in your delivery dock or spool space.
+
+.SH SYNOPSIS
+.B rls
+
+.SH DESCRIPTION
+.PP
+.I rls
+works somewhat like
+.I ls
+and displays a listing similar to
+.I ls -l
+
+.SH BUGS
+.I rls
+is a shell script,
+but see the notes section about the "delivery dock" space.
+
+.SH NOTES
+The Unix/Linux implementation of UFT is designed to be processable
+using shell scripts. Incoming files are delivered to
+.I /usr/spool/uft/user
+and are named with the sequence number or "spool ID" number.
+For each incoming file there are two physical files:
+.I /usr/spool/uft/user/0000.cf
+(control file) containing all available attributes, and
+.I /usr/spool/uft/user/0000.df
+(data file) holding the actual file content.
+
+.SH COPYRIGHT
+Copyright 1995-2026 Richard M. Troth
+
+This is free software; you can distribute it and/or modify it
+for non-commercial use provided that this copyright notice remain.
+This software comes with no warranty.
+
+.SH AUTHOR
+.PP
+Rick Troth <rick@trothtech.us> with a lot of help from his friends
+
+.SH SEE ALSO
+.PP
+sf(1), rcv(1)
+
+

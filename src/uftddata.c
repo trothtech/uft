@@ -6,14 +6,14 @@
  *        NOTE: This source is due for merge into UFTD or UFTLIB.
  */
 
-#include <fcntl.h>
-
 #if defined(_WIN32) || defined(_WIN64)
  #include <winsock2.h>
 #else
  #include <sys/socket.h>
  #include <netdb.h>
 #endif
+
+#include <fcntl.h>
 
 #include "uft.h"
 

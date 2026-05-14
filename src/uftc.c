@@ -18,13 +18,6 @@
 #include <unistd.h>
 #include <errno.h>
 
-#if defined(_WIN32) || defined(_WIN64)
- typedef int uid_t;
- typedef int gid_t;
-#else
- #define UFT_POSIX
-#endif
-
 #include "uft.h"
 
 extern int uftcflag;
@@ -84,24 +77,20 @@ int main(int argc,char*argv[])
                         break;
 #endif
             case 't':   case 'T':       /* sender-specified TYPE      */
-                        i++;   
-                        type = argv[i];
+                        i++; type = argv[i];
                         break;
             case 'n':   case 'N':       /* NAME of the file           */
-                        i++;
-                        name = argv[i];
+                        i++; name = argv[i];
                         break;
             case 'c':   case 'C':       /* CLASS                      */
-                        i++;   
-                        class = argv[i];
+                        i++; class = argv[i];
                         break;
             case 'm':   case 'M':       /* TYPE=M for email           */
                         uftcflag &= ~UFT_BINARY;
                         type = "M";
                         break;
             case '#':   /* COPY -or- COPIES                           */
-                        i++;    
-                        copy = atoi(argv[i]);
+                        i++; copy = atoi(argv[i]);
                         break;
 
 /* ------------------------------------------------------------------ */
@@ -227,8 +216,9 @@ int main(int argc,char*argv[])
 
     /* verify that the open() worked */
     if (fd0 < 0)
-      { if (*name != 0x00) (void) perror(name);
-                   else    (void) perror("stdin");
+      { if (*name != 0x00) { if (errno != 0) perror(name); }
+                   else    { if (errno != 0) perror("stdin"); }
+// cannot read the file to send
         return 1; }                       /* open file to send failed */
 
     /* do we have any ideas about this file? */
@@ -263,21 +253,33 @@ int main(int argc,char*argv[])
     if (*host == '@') *host++ = 0x00; else host = "localhost";
 
     rc = uftc_open(host,proxy,fd);
-    if (rc != 0) { if (errno != 0) perror(host); return 1; }
-/*  r = fd[0]; s = fd[1];                // r for read and s for send */
+    if (rc != 0) { if (errno != 0) perror(host);
+// cannot connect to target host
+        return 1; }
+/*  r = fd[0]; s = fd[1];        // r (0) for read and s (1) for send */
 
     /* wait for the herald from the server */
     i = tcpgets(fd[0],temp,sizeof(temp));   /* all others uftc_wack() */
     if (i < 0)
-      { (void) perror(host);              /* FIXME: remember to close */
+      { if (errno != 0) perror(host);
+// failed reading herald from target host
+        uftc_close(fd);
         return 1; }              /* read of herald from server failed */
     if (uftcflag & UFT_VERBOSE) (void) uftx_putline(2,temp,0);
 
     /* figure out what protocol version the server likes */
-    uftv = temp[0] & 0x0F;
+    uftv = temp[0] & 0x0F;            /* compatible w ASCII or EBCDIC */
     if (uftv < 1) uftv = 1;
+
+    /* look for expected error indicators in the herald               */
+    if (uftv > 2)     /* not actually the UFT level but an error code */
+      { fprintf(stderr,"%s\n",temp);
+        uftc_close(fd);
+        return 1; }                  /* the herald indicated an error */
+
     if (uftcflag & UFT_VERBOSE)
       { (void) sprintf(temp,"%s: UFT protocol %d",arg0,uftv);
+// FIXME: protocol report should be a standardized message
         (void) uftx_putline(2,temp,0); }
     /* (above is only good for UFT1 or UFT2) */
 
@@ -298,8 +300,7 @@ int main(int argc,char*argv[])
         /* ----- step 6 --------------------------------- EOF command */
         /* ----- step 7 -------------------------------- QUIT command */
 
-    /* start the transaction */
-/*  (void) sprintf(temp,"FILE %d %s %s",size,uftx_user(),auth);       */
+    /* start the transaction ----------------------- the FILE command */
     (void) sprintf(temp,"FILE %d %s %s %s",size,uftx_user(),auth,akey);
     if (uftcflag & UFT_VERBOSE) (void) uftx_putline(2,temp,0);
     (void) tcpputs(fd[1],temp);
@@ -309,9 +310,11 @@ int main(int argc,char*argv[])
         else (void) uftx_putline(2,temp,0);
         return 1; }                      /* FIXME: remember to close */
     if (uftcflag & UFT_VERBOSE || i == 5) (void) uftx_putline(2,temp,0);
-    if (i == 5) { return 5; }           /* a 500 NAK here is terminal */
+    if (i == 5)                         /* a 500 NAK here is terminal */
+      { uftc_close(fd);
+        return 1; }                     /* a 500 NAK here is terminal */
 
-    /* tell the server who it's for */
+    /* tell the server who it's for ---------------- the USER command */
     (void) sprintf(temp,"USER %s",targ);
     if (uftcflag & UFT_VERBOSE) (void) uftx_putline(2,temp,0);
     (void) tcpputs(fd[1],temp);
@@ -319,11 +322,14 @@ int main(int argc,char*argv[])
     if (i < 0)
       { if (errno != 0) (void) perror(arg0);
         else (void) uftx_putline(2,temp,0);
+        uftc_close(fd);
         return 1; }
     if (uftcflag & UFT_VERBOSE || i == 5) (void) uftx_putline(2,temp,0);
-    if (i == 5) { return 5; }           /* a 500 NAK here is terminal */
+    if (i == 5)                         /* a 500 NAK here is terminal */
+      { uftc_close(fd);
+        return 1; }                     /* a 500 NAK here is terminal */
 
-    /* signal the type for canonization */
+    /* signal the type for canonization ------------ the TYPE command */
     if (type == 0x0000 || type[0] == 0x00)
       { if (uftcflag & UFT_BINARY) type = "I";
                 /* "applcation/octet-stream" */
@@ -335,11 +341,13 @@ int main(int argc,char*argv[])
     if (i < 0)
       { if (errno != 0) (void) perror(arg0);
         else (void) uftx_putline(2,temp,0);
+        uftc_close(fd);
         return 1; }
     if (uftcflag & UFT_VERBOSE) (void) uftx_putline(2,temp,0);
-    if (i == 5) { return 5; }           /* a 500 NAK here is terminal */
+    if (i == 5)                         /* a 500 NAK here is terminal */
+      { uftc_close(fd); return 1; }     /* a 500 NAK here is terminal */
 
-    /* does this file have a name? */
+    /* does this file have a name? ------------------- a META command */
     if (name != 0x0000 && name[0] != 0x00)
       { name = uftx_basename(name);
         sprintf(temp,"NAME %s",name);
@@ -349,7 +357,7 @@ int main(int argc,char*argv[])
         if (i < 0)
           { if (errno != 0) (void) perror(arg0);
             else (void) uftx_putline(2,temp,0);
-            return 1; }
+            uftc_close(fd); return 1; }
         if (uftcflag & UFT_VERBOSE) (void) uftx_putline(2,temp,0); }
 
     /* do we have a time stamp for this file? */
@@ -370,7 +378,7 @@ int main(int argc,char*argv[])
         if (i < 0 && temp[0] != '4')
           { if (errno != 0) (void) perror(arg0);
             else (void) uftx_putline(2,temp,0);
-            return 1; }
+            uftc_close(fd); return 1; }
         if (uftcflag & UFT_VERBOSE) (void) uftx_putline(2,temp,0);
 
         /* also send it as number-of-seconds Unix epoch offset value  */
@@ -381,7 +389,7 @@ int main(int argc,char*argv[])
         if (i < 0 && temp[0] != '4')
           { if (errno != 0) (void) perror(arg0);
             else (void) uftx_putline(2,temp,0);
-            return 1; }
+            uftc_close(fd); return 1; }
         if (uftcflag & UFT_VERBOSE) (void) uftx_putline(2,temp,0); }
 
     /* do we have a protection bit pattern on this file? */
@@ -393,7 +401,7 @@ int main(int argc,char*argv[])
         if (i < 0 && temp[0] != '4')
           { if (errno != 0) (void) perror(arg0);
             else (void) uftx_putline(2,temp,0);
-            return 1; }
+            uftc_close(fd); return 1; }
         if (uftcflag & UFT_VERBOSE) (void) uftx_putline(2,temp,0);
 
         /* also send it as bits in octal format                       */
@@ -404,7 +412,7 @@ int main(int argc,char*argv[])
         if (i < 0 && temp[0] != '4')
           { if (errno != 0) (void) perror(arg0);
             else (void) uftx_putline(2,temp,0);
-            return 1; }
+            uftc_close(fd); return 1; }
         if (uftcflag & UFT_VERBOSE) (void) uftx_putline(2,temp,0); }
 
     /* does this file have a specific class? */
@@ -417,7 +425,7 @@ int main(int argc,char*argv[])
         if (i < 0)
           { if (errno != 0) (void) perror(arg0);
             else (void) uftx_putline(2,temp,0);
-            return 1; }
+            uftc_close(fd); return 1; }
         if (uftcflag & UFT_VERBOSE) (void) uftx_putline(2,temp,0); }
 
     /* process the data - everything goes down the pipe as it is      */

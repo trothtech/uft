@@ -8,6 +8,16 @@
  *
  */
 
+#if defined(_WIN32) || defined(_WIN64)
+ #include <winsock2.h>
+ #include <ws2tcpip.h>
+ #include <windows.h>
+ #include <io.h>
+#else
+ #include <sys/socket.h>
+ #include <netdb.h>
+#endif
+
 #include <string.h>
 #include <stdio.h>
 #include <fcntl.h>
@@ -19,13 +29,6 @@
 #include <unistd.h>
 
 #include "uft.h"
-
-#ifdef UFT_POSIX
- #include <sys/socket.h>
- #include <netdb.h>
-#else
- #include <winsock2.h>
-#endif
 
 char       *arg0;
 int         tffd,     cffd,     dffd,     effd;       /* file handles */
@@ -108,12 +111,12 @@ int main(int argc,char*argv[])
 
     /* work from the UFT spool directory */
     n = chdir(UFT_SPOOLDIR);
-    if (n < 0)
+    if (n != 0)
       { (void) sprintf(temp,"522 spool directory unavailable (%d).",errno);
 /*      (void) sprintm(temp,"uft","srv",522,'E',0,NULL); */
         (void) uftdstat(1,temp);    /* error to client but no logging */
 #ifdef _UFT_DEBUG
-    fprintf(stderr,"UFTD: 522 spool dir unavail\n");
+    fprintf(stderr,"UFTD: 522 spool directory unavailable\n");
 #endif
         return 1; }                    /* spool directory unavailable */
     /* Leave control in the sysadmin's hands as much as possible.     */
@@ -570,7 +573,7 @@ int main(int argc,char*argv[])
             n = -1;                /* ... and lose the spoolid number */
 
             /* get back into the UFT spool directory */
-            if (chdir(UFT_SPOOLDIR) < 0) break;   /* FIXME: should be 5xx */
+            if (chdir(UFT_SPOOLDIR) != 0) break;   /* FIXME: should be 5xx */
 
             /* all clear; kill the log file */
             close(tffd); uftlogfd = tffd = -1; unlink(tffn);
@@ -617,7 +620,7 @@ int main(int argc,char*argv[])
 #endif
 
             /* get back into the UFT spool directory */
-            if (chdir(UFT_SPOOLDIR) < 0) break;   /* FIXME: should be 5xx */
+            if (chdir(UFT_SPOOLDIR) != 0) break;   /* FIXME: should be 5xx */
 
             /* all clear; now kill the log file */
             close(tffd); uftlogfd = tffd = -1; unlink(tffn);

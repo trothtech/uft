@@ -12,10 +12,6 @@
  *        NOTE: This source is due for merge into UFTD or UFTLIB.
  */
 
-extern  int     errno;
-#include <unistd.h>
-#include <sys/stat.h>
-
 #if defined(_WIN32) || defined(_WIN64)
  #include <winsock2.h>
 #else
@@ -25,6 +21,9 @@ extern  int     errno;
  #include <errno.h>
 #endif
 
+#include <unistd.h>
+#include <sys/stat.h>
+
 #include "uft.h"
 
 /* ------------------------------------------------------------ UFTDUSER
@@ -33,7 +32,6 @@ extern  int     errno;
  */
 int uftduser(char*user)
   { static char _eyecatcher[] = "uftduser()";
-#ifdef UFT_POSIX
     int         i, uuid;
     struct passwd *pwdent;
 
@@ -52,15 +50,13 @@ int uftduser(char*user)
     if (i < 0 && errno == ENOENT) i = chdir("anonymous");
 #endif
 
-    /* some error;  should we create a sub-dir? */
+    /* some error; should we create a sub-dir? */
     if (i < 0 && errno == ENOENT)
-      {
-        if (pwdent == NULL) return -1;
+      { if (pwdent == NULL) return -1;
         if (mkdir(user,0770) < 0) return i;
         if (pwdent != NULL)
         (void) chown(user,pwdent->pw_uid,UFT_GID);
-        i = chdir(user);
-      }
+        i = chdir(user); }
 
     /* errors persist!  bail out! */
     if (i < 0) return i;
@@ -68,24 +64,15 @@ int uftduser(char*user)
     /* if the user exists,  try chowning the SEQuence file(s)
         and the directory,  if that works,  set effective UID */
     if (pwdent != NULL)
-      {
-        uuid = pwdent->pw_uid;
+      { uuid = pwdent->pw_uid;
         (void) chown(UFT_SEQFILE,uuid,UFT_GID);
         (void) chmod(UFT_SEQFILE,0660);
         (void) chown(UFT_SEQFILE_ALT,uuid,UFT_GID);
         (void) chmod(UFT_SEQFILE_ALT,0660);
-        if (chown(".",uuid,UFT_GID) == 0) (void) seteuid(uuid);
-      }
+        if (chown(".",uuid,UFT_GID) == 0) (void) seteuid(uuid); }
 
     /* return the uid (non-negative) on success */
     return uuid;
-
-#else
-    int rc;
-    /* does the directory exist already? */
-    rc = chdir(user);
-    return rc;
-#endif
   }
 
 

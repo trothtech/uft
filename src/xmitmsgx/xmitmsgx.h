@@ -15,7 +15,7 @@
 #define  XMITMSGX_VERSION  (((2) << 24) + ((2) << 16) + ((6) << 8) + (0))
 /* version 2.2.6 includes a built-in SYSLOG place holder for Windows  */
 /* version 2.2.5 removes "unsigned char" for to build on IBM VM/CMS   */
-/* but characters are NOT "signed" in practice anyway ... WCGW?       */
+/*  ... but characters are NOT "signed" in practice anyway ... WCGW?  */
 
 /* priorities (these are ordered)                                     */
 /*      MSGLEVEL_DEBUG           LOG_DEBUG   7 debug-level messages, not used here */
@@ -26,6 +26,13 @@
 #define MSGLEVEL_SEVERE   'S' /* LOG_CRIT    2 critical conditions */
 #define MSGLEVEL_TERMINAL 'T' /* LOG_ALERT   1 action must be taken immediately */
 /*      MSGLEVEL_EMERG           LOG_EMERG   0 reserved */
+/*      MSGLEVEL_STDOUT   '*'                  print to stdout        */
+/*      MSGLEVEL_STDERR   '!'                  print to stderr        */
+
+#define MSGROUTE_DEFAULT     (1<<3)  /* user-generated messages */
+#define MSGROUTE_USER        (1<<3)  /* user-generated messages */
+#define MSGROUTE_FILE        (8<<3)  /* file transfer subsystem */
+#define MSGROUTE_PRINT       (6<<3)  /* printing subsystem */
 
 /* the following are used by derivative functions, not by xmmake() itself */
 #define  MSGFLAG_SYSLOG   0x01   /* used by xmopen() to enable logging */
@@ -108,6 +115,7 @@ extern int xmclose(struct MSGSTRUCT*);
 /* internal functions */
 extern int xm_lev2pri(char*);
 extern int xm_negative(int);
+extern int xm_deliver(char*,int);
 
 #endif
 

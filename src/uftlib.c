@@ -12,9 +12,24 @@
  *
  */
 
-#ifndef PREFIX
- #define PREFIX "/usr"
+#if defined(_WIN32) || defined(_WIN64)
+/* define WIN32_LEAN_AND_MEAN */
+ #include <winsock2.h>
+ #include <ws2tcpip.h>
+ #include <windows.h>
+ #include <io.h>
+#else
+ #include <sys/socket.h>
+ #include <sys/un.h>
+ #include <arpa/inet.h>
+ #include <netinet/in.h>
+ #include <netdb.h>
+ #include <pwd.h>
+ #include <errno.h>
 #endif
+
+#define __USE_XOPEN
+#include <time.h>
 
 #include <stddef.h>
 #include <string.h>
@@ -26,25 +41,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#if defined(_WIN32) || defined(_WIN64)
- #include <winsock2.h>
-#else
- #include <sys/socket.h>
- #include <sys/un.h>
- #include <arpa/inet.h>
- #include <pwd.h>
- #include <errno.h>
-#endif
-
-#include <netinet/in.h>
-
-#include <netdb.h>
-
 #include <ctype.h>
 #include "aecs.h"
-
-#define __USE_XOPEN
-#include <time.h>
 
 /* OpenVM is a POSIX environment for VM/CMS so set the OECS symbol    */
 #ifdef          __OPEN_VM
@@ -53,8 +51,8 @@
  #endif
 #endif
 
-#ifdef UFT_DO_SYSLOG
- #include <syslog.h>
+#ifndef PREFIX
+ #define PREFIX "/usr"
 #endif
 
 /* The following three lines are related to the XMITMSGX package      *
@@ -65,6 +63,8 @@ static struct MSGSTRUCT uftmsgs;      /* info for the message handler */
 
 #include "uft.h"
 
+#define UFTC_OPEN_FALLBACK
+
 int uftcflag;
 
 static char agstring[256] = { 0x00, 0x00, 0x00, 0x00, 0x00 };
@@ -74,7 +74,7 @@ int uftlogfd = -1;
 static char *gsbp = NULL;             /* global string buffer pointer */
 static int gsbl = 0;                     /* global string buffer size */
 
-/* ---------------------------------------------------------------------
+/* -------------------------------------------------------- UFTX_MESSAGE
  *    This routine handles message FORMATTING (not message delivery).
  *    It's a different way of doing gettext() type processing
  *    which is compatible with the 'XMITMSG' command and APPLMSG macro
@@ -90,7 +90,8 @@ int uftx_message(char*mo,int ml,                    /* buffer, buflen */
 
     /* Open the messages file, read it, get ready for service.        */
     rc = xmopen("uft",0,&uftmsgs);        /* FIXME: check indirection */
-    if (rc != 0) return rc;
+//  rc = xmopenl("uft",0,&uftmsgs,MSGROUTE_FILE);         /* LOG_UUCP */
+    if (rc != 0) { if (errno != 0) perror("xmopen()"); return rc; }
 
     if (mn < 0) mn = 0 - mn;   /* force message number to be positive */
 
@@ -110,11 +111,46 @@ int uftx_message(char*mo,int ml,                    /* buffer, buflen */
     return rc;
   }
 
+/* -------------------------------------------------------- UFTX_MSGPRTL
+ *    Print and log an enumerated message.
+ *    See also: uftx_message()
+ */
+int uftx_msgprtl(int mn,                            /* message number */
+                 char*mq,                                   /* caller */
+                 int mc,char*mv[])                      /* msgc, msgv */
+  { static char _eyecatcher[] = "uftx_msgprtl()";
+    int rc;
+    char *p;
+
+    /* Open the messages file, read it, get ready for service.        */
+    rc = xmopen("uft",0,&uftmsgs);        /* FIXME: check indirection */
+//  rc = xmopenl("uft",0,&uftmsgs,MSGROUTE_FILE);         /* LOG_UUCP */
+    if (rc != 0) { if (errno != 0) perror("xmopen()"); return rc; }
+
+    if (mn < 0) mn = 0 - mn;   /* force message number to be positive */
+
+    /* do we need this? */
+    uftmsgs.msglevel = 0;
+
+    /* using pfxmaj and pfxmin is definitely outside the XMITMSGX API */
+    strncpy(uftmsgs.pfxmaj,UFT_TAG,4);
+    strncpy(uftmsgs.pfxmin,mq,4);
+    /* also remember to up-case the latter */
+    uftmsgs.pfxmin[3] = 0x00;
+    for (p = uftmsgs.pfxmin; *p != 0x00; p++) if (islower(*p)) *p = toupper(*p);
+
+    /* Generate the message, print it, and SYSLOG it.                 */
+    rc = xmprint(mn,mc,mv,MSGFLAG_SYSLOG,&uftmsgs);
+
+    return rc;
+  }
+
 /* -------------------------------------------------------- User Message
- *    This routine attempts to deliver a message to a logged-on user.
- *  This is somewhat crude: we toss the work of finding the user
- *  and delivering the message to the 'write' command. But be careful:
- *  on MS Windows there is a completely different 'write' command.
+ *    This routine handles message DELIVERY (not message formatting).
+ *    It attempts to deliver a message to a logged-on user.
+ *    This is somewhat crude: we toss the work of finding the user
+ *    and delivering the message to the 'write' command. But be careful:
+ *    on MS Windows there is a completely different 'write' command.
  */
 int uftd_message(char*user,char*text)
   { static char _eyecatcher[] = "uftd_message()";
@@ -319,7 +355,7 @@ int uftd_fann(char*user,char*spid,char*from)
     mv[0] = "";
     mv[1] = spid; mv[2] = user; mv[3] = from;         /* three tokens */
     rc = uftx_message(q,l,94,"SRV",4,mv);         /* previously #1004 */
-    /*   94    I File &1 spooled to &2 origin &3                      */
+    /*   94    I file &1 spooled to &2 origin &3                      */
     if (rc < 0) return rc;
 
     while (*q != 0x00 && i < l) { q++; i++; }
@@ -369,10 +405,9 @@ int uftd_fann(char*user,char*spid,char*from)
     rc = uftd_message(un,buffer);
 
     /* -------- merge uftdlmsg logic here --------------------------- */
-#ifdef UFT_DO_SYSLOG
-    openlog("uftd",LOG_PID|LOG_CONS,LOG_UUCP);
-    syslog(LOG_INFO,"%s",buffer);
-#endif
+//  openlog("uftd",LOG_PID|LOG_CONS,LOG_UUCP);
+//  syslog(LOG_INFO,"%s",buffer);
+    xm_deliver(buffer,MSGLEVEL_INFO);      /* SYSLOG under the covers */
 
     return rc;
   }
@@ -449,10 +484,9 @@ int uftd_tann(char*user,char*spid,char*from)
     rc = uftd_message(un,buffer);
 
     /* -------- merge uftdlmsg logic here --------------------------- */
-#ifdef UFT_DO_SYSLOG
-    openlog("uftd",LOG_PID|LOG_CONS,LOG_UUCP);
-    syslog(LOG_INFO,"%s",buffer);
-#endif
+//  openlog("uftd",LOG_PID|LOG_CONS,LOG_UUCP);
+//  syslog(LOG_INFO,"%s",buffer);
+    xm_deliver(buffer,MSGLEVEL_INFO);      /* SYSLOG under the covers */
 
     return rc;
   }
@@ -615,15 +649,13 @@ int msglocal(char*user,char*text)
 
     /*  if there's no listener ...  */
     if (fd < 0 && errno == ENXIO)
-      {
-        /*  launch our special application to listen  */
+      { /* try to launch our special application to listen */
 #ifdef UFT_POSIX
         fd = open(temp,O_WRONLY|O_NDELAY);
 #else
         fd = open(temp,O_WRONLY);
 #endif
-        /*  ... or NOT ...  */
-      }
+        /* ... or NOT ... */ }
     /* if (fd < 0) */ return fd;
   }
 
@@ -924,9 +956,13 @@ int uftc_wack(int s,char*b,int l)
  */
 int uftc_open(char*peer,char*prox,int*pipe)
   { static char _eyecatcher[] = "uftc_open()";
-    int s, rc;
+    int s, rc, i, j;
     char temp[256], *host, *port, *tail;
 
+    struct sockaddr name;
+    struct hostent *hent, myhent;
+
+    /* special consideration for z/VM CMS particularly in the shell   */
 #ifdef          __OPEN_VM
 struct addrinfo
 {
@@ -947,11 +983,25 @@ struct addrinfo
     if (peer == NULL && *peer == 0x00) { errno = EINVAL; return -1; }
     if (pipe == NULL) { errno = EINVAL; return -1; }
 
+    /* just in case ... prep the pipe pair as "disconnected"          */
+    pipe[0] = pipe[1] = -1;       /* preset file descriptors to error */
+
     /* tack-on the TCP port number                                    */
     snprintf(temp,sizeof(temp)-1,"%s:%d",peer,UFT_PORT);
 
     /* if a proxy string was provided then try connecting that way    */
     if (prox != NULL && *prox != 0x00) return uftx_proxy(temp,prox,pipe);
+
+    /* special consideration for MS Windows with MINGW/MSYS framework */
+#if defined(_WIN32) || defined(_WIN64)
+    WSADATA wsa;
+    rc = WSAStartup(MAKEWORD(2,2),&wsa);
+    if (rc != 0) {
+        fprintf(stderr,"Windows socket subsytsem could not be initialized.\n");
+        fprintf(stderr,"Error Code: %d. Exiting..\n", WSAGetLastError());
+        return -1; }
+fprintf(stderr,"yup, we're on Windows\n");                  /* TRIAGE */
+#endif
 
     /* parse host address and port number by colon                    */
     host = port = temp;
@@ -966,26 +1016,72 @@ struct addrinfo
 
     /* drop the heavy lifting onto getaddrinfo()                      */
     rc = getaddrinfo(host,port,NULL,&res);
-    if (rc != 0) return rc;
+#ifdef EAI_SYSTEM
+    if (rc == EAI_SYSTEM) perror("uftc_open(): getaddrinfo()");
+#endif
 
-    /* just in case ... prep the pipe pair as "disconnected"          */
-    pipe[0] = pipe[1] = -1;
+    if (rc == 0) { /* that is, if getaddrinfo() worked                */
+        /* step through the addrinfo structures from getaddrinfo()    */
+        res2 = res;
+        while (res2 != NULL)
+          { /* saprint(res2->ai_addr,res2->ai_addrlen);               */
+            rc = s = socket(res2->ai_family,SOCK_STREAM,0);
+            if (rc >= 0)                 /* on success try to connect */
+            rc = connect(s,res2->ai_addr,res2->ai_addrlen);
+            if (rc == 0) break;  /* on success break out of this loop */
+            res2 = res2->ai_next; }
+        if (rc < 0 && s >= 0) perror("uftc_open(): connect()"); else
+        if (rc < 0) perror("uftc_open(): socket()");
+        freeaddrinfo(res);
 
-    /* step through the addrinfo structures from getaddrinfo()        */
-    res2 = res;
-    while (res2 != NULL)
-      { /* saprint(res2->ai_addr,res2->ai_addrlen);                   */
-        rc = s = socket(res2->ai_family,SOCK_STREAM,0);
-        if (rc >= 0)
-        rc = connect(s,res2->ai_addr,res2->ai_addrlen);
-        if (rc >= 0) break;      /* on success break out of this loop */
-        res2 = res2->ai_next; }
-    freeaddrinfo(res);
+        if (s >= 0)                          /* looks like it worked! */
+          { /* proper Berkeley socket handles both in (0) and out (1) */
+            pipe[0] = pipe[1] = s;
+            return 0; }
+                 } /* all of that from a good getaddrinfo() result    */
 
-    /* a proper Berkeley socket handles both input (0) and output (1) */
-    pipe[0] = pipe[1] = s;
+#ifdef UFTC_OPEN_FALLBACK
+    /* here maybe re-try with older methods */
+fprintf(stderr,"retrying with gethostbyname()\n");          /* TRIAGE */
 
-    return 0;
+    /*  figure out where to connect  */
+    hent = gethostbyname(host);
+    if (hent == NULL)
+      { if (errno != 0) perror("uftc_open(): gethostbyname()"); return -1; }
+
+    /* gimme a socket */
+    rc = s = socket(hent->h_addrtype,SOCK_STREAM,0);
+    if (rc < 0)
+      { if (errno != 0) perror("uftc_open(): socket()"); return rc;  }
+
+      { int pn;
+        pn = atoi(port);
+        name.sa_family = hent->h_addrtype;
+        /* begin building that structure */
+        name.sa_data[0] = (pn >> 8) & 0xFF;
+        name.sa_data[1] = pn & 0xFF; }
+
+    /*  try address one-by-one  */
+    for (i = 0; hent->h_addr_list[i] != NULL; i++)
+      { /*  any more addresses?  */
+        if (hent->h_addr_list[i] == NULL) break;
+        if (hent->h_addr_list[i][0] == 0x00) break;
+
+        /*  fill-in this address to the structure  */
+        for (j = 0; j < hent->h_length; j++)
+            name.sa_data[j+2] = hent->h_addr_list[i][j];
+        name.sa_data[j+2] = 0x00;       /*  terminate  */
+
+        /* can we talk? */
+        rc = connect(s,&name,hent->h_length);
+        if (rc == 0) return s; }
+    if (errno != 0) perror("uftc_open(): connect()");
+
+    /* can't seem to reach this host on this port */
+    (void) close(s);
+#endif
+
+    return -1;
   }
 
 /* ----------------------------------------------------------- UFTC_PEER

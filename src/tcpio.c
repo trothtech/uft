@@ -64,8 +64,6 @@ int tcpopen(char*host,int flag,int mode)
     char       *myhental[2], myhenta0[4], myhenta1[4];
     char        temp[TCPSMALL], *p, *q;
 
-
-
 #if defined(_WIN32) || defined(_WIN64)
     WSADATA wsa;
     rc = WSAStartup(MAKEWORD(2,2),&wsa);
@@ -74,7 +72,6 @@ int tcpopen(char*host,int flag,int mode)
         fprintf(stderr,"Error Code: %d. Exiting..\n", WSAGetLastError());
         return -1; }
 #endif
-
 
     /*  parse host address and port number by colon  */
     p = host; host = temp; i = 0;

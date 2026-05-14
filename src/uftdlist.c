@@ -14,12 +14,6 @@
  *        NOTE: This routine should switch to using UFTSTAT instead of UFTFILE.
  */
 
-#include        <string.h>
-#include        <stdio.h>
-#include        <fcntl.h>
-#include        <sys/stat.h>
-#include        <time.h>
-
 #if defined(_WIN32) || defined(_WIN64)
  #include <winsock2.h>
 #else
@@ -28,6 +22,12 @@
  #include <pwd.h>
  #include <errno.h>
 #endif
+
+#include        <string.h>
+#include        <stdio.h>
+#include        <fcntl.h>
+#include        <sys/stat.h>
+#include        <time.h>
 
 #include        "uft.h"
 

@@ -95,11 +95,11 @@ case "$US" in
         US="CYGWIN"
         SHFLAGS="$LDFLAGS -shared"
         ;;
-    MINGW*)
+    MINGW*|MSYS*)
         US="MINGW"
-        if [ "$UM" = "x86_64" ] ; then CFLAGS="$CFLAGS -m64"
-                                  else CFLAGS="$CFLAGS -m32" ; fi
-        LIBS="-lwsock32"
+        if [ "$UM" = "x86_64" ] ; then CFLAGS="$CFLAGS -D_WIN64 -m64"
+                                  else CFLAGS="$CFLAGS -D_WIN32 -m32" ; fi
+        LIBS="-lwsock32 -lws2_32"
         LDFLAGS="$LDFLAGS -lwsock32"
         SHFLAGS="$LDFLAGS -shared"
         ;;

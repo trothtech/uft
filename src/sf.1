@@ -1,0 +1,69 @@
+.TH SF 1 "2026 April 03" "" ""
+
+.SH NAME 
+sf \- send files to remote users 
+
+.SH SYNOPSIS 
+.B sf 
+[ -a | -i ] file [ to ] user 
+
+.SH DESCRIPTION 
+.PP 
+.I sf 
+sends the file specified to the remote host 
+for delivery to the indicated user using UFT protocol.
+ 
+.I sf 
+can use standard input. 
+Specify the special filename "-" to read from standard input.
+ 
+.SH OPTIONS 
+.B -a 
+treat this as an ASCII (plain text) file 
+ 
+.B -i 
+treat this object as a "binary" file (image)
+ 
+.SH BUGS 
+.I sf 
+should have a mail (MIME) fallback, 
+so that you could send files to non-UFT hosts. 
+ 
+.I sf 
+should have a "retry later" capability,
+though it is possible to drive retries using the
+.I uftctcp2
+utility.
+ 
+.SH NOTES 
+UFT protocol is suitable for transferring a wide range of 
+object types. Electronic mail could be carried, but is 
+often best left to SMTP protocol. Print can be carried, 
+but be sure that the proper arrangements have been made on 
+the target host. (for this, you'd send to printer@remotehost 
+instead of user@remotehost) 
+ 
+.SH COPYRIGHT 
+Copyright 1995-2026 Richard M. Troth
+ 
+This is free software; you can distribute it and/or modify it 
+for non-commercial use provided that this copyright notice remain.   
+This software comes with no warranty. 
+ 
+.SH AUTHOR 
+.PP
+Rick Troth <rick@trothtech.us> with a lot of help from his friends
+ 
+Inspired by 
+.I BITNET, 
+which allowed for non-mail as well as mail, 
+.I LPR/LPD, 
+.I FTP, 
+and 
+.I SMTP. 
+ 
+.SH SEE ALSO 
+.PP
+rcv(1), rls(1)
+
+ 
