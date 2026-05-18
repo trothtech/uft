@@ -351,6 +351,8 @@ corral:		$(DELIVERABLES)
 		rm -f sf tell uftcndd uftd
 
 install:	$(DELIVERABLES)
+		@test ! -z "$(PREFIX)"
+		@test ! -z "$(LOCALE)"
 		@mkdir -p $(PREFIX)/bin $(PREFIX)/libexec \
 			$(PREFIX)/share/locale/$(LOCALE) \
 			$(PREFIX)/share/man/man1

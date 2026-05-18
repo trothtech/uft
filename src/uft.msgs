@@ -11,52 +11,47 @@
 *
 *         Note: The first digit of any response code means:
 *                   0 -- implementation dependent (not part of protocol)
-*                   1 -- informational (keep waiting for ACK or NAK)
-*                   2 -- ACK, acknowledge
+*                   1 -- informational     (keep waiting for ACK or NAK)
+*                   2 -- ACK, acknowledge, success
 *                   3 -- more info required
-*                   4 -- NAK, client error
-*                   5 -- NAK, server error
-*                   6 -- informational (bulk response from server)
-*                   7 -- reserved
-*                   8 -- reserved
-*                   9 -- reserved
+*                   4 -- NAK, client error, temporary error
+*                   5 -- NAK, server error, permanent error
+*                   6 -- informational       (bulk response from server)
+*                   7 -- reserved                 (not part of protocol)
+*                   8 -- reserved                 (not part of protocol)
+*                   9 -- reserved                 (not part of protocol)
 *         Codes less than 100 an beyond 699 have been abused, stolen,
 *         borrowed, used for experimentation, or otherwise hacked.
 *
 *         Note: the following line is essential:
 & 3
 *
-   0      2.0
-   1      UFT/2.0 client (CMS)
-   2      UFT/2.0 server (z/VM)
-   3    E invalid option &1
-   4      UFT/&1
-   5      UFT/&1 client
-   6      UFT/&1 server
-   7      2.0
+0000      2.1
+0001      UFT/2.1 client (CMS)
+0002      UFT/2.1 server (z/VM)
+0003    E invalid option &1
+0004      UFT/&1
+0005      UFT/&1 client
+0006      UFT/&1 server
+0007      2.1
 *008    X ........
 *009    X ........
 *010    X ........
-  11      VMCMSUFT/&1
-  12      POSIXUFT/&1
-  13      UFT/redacted
-*014    X ........
-*
-*304    E Invalid operand value &1
-*384    E Missing modifier keyword(s).
-*385    E Invalid modifier keyword: &1
-*387    E Missing value for &1 operand
-*388    E Invalid keyword: &1
-*389    E Invalid operand: &1
-*390    E Invalid value &1 for &2 operand
-*391    E Unexpected operand(s): &1
-*393    E Missing value for &1 option
-*394    E Invalid option: &1
-*395    E Invalid value &1 for &2 option
-*
+0011      VMCMSUFT/&1
+0012      POSIXUFT/&1
+0013      UFT/anonymized
+  14    E protocol violation detected when communicating with &1
   15    E unknown &1 command
   16    E missing operand(s)
+* 17
+* 18
+* 19
+  20    E target UFT host &1 cannot be reached
+  21    E failed reading herald from target host &1
   22    E file &1 not found
+  23    E unable to open file &1
+  24    S error &1 reading file &2 from disk or directory
+  25    E error reported when reading herald from target host &1
   26    E socket or stream closed without a QUIT command
 * 36    E operand missing or invalid
   42    E user &1 spoolid &2 does not exist
@@ -68,10 +63,12 @@
   53    E no such user or queue &1
   54    E incomplete fileid specified
   66    E &1 and &2 are conflicting options
+  68    E client host is not a peer
   70    E invalid parameter &1
   81    E &1 command not supported in batch mode
   84    I file &1 sent to &2
   85    I file &1 sent from &2
+  88    I UFT protocol level &1
   90    E invalid value &1 for &2 parameter
   92    I file (&1) spooled to &2 -- origin &3(&4) &5 &6 &7
   93    I file &1 received from &2 sent as &3
@@ -79,24 +76,12 @@
   95    I note &1 received from &2
   96    I from &1(&2): &3
   97    I from &1: &2
+  99    E &1
 *395    E invalid value &1 for &2 option
 *116    E invalid value &1 for &2 in &3
 *
-*#  There is no logmsg data
-*507    E no preserved data to restore
-*
-*   HCP002E invalid operand - operand
-*   HCP003E invalid option - command has extra option(s) starting with operand
-*   HCP007E invalid userid - userid
-*   HCP041E LOGMSG nn does not exist.
-*   HCP1506E the last line (50) in the log message is already in use.
-*   HCP6704E missing token at end of line
-*   HCP6706E invalid {group name|account ID} - {groupname|accountid}
-*   HCP6734E support for file-based LOGMSG is not enabled.
-*   HCP6771E LOGMSG support based on {Account ID|ACI group|Userid} not enabled.
-*
 * spontaneous info messages (including deprecated UFT/1 herald)
-0100      100 &1 UFT/1 VMCMSUFT/1.2.2 ready.
+0100      100 &1 UFT/1 VMCMSUFT/2.1 ready.
 *101      (see below)
 0102      102 &1 UFT/2 VMCMSUFT/&2 ready.
 0103      103 &1 UFT/&2 VMCMSUFT/&3 ready.
@@ -120,36 +105,36 @@
  199      199 &1
 *
 * help for curious telnetters and netcatters
-0101  01  101
-0101  02  101 Universal File Transfer (UFT) command summary
-0101  03  101
-0101  04  101 Primary commands:
-0101  05  101    FILE   size  from
-0101  06  101    USER   user
-0101  07  101    TYPE   type  [cc]
-0101  08  101    NAME   name
-0101  09  101    DATE   date  time  tz
-0101  10  101
-0101  11  101 Commands meaningful for print jobs:
-0101  12  101    FORM   form
-0101  13  101    DEST   dest
-0101  14  101    DIST   dist
-0101  15  101    COPY   copy
-0101  16  101    CLASS  class  [devtype]
-0101  17  101
-0101  18  101 Commands meaningful for IBM print jobs:
-0101  19  101    FCB    fcb
-0101  20  101    UCS    ucs
-0101  21  101    HOLD   hold
-0101  22  101    KEEP   keep
-0101  23  101    MSG    msg
-0101  24  101
-0101  25  101 Other commands:
-0101  26  101    DATA   burst-size
-0101  27  101    EOF
-0101  28  101    QUIT
-0101  29  101    HELP
-0101  30  101
+*101  01  101
+*101  02  101 Universal File Transfer (UFT) command summary
+*101  03  101
+*101  04  101 Primary commands:
+*101  05  101    FILE   size  from
+*101  06  101    USER   user
+*101  07  101    TYPE   type  [cc]
+*101  08  101    NAME   name
+*101  09  101    DATE   date  time  tz
+*101  10  101
+*101  11  101 Commands meaningful for print jobs:
+*101  12  101    FORM   form
+*101  13  101    DEST   dest
+*101  14  101    DIST   dist
+*101  15  101    COPY   copy
+*101  16  101    CLASS  class  [devtype]
+*101  17  101
+*101  18  101 Commands meaningful for IBM print jobs:
+*101  19  101    FCB    fcb
+*101  20  101    UCS    ucs
+*101  21  101    HOLD   hold
+*101  22  101    KEEP   keep
+*101  23  101    MSG    msg
+*101  24  101
+*101  25  101 Other commands:
+*101  26  101    DATA   burst-size
+*101  27  101    EOF
+*101  28  101    QUIT
+*101  29  101    HELP
+*101  30  101
 *
 * 2XX range are ACKs:
 0200      200 ACK
@@ -164,7 +149,7 @@
 0226      226 ABORT/ROLLBACK
 0227      227 Entering Passive Mode (h1,h2,h3,h4,p1,p2).
 0210      210 Restart marker reply.
-0220      220 &1 UFT/2 VMCMSUFT/1.2.2 ready.
+0220      220 &1 UFT/2 VMCMSUFT/2.1 ready.
 0221      221 Service closing control connection.
 0222      222 &1 UFT/2 VMCMSUFT/&3 &4 ; ready.
 0223      223 &1 UFT/2 POSIXUFT/&3 &4 ; ready.
@@ -185,7 +170,7 @@
 * 4XX range are client errors:
 0400      400 NAK client error.
 0401      401 Syntax error in parameters or arguments.
-0402      402 &1; Command &1 not implemented.
+0402      402 &1; command &1 not implemented.
 0403      403 Bad sequence of commands.
 0404      404 Document not found
 0407      407 Proxy Authentication Required
@@ -234,16 +219,28 @@
 0552      552 spool directory unavailable
 *553    E 553 &1 ; &1 not in CP directory
  553    E 553 &1 ; user &1 does not exist
-0555    E 555 &1 ; user auxdata file error &1
-0557      557 &1 not receiving
-0559      559 server data error (physical space)
-0567    E 567 User &1 is not enrolled
-0571    E 571 User &1 not available
-0597    E 597 User validation function &1 not found
+ 555    E 555 &1 ; user auxdata file error &1
+ 557    E 557 &1 not receiving
+ 559    E 559 server data error (physical space)
+ 567    E 567 user &1 is not enrolled
+ 568    E 568 &1 ; client host &1 is not a peer
+ 571    E 571 user &1 not available
+ 597    E 597 user validation function &1 not found
 *
-0614      614 HELP:
+ 614      614 HELP:
  699      699 &1
 *
+*HCPMID6001I  TIME IS 00:00:00 EDT  MONDAY 03/23/26
+ 706   I time is &1 &2 &3 &4
+ 708    E product license has expired
+*
+ 844    E Connection cannot be established                  ECONNREFUSED
+ 888    R Valid protocol level values are: 0, 1, 2
+*
+ 944    E Connection cannot be established                  ECONNREFUSED
+ 948    E UFTserverID not defined in TCPIP DATA
+ 949    I Unable to connect to remote UFT server            ECONNREFUSED
+ 990    R Valid protocol level values are: 0, 1, 2
  999      © Copyright 1995, 1997, 2025 Richard M. Troth, all rights reserved.
 *
 1049    E Unable to connect to remote UFT server &1
@@ -251,9 +248,9 @@
 * from the CMS implementation:
 1200    E Code level mis-match: expected &1 but found &2
 *
-*2000 range
+*2000 reserved range
 *
-*3000 range
+*3000 reserved range
 *
 *4000 reserved range
 *
@@ -307,5 +304,38 @@
 *958    E Required resources not available                          3958
 *201    I &1 has been started                                       8201
 *205    E Non-numeric value specified                               8205
+*
+*205    W Reader empty, reader not ready or empty reader file
+*643    E No class &1 files in your reader
+*644    E All reader files are in HOLD status or not class &1
+*091    E Error reading from file &1;
+*104    R Shared File System read/write cache buffer size =
+*124    W Spool file &1 has been left in your reader
+*024    W File &1 &2 &3 already has attributes: &4 and &5
+*
+*304    E Invalid operand value &1
+*384    E Missing modifier keyword(s).
+*385    E Invalid modifier keyword: &1
+*387    E Missing value for &1 operand
+*388    E Invalid keyword: &1
+*389    E Invalid operand: &1
+*390    E Invalid value &1 for &2 operand
+*391    E Unexpected operand(s): &1
+*393    E Missing value for &1 option
+*394    E Invalid option: &1
+*395    E Invalid value &1 for &2 option
+*
+*#  There is no logmsg data
+*507    E no preserved data to restore
+*
+*   HCP002E invalid operand - operand
+*   HCP003E invalid option - command has extra option(s) starting with operand
+*   HCP007E invalid userid - userid
+*   HCP041E LOGMSG nn does not exist.
+*   HCP1506E the last line (50) in the log message is already in use.
+*   HCP6704E missing token at end of line
+*   HCP6706E invalid {group name|account ID} - {groupname|accountid}
+*   HCP6734E support for file-based LOGMSG is not enabled.
+*   HCP6771E LOGMSG support based on {Account ID|ACI group|Userid} not enabled.
 *
 *

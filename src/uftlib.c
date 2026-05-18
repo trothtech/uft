@@ -63,8 +63,6 @@ static struct MSGSTRUCT uftmsgs;      /* info for the message handler */
 
 #include "uft.h"
 
-#define UFTC_OPEN_FALLBACK
-
 int uftcflag;
 
 static char agstring[256] = { 0x00, 0x00, 0x00, 0x00, 0x00 };
@@ -90,7 +88,7 @@ int uftx_message(char*mo,int ml,                    /* buffer, buflen */
 
     /* Open the messages file, read it, get ready for service.        */
     rc = xmopen("uft",0,&uftmsgs);        /* FIXME: check indirection */
-//  rc = xmopenl("uft",0,&uftmsgs,MSGROUTE_FILE);         /* LOG_UUCP */
+/*  rc = xmopenl("uft",0,&uftmsgs,MSGROUTE_FILE);         // LOG_UUCP */
     if (rc != 0) { if (errno != 0) perror("xmopen()"); return rc; }
 
     if (mn < 0) mn = 0 - mn;   /* force message number to be positive */
@@ -124,7 +122,7 @@ int uftx_msgprtl(int mn,                            /* message number */
 
     /* Open the messages file, read it, get ready for service.        */
     rc = xmopen("uft",0,&uftmsgs);        /* FIXME: check indirection */
-//  rc = xmopenl("uft",0,&uftmsgs,MSGROUTE_FILE);         /* LOG_UUCP */
+/*  rc = xmopenl("uft",0,&uftmsgs,MSGROUTE_FILE);         // LOG_UUCP */
     if (rc != 0) { if (errno != 0) perror("xmopen()"); return rc; }
 
     if (mn < 0) mn = 0 - mn;   /* force message number to be positive */
@@ -405,8 +403,8 @@ int uftd_fann(char*user,char*spid,char*from)
     rc = uftd_message(un,buffer);
 
     /* -------- merge uftdlmsg logic here --------------------------- */
-//  openlog("uftd",LOG_PID|LOG_CONS,LOG_UUCP);
-//  syslog(LOG_INFO,"%s",buffer);
+/*  openlog("uftd",LOG_PID|LOG_CONS,LOG_UUCP);                     // */
+/*  syslog(LOG_INFO,"%s",buffer);                                  // */
     xm_deliver(buffer,MSGLEVEL_INFO);      /* SYSLOG under the covers */
 
     return rc;
@@ -484,8 +482,8 @@ int uftd_tann(char*user,char*spid,char*from)
     rc = uftd_message(un,buffer);
 
     /* -------- merge uftdlmsg logic here --------------------------- */
-//  openlog("uftd",LOG_PID|LOG_CONS,LOG_UUCP);
-//  syslog(LOG_INFO,"%s",buffer);
+/*  openlog("uftd",LOG_PID|LOG_CONS,LOG_UUCP);                     // */
+/*  syslog(LOG_INFO,"%s",buffer);                                  // */
     xm_deliver(buffer,MSGLEVEL_INFO);      /* SYSLOG under the covers */
 
     return rc;
@@ -953,10 +951,10 @@ int uftc_wack(int s,char*b,int l)
 /* ----------------------------------------------------------- UFTC_OPEN
  *    open a connection to the UFT server - direct TCP or via proxy
  *    Note: 2.0.17 revision eliminates use of tcpopen() from tcpio.c
- */
+ */ 
 int uftc_open(char*peer,char*prox,int*pipe)
   { static char _eyecatcher[] = "uftc_open()";
-    int s, rc, i, j;
+    int s, rc, i, j, sok;
     char temp[256], *host, *port, *tail;
 
     struct sockaddr name;
@@ -1019,30 +1017,31 @@ struct addrinfo
 #ifdef EAI_SYSTEM
     if (rc == EAI_SYSTEM) perror("uftc_open(): getaddrinfo()");
 #endif
-
     if (rc == 0) { /* that is, if getaddrinfo() worked                */
         /* step through the addrinfo structures from getaddrinfo()    */
         res2 = res;
         while (res2 != NULL)
           { /* saprint(res2->ai_addr,res2->ai_addrlen);               */
+            sok = 0;
             rc = s = socket(res2->ai_family,SOCK_STREAM,0);
-            if (rc >= 0)                 /* on success try to connect */
-            rc = connect(s,res2->ai_addr,res2->ai_addrlen);
+            if (rc >= 0) { sok = 1;      /* on success try to connect */
+            rc = connect(s,res2->ai_addr,res2->ai_addrlen); }
             if (rc == 0) break;  /* on success break out of this loop */
+            close(s); s = -1;            /* reset socket for next try */
             res2 = res2->ai_next; }
-        if (rc < 0 && s >= 0) perror("uftc_open(): connect()"); else
-        if (rc < 0) perror("uftc_open(): socket()");
+        if (rc < 0) if (errno != 0)
+          { if (sok) perror("uftc_open(): connect()");
+                else perror("uftc_open(): socket()"); }
         freeaddrinfo(res);
 
         if (s >= 0)                          /* looks like it worked! */
           { /* proper Berkeley socket handles both in (0) and out (1) */
-            pipe[0] = pipe[1] = s;
-            return 0; }
+            pipe[0] = pipe[1] = s; return 0; }
+
                  } /* all of that from a good getaddrinfo() result    */
 
 #ifdef UFTC_OPEN_FALLBACK
     /* here maybe re-try with older methods */
-/* fprintf(stderr,"retrying with gethostbyname()\n");       ** TRIAGE */
 
     /*  figure out where to connect  */
     hent = gethostbyname(host);
@@ -1073,13 +1072,14 @@ struct addrinfo
         name.sa_data[j+2] = 0x00;       /*  terminate  */
 
         /* can we talk? */
-        rc = connect(s,&name,hent->h_length);
+/*      rc = connect(s,&name,hent->h_length);                      // */
+        rc = connect(s,&name,sizeof(name));
         if (rc == 0) return s; }
     if (errno != 0) perror("uftc_open(): connect()");
 
     /* can't seem to reach this host on this port */
     (void) close(s);
-#endif
+#endif /* UFTC_OPEN_FALLBACK */
 
     return -1;
   }
@@ -1742,8 +1742,8 @@ int uftdnext()
     /* increment the sequence number until a free slot is found       */
     for (n = n0; ++n; n != n0)
       { if (n > 9999) n = 1;         /* wrap at 10000 (0000 reserved) */
-//      (void) sprintf(temp,"%04d.cf",n);
-//      if (access(temp,0) != 0) break;
+/*      (void) sprintf(temp,"%04d.cf",n);                          // */
+/*      if (access(temp,0) != 0) break;                            // */
         /* loop while <nnnn>.cf exists (or .df or .ef or other)       */
         i = 0; while (*exts[i] != 0x00) {
             sprintf(temp,"%04d.%s",n,exts[i]);   /* the physical file */
@@ -1796,7 +1796,7 @@ int uftx_wtl(int s,char*b,int l)
 #ifdef OECS
             stratoe(b);       /* optionally translate ASCII to EBCDIC */
 #endif
-//          b[o] = '\n';               /* put that newline at the end */
+/*          b[o] = '\n';               // put that newline at the end */
             b[o-1] = '\n';             /* put that newline at the end */
             rc = write(s,b,o);
             if (rc < 0) return rc;      /* if error then bail out now */
@@ -1905,7 +1905,7 @@ int uftx_getndr(int fd,struct UFTNDIO*uftndio,int*flag,char**output,int*outlen)
 
 /* FIXME: check at this point if we have run off the end of the buffer */
 /*  if (uftndio->bufdex >= uftndio->buflen) ...                       */
-//  /* shift remainder left to start of buffer */
+    /* shift remainder left to start of buffer */
     /* adjust uftndio->buflen to match size of remainder */
     /* adjust size-to-read down accordingly */
     /* read at offset (past remainder) */
