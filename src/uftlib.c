@@ -665,8 +665,9 @@ int msglocal(char*user,char*text)
 char*uftx_home(char*user)
   { static char _eyecatcher[] = "uftx_home()";
     static char homedir[256];
+    int i;
 #ifdef UFT_POSIX
-    int         i, uuid;
+    int uuid;
     struct passwd *pwdent;
 
     errno = 0;
