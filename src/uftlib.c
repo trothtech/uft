@@ -515,7 +515,6 @@ char *uftx_user()
     static char ut[64];
 
 #ifdef UFT_POSIX
-
     struct passwd *pwdent;
 
     /* first try effective uid key into passwd */
@@ -527,16 +526,19 @@ char *uftx_user()
     if (*u == 0x00) {
     pwdent = getpwuid(getuid());
     if (pwdent) u = pwdent->pw_name; if (u == 0x0000) u = ""; }
-
 #endif
 
     /* skating on thin ice: try USER environment variable */
     if (*u == 0x00) {
     u = getenv("USER"); if (u == 0x0000) u = ""; }
 
-    /* last resort: try LOGNAME environment variable */
+    /* alternate: try LOGNAME environment variable */
     if (*u == 0x00) {
     u = getenv("LOGNAME"); if (u == 0x0000) u = ""; }
+
+    /* last resort: try USERNAME environment variable */
+    if (*u == 0x00) {
+    u = getenv("USERNAME"); if (u == 0x0000) u = ""; }
 
     /* force the username to lower case (ths is POSIX!) */
     i = 0;
@@ -662,10 +664,10 @@ int msglocal(char*user,char*text)
  */
 char*uftx_home(char*user)
   { static char _eyecatcher[] = "uftx_home()";
+    static char homedir[256];
 #ifdef UFT_POSIX
     int         i, uuid;
     struct passwd *pwdent;
-    static char homedir[256];
 
     errno = 0;
     pwdent = getpwnam(user);
@@ -674,7 +676,13 @@ char*uftx_home(char*user)
 
     return homedir;
 #else
-    return "";
+    char *p, *q;
+    p = getenv("HOME");
+    q = homedir;
+    for (i = 0; *p != 0x00 && i < sizeof(homedir); i++)
+      { q = p; if (*q == '\\') *q = '/'; }
+    *q = 0x00;
+    return homedir;
 #endif
   }
 
@@ -1329,7 +1337,6 @@ int uftx_proxy(char*host,char*prox,int*fd)
  */
 int uft_stat(char*sid,struct UFTSTAT*us)
   { static char _eyecatcher[] = "uft_stat()";
-#ifdef UFT_POSIX
     int rc, fd, i, e, cl;
     char sn[256], cb[4096], *p, *q;
     struct  stat  statbuf;
@@ -1479,9 +1486,6 @@ us->uft_from[0] = 0x00;
            else us->uft_title[0] = 0x00;
 
     return 0;
-#else
-    return -1;
-#endif
   }
 
 /* ----------------------------------------------------------- UFT_PURGE
