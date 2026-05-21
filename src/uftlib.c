@@ -1343,6 +1343,12 @@ int uft_stat(char*sid,struct UFTSTAT*us)
     struct  stat  statbuf;
     struct  tm  uft_stat_time;
 
+#ifdef UFT_POSIX
+ /* strptime() already prototyped */
+#else
+ extern char *strptime (const char *, const char *, struct tm *);
+#endif
+
     /* take the spool ID as numeric (akin to the inode in stat)       */
     us->uft_ino = atoi(uftx_basename(sid));
 
