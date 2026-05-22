@@ -133,11 +133,16 @@ esac
 #
 # determine the locale
 if [ -z "$LOCALE" -a ! -z "$LANG" ] ; then LOCALE="$LANG" ; fi
+if [ -z "$LOCALE" -a ! -z "$LANG" ] ; then LOCALE="$LC_CTYPE" ; fi
+if [ -z "$LOCALE" -a ! -z "$LANG" ] ; then LOCALE="$LC_MESSAGES" ; fi
+if [ -z "$LOCALE" -a ! -z "$LANG" ] ; then LOCALE="$LC_ALL" ; fi
+if [ -z "$LOCALE" -a ! -z "$LANG" ] ; then LOCALE="$LANGUAGE" ; fi
 # perform locale clean-up
 LOCALE=`echo "$LOCALE" | awk -F. '{print $1}'`
-#LOCALE examples:
+# LOCALE examples:
 #/usr/share/locale/
 #/usr/lib/nls/msg/
+#/usr/lib/locale/
 #/usr/share/nls/
 #LOCALE=en_US.UTF-8
 #LOCALE=en_US
