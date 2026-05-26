@@ -11,9 +11,9 @@
 #ifndef _XMITMSGX_H
 #define _XMITMSGX_H
 
-/* xmitmsgx-2.2.6            v2            r2            m6           */
-#define  XMITMSGX_VERSION  (((2) << 24) + ((2) << 16) + ((6) << 8) + (0))
-/* version 2.2.6 includes a built-in SYSLOG place holder for Windows  */
+/* xmitmsgx-2.2.7            v2            r2            m7           */
+#define  XMITMSGX_VERSION  (((2) << 24) + ((2) << 16) + ((7) << 8) + (0))
+/* version 2.2.7 includes a built-in SYSLOG place holder for Windows  */
 /* version 2.2.5 removes "unsigned char" for to build on IBM VM/CMS   */
 /*  ... but characters are NOT "signed" in practice anyway ... WCGW?  */
 

@@ -133,10 +133,10 @@ esac
 #
 # determine the locale
 if [ -z "$LOCALE" -a ! -z "$LANG" ] ; then LOCALE="$LANG" ; fi
-if [ -z "$LOCALE" -a ! -z "$LANG" ] ; then LOCALE="$LC_CTYPE" ; fi
-if [ -z "$LOCALE" -a ! -z "$LANG" ] ; then LOCALE="$LC_MESSAGES" ; fi
-if [ -z "$LOCALE" -a ! -z "$LANG" ] ; then LOCALE="$LC_ALL" ; fi
-if [ -z "$LOCALE" -a ! -z "$LANG" ] ; then LOCALE="$LANGUAGE" ; fi
+if [ -z "$LOCALE" -a ! -z "$LC_CTYPE" ] ; then LOCALE="$LC_CTYPE" ; fi
+if [ -z "$LOCALE" -a ! -z "$LC_MESSAGES" ] ; then LOCALE="$LC_MESSAGES" ; fi
+if [ -z "$LOCALE" -a ! -z "$LC_ALL" ] ; then LOCALE="$LC_ALL" ; fi
+if [ -z "$LOCALE" -a ! -z "$LANGUAGE" ] ; then LOCALE="$LANGUAGE" ; fi
 # perform locale clean-up
 LOCALE=`echo "$LOCALE" | awk -F. '{print $1}'`
 # LOCALE examples:

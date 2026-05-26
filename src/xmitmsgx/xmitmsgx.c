@@ -55,15 +55,28 @@ char *localevars[] = {
                 ""   };     /* empty string marks the end of the list */
 /* the syntax of the locale is                                        */
 /*              <LANGUAGE>_<TERRITORY>.<CODESET>[@<MODIFIERS>]        */
+/*   on Windoze <LANGUAGE>-<TERRITORY>.<CODESET>[@<MODIFIERS>]        */
 
 /* These are the directories where we might find locale support:      */
-char *localedirs[] = {
+char *localeoptd[] = {     /* opt (package) rooted locale directories */
                 "%s/share/locale/%s/%s.msgs",
                 "%s/lib/nls/msg/%s/%s.msgs",
                 "%s/lib/locale/%s/%s.msgs",
                 "%s/share/nls/%s/%s.msgs",
                 ""   };     /* empty string marks the end of the list */
-/*               prefix,      locale, applid                          */
+char *localedirs[] = {                   /* system locale directories */
+                "/usr/share/locale/%s/%s.msgs",
+                "/usr/lib/nls/msg/%s/%s.msgs",
+                "/usr/lib/locale/%s/%s.msgs",
+                "/usr/share/nls/%s/%s.msgs",
+#if defined(_WIN32) || defined(_WIN64)
+                "C:/Program Files/Common Files/System/%s/%s.msgs",
+                "C:/Program Files (x86)/Common Files/System/%s/%s.msgs",
+                "C:/Windows/System32/%s/%s.msgs",
+                "C:/Windows/%s/%s.msgs",
+#endif
+                ""   };     /* empty string marks the end of the list */
+/*               prefix, locale, applid                               */
 /*
       The xmopen() routine will search all of the above. We do not use
       a per-platform single path because any given platform might have
@@ -80,6 +93,8 @@ char *localedirs[] = {
       C:/Program Files/Common Files/System/en-US
       C:/Program Files (x86)/Common Files/System/en-US
       C:/Windows/System32/en-US
+      C:/Windows/System32/en-GB
+      C:/Windows/System32/en
       C:/Windows/en-US
  */
 
@@ -87,7 +102,8 @@ static struct MSGSTRUCT *msglobal = NULL, msstatic;
 
 /* -------------------------------------------------------------- XMOPEN
  * Open the messages file, read it, get ready for service.
- * Returns: zero upon successful operation, or 813 if cannot open the repository file
+ * Returns: zero upon successful operation, or 813 if cannot open
+ * the repository file.
  * The VM/CMS counterpart does 'SET LANG' to load the messages file.
  * See also: the catopen() call on many POSIX systems.
  *
@@ -143,12 +159,21 @@ int xmopen(char*file,int opts,struct MSGSTRUCT*ms)
                 "%s.%s.msgs",file,ms->locale);
             filename[sizeof(filename)-1] = 0x00;
             rc = stat(filename,&statbuf); } }
+
+#if defined(_WIN32) || defined(_WIN64)
+            /* if that didn't work then try Windows style locale      */
+            if (rc != 0) {
+                p = ms->locale; if (p[2] == '_') p[2] = '-';
+            (void) snprintf(filename,sizeof(filename)-1,
+                "%s.%s.msgs",file,ms->locale);
+            filename[sizeof(filename)-1] = 0x00;
+            rc = stat(filename,&statbuf); }
+#endif
                  }
         i++;                       }         /* localevars loop 1 end */
 
-    /* beyond this point, ignore any prepended path info              */
+    /* beyond this point, ignore any prepended path info ------------ */
     file = basename(file);
-
     /* NOTE: in the following several stanzas, we attempt variations  *
      *       with several standard locations for locale content       */
 
@@ -159,54 +184,111 @@ int xmopen(char*file,int opts,struct MSGSTRUCT*ms)
         if (locale != NULL && *locale != 0x00) {
             (void) strncpy(ms->locale,locale,sizeof(ms->locale)-1); }
 
+        j = 0; if (rc != 0)                  /* localeOPTD loop 1 set */
+        while (*localeoptd[j] != 0x00) {     /* localeOPTD loop 1 top */
+            if (rc != 0) {
+                snprintf(filename,sizeof(filename)-1,
+                    localeoptd[j],xmmprefix,ms->locale,file);
+                rc = stat(filename,&statbuf); }
+            if (rc != 0) {                               /* redundant */
+                snprintf(filename,sizeof(filename)-1,
+                    localeoptd[j],"/usr",ms->locale,file);
+                rc = stat(filename,&statbuf); }
+
+            /* if that didn't work then try removing locale "at" qual */
+            for (p = ms->locale; *p != 0x00 && *p != '@'; p++);
+            if (*p != 0x00) *p = 0x00;             /* modified locale */
+            if (rc != 0) {
+                snprintf(filename,sizeof(filename)-1,
+                    localeoptd[j],xmmprefix,ms->locale,file);
+                rc = stat(filename,&statbuf); }
+            if (rc != 0) {                               /* redundant */
+                snprintf(filename,sizeof(filename)-1,
+                    localeoptd[j],"/usr",ms->locale,file);
+                rc = stat(filename,&statbuf); }
+
+            /* if that didn't work then try removing dot qualifier    */
+            for (p = ms->locale; *p != 0x00 && *p != '.'; p++);
+            if (*p != 0x00) *p = 0x00;             /* modified locale */
+            if (rc != 0) {
+                snprintf(filename,sizeof(filename)-1,
+                    localeoptd[j],xmmprefix,ms->locale,file);
+                rc = stat(filename,&statbuf); }
+            if (rc != 0) {                               /* redundant */
+                snprintf(filename,sizeof(filename)-1,
+                    localeoptd[j],"/usr",ms->locale,file);
+                rc = stat(filename,&statbuf); }
+
+#if defined(_WIN32) || defined(_WIN64)
+            /* if that didn't work then try Windows style locale      */
+            p = ms->locale; if (p[2] == '_') p[2] = '-';
+            if (rc != 0) {
+                snprintf(filename,sizeof(filename)-1,
+                    localeoptd[j],xmmprefix,ms->locale,file);
+                rc = stat(filename,&statbuf); }
+#endif
+
+            j++;                       }     /* localeOPTD loop 1 end */
+
+        /* if that didn't work re-try locale searching system dirs    */
+        locale = getenv(localevars[i]);
+        if (locale != NULL && *locale != 0x00) {
+            (void) strncpy(ms->locale,locale,sizeof(ms->locale)-1); }
+
         j = 0; if (rc != 0)                  /* localeDIRs loop 1 set */
         while (*localedirs[j] != 0x00) {     /* localeDIRs loop 1 top */
             if (rc != 0) {
             snprintf(filename,sizeof(filename)-1,
-                localedirs[j],xmmprefix,ms->locale,file);
+                localedirs[j],ms->locale,file);
             rc = stat(filename,&statbuf); }
+
+            /* if that didn't work then try removing locale "at" qual */
+            for (p = ms->locale; *p != 0x00 && *p != '@'; p++);
+            if (*p != 0x00) *p = 0x00;             /* modified locale */
             if (rc != 0) {
             snprintf(filename,sizeof(filename)-1,
-                localedirs[j],"/usr",ms->locale,file);
+                localedirs[j],ms->locale,file);
             rc = stat(filename,&statbuf); }
+
+            /* if that didn't work then try removing dot qualifier    */
+            for (p = ms->locale; *p != 0x00 && *p != '.'; p++);
+            if (*p != 0x00) *p = 0x00;             /* modified locale */
+            if (rc != 0) {
+                snprintf(filename,sizeof(filename)-1,
+                    localedirs[j],ms->locale,file);
+                rc = stat(filename,&statbuf); }
+
+#if defined(_WIN32) || defined(_WIN64)
+            /* if that didn't work then try Windows style locale      */
+            p = ms->locale; if (p[2] == '_') p[2] = '-';
+            if (rc != 0) {
+                snprintf(filename,sizeof(filename)-1,
+                    localedirs[j],ms->locale,file);
+                rc = stat(filename,&statbuf); }
+#endif
+
             j++;                       }     /* localeDIRs loop 1 end */
 
-            /* if that didn't work then try removing locale at qual   */
-/*          if (rc != 0) {                                            */
-/*              for (p = ms->locale; *p != 0x00 && *p != '@'; p++);   */
-/*              if (*p != 0x00) { *p = 0x00;                          */
-                                             /* localeDIRs loop 2 top */
-                                             /* localeDIRs loop 2 end */
+/* FIXME from here to end of search logic */
 
-        /* if that didn't work then try removing locale dot qualifier */
-        for (p = ms->locale; *p != 0x00 && *p != '.'; p++);
-        if (*p != 0x00) *p = 0x00;                 /* modified locale */
 
-        j = 0; if (rc != 0)                  /* localeDIRs loop 3 set */
-        while (*localedirs[j] != 0x00) {     /* localeDIRs loop 3 top */
-            if (rc != 0) {
-            snprintf(filename,sizeof(filename)-1,
-                localedirs[j],xmmprefix,ms->locale,file);
-            rc = stat(filename,&statbuf); }
-            if (rc != 0) {
-            snprintf(filename,sizeof(filename)-1,
-                localedirs[j],"/usr",ms->locale,file);
-            rc = stat(filename,&statbuf); }
-            j++;                       }     /* localeDIRs loop 3 end */
+
+
+
 
         /* if that didn't work then try removing locale region qual   */
         for (p = ms->locale; *p != 0x00 && *p != '_'; p++);
         if (*p != 0x00) *p = 0x00;                 /* modified locale */
 
         j = 0; if (rc != 0)                  /* localeDIRs loop 4 set */
-        while (*localedirs[j] != 0x00) {     /* localeDIRs loop 4 top */
+        while (*localeoptd[j] != 0x00) {     /* localeDIRs loop 4 top */
             if (rc != 0) {
             snprintf(filename,sizeof(filename)-1,
-                localedirs[j],xmmprefix,ms->locale,file);
+                localeoptd[j],xmmprefix,ms->locale,file);
             rc = stat(filename,&statbuf); }
             if (rc != 0) {
             snprintf(filename,sizeof(filename)-1,
-                localedirs[j],"/usr",ms->locale,file);
+                localeoptd[j],"/usr",ms->locale,file);
             rc = stat(filename,&statbuf); }
             j++;                       }     /* localeDIRs loop 4 end */
 
@@ -214,14 +296,14 @@ int xmopen(char*file,int opts,struct MSGSTRUCT*ms)
 
         strncpy(ms->locale,"C",sizeof(ms->locale)-1);   /* locale "C" */
         j = 0;                               /* localeDIRs loop 5 set */
-        while (*localedirs[j] != 0x00) {     /* localeDIRs loop 5 top */
+        while (*localeoptd[j] != 0x00) {     /* localeDIRs loop 5 top */
             if (rc != 0) {
             snprintf(filename,sizeof(filename)-1,
-                localedirs[j],xmmprefix,ms->locale,file);
+                localeoptd[j],xmmprefix,ms->locale,file);
             rc = stat(filename,&statbuf); }
             if (rc != 0) {
             snprintf(filename,sizeof(filename)-1,
-                localedirs[j],"/usr",ms->locale,file);
+                localeoptd[j],"/usr",ms->locale,file);
             rc = stat(filename,&statbuf); }
             j++;                       }     /* localeDIRs loop 5 end */
 
@@ -230,16 +312,18 @@ int xmopen(char*file,int opts,struct MSGSTRUCT*ms)
         while (*localedirs[j] != 0x00) {     /* localeDIRs loop 6 top */
             if (rc != 0) {
             snprintf(filename,sizeof(filename)-1,
-                localedirs[j],xmmprefix,ms->locale,file);
+                localeoptd[j],xmmprefix,ms->locale,file);
             rc = stat(filename,&statbuf); }
             if (rc != 0) {
             snprintf(filename,sizeof(filename)-1,
-                localedirs[j],"/usr",ms->locale,file);
+                localeoptd[j],"/usr",ms->locale,file);
             rc = stat(filename,&statbuf); }
             j++;                       }     /* localeDIRs loop 6 end */
 
     /* if we can't find the file then return the best error we know   */
-    if (rc != 0) { if (errno != 0) return errno; else return rc; }
+    if (rc != 0) { if (errno != 0) perror("xmopen(): stat()");
+                   fprintf(stderr,"message repository '%s' not found.\n",file);
+                   return 813; }
     /* There happens to be message number 813 for this condition.     */
 
     /* allocate memory to hold the message repository source file     */
