@@ -11,52 +11,47 @@
 *
 *         Note: The first digit of any response code means:
 *                   0 -- implementation dependent (not part of protocol)
-*                   1 -- informational (keep waiting for ACK or NAK)
-*                   2 -- ACK, acknowledge
+*                   1 -- informational     (keep waiting for ACK or NAK)
+*                   2 -- ACK, acknowledge, success
 *                   3 -- more info required
-*                   4 -- NAK, client error
-*                   5 -- NAK, server error
-*                   6 -- informational (bulk response from server)
-*                   7 -- reserved
-*                   8 -- reserved
-*                   9 -- reserved
+*                   4 -- NAK, client error, temporary error
+*                   5 -- NAK, server error, permanent error
+*                   6 -- informational       (bulk response from server)
+*                   7 -- reserved                 (not part of protocol)
+*                   8 -- reserved                 (not part of protocol)
+*                   9 -- reserved                 (not part of protocol)
 *         Codes less than 100 an beyond 699 have been abused, stolen,
 *         borrowed, used for experimentation, or otherwise hacked.
 *
 *         Note: the following line is essential:
 & 3
 *
-0000      2.0
-0001      UFT/2.0 client (CMS)
-0002      UFT/2.0 server (z/VM)
-0003    E invalid option &1
-0004      UFT/&1
-0005      UFT/&1 client
-0006      UFT/&1 server
-0007      2.0
+   0      2.0
+   1      UFT/2.0 client (CMS)
+   2      UFT/2.0 server (z/VM)
+   3    E invalid option &1
+   4      UFT/&1
+   5      UFT/&1 client
+   6      UFT/&1 server
+   7      2.0
 *008    X ........
 *009    X ........
 *010    X ........
-0011      VMCMSUFT/&1
-0012      POSIXUFT/&1
-0013      UFT/redacted
-*014    X ........
-*
-*304    E Invalid operand value &1
-*384    E Missing modifier keyword(s).
-*385    E Invalid modifier keyword: &1
-*387    E Missing value for &1 operand
-*388    E Invalid keyword: &1
-*389    E Invalid operand: &1
-*390    E Invalid value &1 for &2 operand
-*391    E Unexpected operand(s): &1
-*393    E Missing value for &1 option
-*394    E Invalid option: &1
-*395    E Invalid value &1 for &2 option
-*
+  11      VMCMSUFT/&1
+  12      POSIXUFT/&1
+  13      UFT/anonymized
+  14    E protocol violation detected when communicating with &1
   15    E unknown &1 command
   16    E missing operand(s)
+* 17
+* 18
+* 19
+  20    E target UFT host cannot be reached
+  21    E failed reading herald from target host
   22    E file &1 not found
+  23    E unable to open file &1
+  24    S error &1 reading file &2 from disk or directory
+* 25    E ...
   26    E socket or stream closed without a QUIT command
 * 36    E operand missing or invalid
   42    E user &1 spoolid &2 does not exist
@@ -72,6 +67,7 @@
   81    E &1 command not supported in batch mode
   84    I file &1 sent to &2
   85    I file &1 sent from &2
+  88    I UFT protocol level &1
   90    E invalid value &1 for &2 parameter
   92    I file (&1) spooled to &2 -- origin &3(&4) &5 &6 &7
   93    I file &1 received from &2 sent as &3
@@ -167,6 +163,7 @@
 0220      220 &1 UFT/2 VMCMSUFT/1.2.2 ready.
 0221      221 Service closing control connection.
 0222      222 &1 UFT/2 VMCMSUFT/&3 &4 ; ready.
+*223 vloeistof.casita.net UFT/2 POSIXUFT/2.0.7 8192 ; ready.
 0223      223 &1 UFT/2 POSIXUFT/&3 &4 ; ready.
 0224      224 *anonymous UFT/2 UFT/redacted 0 ; ready.
 0228      228 &1 UFT/2 &3 &4 ; ready.
@@ -185,7 +182,7 @@
 * 4XX range are client errors:
 0400      400 NAK client error.
 0401      401 Syntax error in parameters or arguments.
-0402      402 &1; Command &1 not implemented.
+0402      402 &1; command &1 not implemented.
 0403      403 Bad sequence of commands.
 0404      404 Document not found
 0407      407 Proxy Authentication Required
@@ -237,12 +234,15 @@
 0555    E 555 &1 ; user auxdata file error &1
 0557      557 &1 not receiving
 0559      559 server data error (physical space)
-0567    E 567 User &1 is not enrolled
-0571    E 571 User &1 not available
-0597    E 597 User validation function &1 not found
+0567    E 567 user &1 is not enrolled
+0571    E 571 user &1 not available
+0597    E 597 user validation function &1 not found
 *
-0614      614 HELP:
+ 614      614 HELP:
  699      699 &1
+*
+ 708    E product license has expired
+ 712    I File &1 sent to &2 at &3 on &4
 *
  999      © Copyright 1995, 1997, 2025 Richard M. Troth, all rights reserved.
 *
@@ -251,9 +251,9 @@
 * from the CMS implementation:
 1200    E Code level mis-match: expected &1 but found &2
 *
-*2000 range
+*2000 reserved range
 *
-*3000 range
+*3000 reserved range
 *
 *4000 reserved range
 *
@@ -310,4 +310,34 @@
 *201    I &1 has been started                                       8201
 *205    E Non-numeric value specified                               8205
 *
+*
+*844  + E Connection cannot be established                  ECONNREFUSED
+*944  + E Connection cannot be established                  ECONNREFUSED
+*949  + I Unable to connect to remote UFT server            ECONNREFUSED
+*948  + E UFTserverID not defined in TCPIP DATA
+** failed reading herald from target host
+*314  3 E Protocol violation detected when communicating with ...
+** FIXME: protocol report should be a standardized message
+*888  + R Valid protocol level values are: 0, 1, 2
+*990  + R Valid protocol level values are: 0, 1, 2
+*
+*205    W Reader empty, reader not ready or empty reader file
+*643    E No class &1 files in your reader
+*644    E All reader files are in HOLD status or not class &1
+*091    E Error reading from file &1;
+*104    R Shared File System read/write cache buffer size =
+*124    W Spool file &1 has been left in your reader
+*024    W File &1 &2 &3 already has attributes: &4 and &5
+*
+*304    E Invalid operand value &1
+*384    E Missing modifier keyword(s).
+*385    E Invalid modifier keyword: &1
+*387    E Missing value for &1 operand
+*388    E Invalid keyword: &1
+*389    E Invalid operand: &1
+*390    E Invalid value &1 for &2 operand
+*391    E Unexpected operand(s): &1
+*393    E Missing value for &1 option
+*394    E Invalid option: &1
+*395    E Invalid value &1 for &2 option
 *

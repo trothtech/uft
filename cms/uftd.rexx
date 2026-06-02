@@ -92,7 +92,7 @@ verbose = (verbose ^= 0)
 'ADDPIPE *.OUTPUT: | MAKETEXT -NETWORK | *.OUTPUT:'
 If rc ^= 0 Then Exit rc
 If verbose Then ,
-'ADDPIPE *.OUTPUT: | CONSOLE | *.OUTPUT:'
+'ADDPIPE *.OUTPUT: | CONSOLE | *.OUTPUT:'    /* lands ahead of output */
 
 /*  attach a text translator loop for input  */
 'ADDSTREAM BOTH LINE'
@@ -103,13 +103,15 @@ If rc ^= 0 Then Exit rc
 If verbose Then ,
 'ADDPIPE *.INPUT.LINE: | CONSOLE | *.INPUT.LINE:'
 
-/*  send a "hello" to our client  */
+blksize = 32256
+Say "LOCALHOST" localhost "VRM" vrm "BLKSIZE" blksize
+/* send a hello/herald to our client */
 If uft > 1 Then ,
-'CALLPIPE COMMAND XMITMSG 222 "' || localhost || '" "' || uft || '"' ,
-    '"' || vrm || '" (APPLID UFT CALLER SRV NOHEADER | *.OUTPUT:'
+'CALLPIPE COMMAND XMITMSG 222 LOCALHOST UFT VRM BLKSIZE' ,
+    '(APPLID UFT CALLER SRV NOHEADER | *.OUTPUT:'
 Else ,
-'CALLPIPE COMMAND XMITMSG 112 "' || localhost || '" "' || uft || '"' ,
-    '"' || vrm || '" (APPLID UFT CALLER SRV NOHEADER | *.OUTPUT:'
+'CALLPIPE COMMAND XMITMSG 112 LOCALHOST UFT VRM BLKSIZE' ,
+    '(APPLID UFT CALLER SRV NOHEADER | *.OUTPUT:'
 
 /*  set a number of defaults  */
 user = "SYSTEM"
