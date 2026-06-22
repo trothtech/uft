@@ -6,6 +6,9 @@ The `META` command was added to UFT protocol soon after the publication
 of RFC 1440 to facilitate arbitrary attribute extensions and to provide
 distinction between attributes and primary commands.
 
+The item indicated in any `META` command is referred to here as a "tag"
+though it might be considered a "variable" or a "name" in implementations.
+
 ## Command Format
 
 The format of the `META` command is:
@@ -67,5 +70,53 @@ not allowed following `META`:
 ## Command Sequencing
 
 All `META` commands must follow `TYPE` and preceed `DATA`.
+
+## Prohibited Characters
+
+Digits 0 through 9 and letters A through Z are explicitly allowed
+in both META tags and in META values. Leading numeric
+characters is not recommended for META tags in order to
+achieve best interoperability with host operating systems. META tags
+are not case sensitive and should be sent in upper case.
+
+Characters which are prohibited from use in either META tags
+or in META values include:
+
+&
+=
+;
+?
+$
+!
+^
+(
+)
+"
+'
+`
+{
+}
+|
+[
+]
+\
+<
+>
+
+Characters which are prohibited from use in META tags
+but which are acceptable in META values include:
+
+*
+.
+,
+/
+#
+-
++
+_
+~
+%
+:
+@
 
 

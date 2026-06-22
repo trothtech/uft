@@ -67,8 +67,8 @@
 #define         UFT_EXT_DATA            ".df" /* data */
 #define         UFT_EXT_EXTRA           ".ef" /* auxdata, resource fork */
 #define         UFT_EXT_LIST            ".lf" /* log/list, 'ls -l' format */
-#define         UFT_EXT_WORK            ".wf"
-#define         UFT_EXT_TEMP            ".tf"
+#define         UFT_EXT_WORK            ".wf" /* work file */
+#define         UFT_EXT_TEMP            ".tf" /* temporary file */
 
 /* client constants follow */
 
@@ -337,6 +337,7 @@ int uftx_abbrev(char*,char*,int);
 /* functions from the library */
 
 int uftx_message(char*,int,int,char*,int,char*[]);
+int uftx_msgwtag(char*,int,int,char*,char*,int,char*[]);
 int uftx_msgprtl(int,char*,int,char*[]);
 
 int uftd_message(char*,char*);          /* FKA msglocal(user,text)    */

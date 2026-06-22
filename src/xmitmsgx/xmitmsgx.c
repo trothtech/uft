@@ -66,9 +66,11 @@ char *localeoptd[] = {     /* opt (package) rooted locale directories */
                 ""   };     /* empty string marks the end of the list */
 char *localedirs[] = {                   /* system locale directories */
                 "/usr/share/locale/%s/%s.msgs",
+/*               /usr/share/locale/en_US/uft.msgs                     */
                 "/usr/lib/nls/msg/%s/%s.msgs",
                 "/usr/lib/locale/%s/%s.msgs",
                 "/usr/share/nls/%s/%s.msgs",
+/*               /usr/share/nls/C/uft.msgs                            */
 #if defined(_WIN32) || defined(_WIN64)
                 "C:/Program Files/Common Files/System/%s/%s.msgs",
                 "C:/Program Files (x86)/Common Files/System/%s/%s.msgs",
@@ -102,8 +104,8 @@ static struct MSGSTRUCT *msglobal = NULL, msstatic;
 
 /* -------------------------------------------------------------- XMOPEN
  * Open the messages file, read it, get ready for service.
- * Returns: zero upon successful operation, or 813 if cannot open
- * the repository file.
+ * Returns: zero upon successful operation,
+ * or MSGERR_NOLIB (813) if cannot open the repository file.
  * The VM/CMS counterpart does 'SET LANG' to load the messages file.
  * See also: the catopen() call on many POSIX systems.
  *
@@ -111,13 +113,14 @@ static struct MSGSTRUCT *msglobal = NULL, msstatic;
  * This routine looks in several places using a variety of names.
  * If we cannot find the messages file then we cannot proceed.
  */
-int xmopen(char*file,int opts,struct MSGSTRUCT*ms)
-  {
+int xmopen(char*fn,int opts,struct MSGSTRUCT*ms)
+  { static char _eyecatcher[] = "xmopen()";
     int rc, fd, memsize, i, j, filesize;
-    char *p, *q, *locale, filename[256];
+    char *p, *q, *locale, filename[256], *file;
     struct stat statbuf;
 
     static char ampersand[2] = "&";       /* default escape character */
+    file = fn;             /* protect arguments from being written to */
 
     /* NULL struct pointer means to use global static storage         *
      * unless it was already established, in which case "busy".       */
@@ -271,11 +274,6 @@ int xmopen(char*file,int opts,struct MSGSTRUCT*ms)
 
 /* FIXME from here to end of search logic */
 
-
-
-
-
-
         /* if that didn't work then try removing locale region qual   */
         for (p = ms->locale; *p != 0x00 && *p != '_'; p++);
         if (*p != 0x00) *p = 0x00;                 /* modified locale */
@@ -354,12 +352,12 @@ int xmopen(char*file,int opts,struct MSGSTRUCT*ms)
     ms->msgfile = p;
 
     /* allocate the message array - FIXME: sizing needs work */
-    ms->msgtable = malloc(163840);
+    ms->msgtable = malloc(163840);  /* FIXME: should not be arbitrary */
     if (ms->msgtable == NULL)
       { (void) free(ms->msgdata); ms->msgdata = NULL;
         if (errno != 0) return errno; else return ENOMEM; }
     /* make sure we have clean pointers (all NULLs) */
-    (void) memset(ms->msgtable,0x00,163840);
+    (void) memset(ms->msgtable,0x00,163840);             /* arbitrary */
 
     /* parse the file */
     p = ms->msgdata;
@@ -439,7 +437,7 @@ int xmopen(char*file,int opts,struct MSGSTRUCT*ms)
  * The VM/CMS counterpart is the APPLMSG macro (high level assembler).
  */
 int xmmake(struct MSGSTRUCT*ms)
-  {
+  { static char _eyecatcher[] = "xmmake()";
     int  rc, i, j;
     char *p, *q;
 
@@ -521,16 +519,16 @@ int xmmake(struct MSGSTRUCT*ms)
  * Return value does not reflect SYSLOG effects or errors.
  * The VM/CMS counterpart is the APPLMSG macro (high level assembler).
  */
-int xmprint(int msgnum,int msgc,char*msgv[],int msgopts,struct MSGSTRUCT*ms)
-  {
+int xmprint(int msgnum,int msgc,char*msgv[],int msgopts,struct MSGSTRUCT*ms0)
+  { static char _eyecatcher[] = "xmprint()";
     int  rc;
-    struct MSGSTRUCT ts;
+    struct MSGSTRUCT ts, *ms;
     char buffer[256];
 
     /* NULL message struct means use the static common struct */
     if (ms == NULL) ms = msglobal;
     if (ms == NULL) return xm_negative(EINVAL);
-    (void) memcpy(&ts,ms,sizeof(ts));    /* make a copy of the struct */
+    (void) memcpy(&ts,ms0,sizeof(ts));   /* make a copy of the struct */
     ms = &ts;
 
     ms->msgbuf = buffer;    /* output buffer supplied by this routine */
@@ -564,16 +562,16 @@ int xmprint(int msgnum,int msgc,char*msgv[],int msgopts,struct MSGSTRUCT*ms)
  * The return value does not reflect SYSLOG effects or errors.
  * The VM/CMS counterpart is the APPLMSG macro (high level assembler).
  */
-int xmwrite(int fd,int msgnum,int msgc,char*msgv[],int msgopts,struct MSGSTRUCT*ms)
-  {
+int xmwrite(int fd,int msgnum,int msgc,char*msgv[],int msgopts,struct MSGSTRUCT*ms0)
+  { static char _eyecatcher[] = "xmwrite()";
     int  rc;
-    struct MSGSTRUCT ts;
+    struct MSGSTRUCT ts, *ms;
     char buffer[256];
 
     /* NULL message struct means use the static common struct */
     if (ms == NULL) ms = msglobal;
     if (ms == NULL) return xm_negative(EINVAL);
-    (void) memcpy(&ts,ms,sizeof(ts));    /* make a copy of the struct */
+    (void) memcpy(&ts,ms0,sizeof(ts));   /* make a copy of the struct */
     ms = &ts;
 
     ms->msgbuf = buffer;    /* output buffer supplied by this routine */
@@ -603,15 +601,15 @@ int xmwrite(int fd,int msgnum,int msgc,char*msgv[],int msgopts,struct MSGSTRUCT*
  * The VM/CMS counterpart (for Rexx variables) is the XMITMSG command.
  */
 int xmstring(char*output,int outlen,int msgnum,
-                      int msgc,char*msgv[],struct MSGSTRUCT*ms)
-  {
+                      int msgc,char*msgv[],struct MSGSTRUCT*ms0)
+  { static char _eyecatcher[] = "xmstring()";
     int  rc;
-    struct MSGSTRUCT ts;
+    struct MSGSTRUCT ts, *ms;
 
     /* NULL message struct means use the static common struct */
     if (ms == NULL) ms = msglobal;
     if (ms == NULL) return xm_negative(EINVAL);
-    (void) memcpy(&ts,ms,sizeof(ts));    /* make a copy of the struct */
+    (void) memcpy(&ts,ms0,sizeof(ts));   /* make a copy of the struct */
     ms = &ts;
 
     ms->msgbuf = output;      /* output buffer supplied by the caller */
@@ -631,8 +629,12 @@ int xmstring(char*output,int outlen,int msgnum,
  * Close (figuratively): free common storage and reset static variables.
  * Returns: zero upon successful operation
  */
-int xmclose(struct MSGSTRUCT*ms)
-  {
+int xmclose(struct MSGSTRUCT*ms0)
+  { static char _eyecatcher[] = "xmclose()";
+    struct MSGSTRUCT *ms;
+
+    ms = ms0;
+
     /* NULL struct pointer means to use global static storage */
     if (ms == NULL && msglobal == NULL) return EINVAL;
     if (ms == NULL) { ms = msglobal; msglobal = NULL; }
@@ -667,7 +669,7 @@ int xmclose(struct MSGSTRUCT*ms)
  *  This routine is not presently used because xmmake() handles it.
  */
 int xm_lev2pri(char*l)
-  {
+  { static char _eyecatcher[] = "xm_lev2pri()";
     switch (*l) {
       case 'I': case 'i':       /* MSGLEVEL_INFO */
         return LOG_INFO;        /* 6 */                           break;
@@ -692,9 +694,8 @@ int xm_lev2pri(char*l)
  *  Yeah, yeah, ... it's cheezy. But it works.
  */
 int xm_negative(int n)
-  { if (n < 0) return n;
-          else return 0 - n;
-  }
+  { static char _eyecatcher[] = "xm_negative()";
+    if (n < 0) return n; else return 0 - n; }
 
 /* ---------------------------------------------------------- XM_DELIVER
  *    Deliver a message in a buffer to stdout, stderr, or SYSLOG.
@@ -702,7 +703,7 @@ int xm_negative(int n)
  *    Main reason this even exists is to hide SYSLOG variances.
  */
 int xm_deliver(char*buff,int type)
-  {
+  { static char _eyecatcher[] = "xm_deliver()";
     switch (type) {
       case 'I': case 'i':       /* MSGLEVEL_INFO */
         syslog(LOG_INFO,"%s",buff);                               break;

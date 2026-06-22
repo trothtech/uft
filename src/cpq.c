@@ -44,7 +44,8 @@ int main(int argc,char*argv[])
                 if (uftx_abbrev("--version",argv[i],6) > 0)
                   { sprintf(temp,"%s: %s Remote CPQUERY client",
                                 arg0,UFT_VERSION);
-                    uftx_putline(2,temp,0);
+//                  uftx_putline(2,temp,0);
+                    fprintf(stderr,"%s\n",temp);
                     return 0; } else           /* exit from help okay */
                 if (uftx_abbrev("--host",argv[i],6) > 0)
                   { i++; host = argv[i]; } else
@@ -54,14 +55,16 @@ int main(int argc,char*argv[])
                   { uftcflag |= UFT_VERBOSE; } else
                   { sprintf(temp,"%s: invalid option %s",
                                 arg0,argv[i]);
-                    uftx_putline(2,temp,0);
+//                  uftx_putline(2,temp,0);
+                    fprintf(stderr,"%s\n",temp);
                     return 1; }             /* exit on invalid option */
                     break;
 /* ------------------------------------------------------------------ */
 
             default:    sprintf(temp,"%s: invalid option %s",
                                 arg0,argv[i]);
-                        uftx_putline(2,temp,0);
+//                      uftx_putline(2,temp,0);
+                        fprintf(stderr,"%s\n",temp);
                         return 1;           /* exit on invalid option */
                         break;
           }
@@ -75,7 +78,8 @@ int main(int argc,char*argv[])
     if ((argc - i) < 1)
       { sprintf(temp,
                 "Usage: %s [-h <host>] <something>",argv[0]);
-        uftx_putline(2,temp,0);
+//      uftx_putline(2,temp,0);
+        fprintf(stderr,"%s\n",temp);
         return 24; }
 
     /* connect */
@@ -102,8 +106,9 @@ int main(int argc,char*argv[])
     while (1)
       { uftx_getline(fd[0],temp,UFT_BUFSIZ);
         p = temp;  while (*p > ' ') p++;  while (*p <= ' ') p++;
-        if (temp[0] == '6') uftx_putline(1,p,0);
-/*      else if (temp[0] != '2') uftx_putline(2,p,0);              // */
+        if (temp[0] == '6') /* uftx_putline(1,p,0); */ fprintf(stdout,"%s\n",p);
+        else if (temp[0] != '1' &&
+temp[0] != '2') fprintf(stderr,"%s\n",temp);
         if (temp[0] != '1' && temp[0] != '6') break; }
 
     /* exit cleanly */

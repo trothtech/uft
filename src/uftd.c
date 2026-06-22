@@ -236,24 +236,32 @@ int main(int argc,char*argv[])
             /* q2 now points to the args (if any), and p2 to metaverb */
 
 /* FIXME: we need a safety scan both here and "traditional" (below)   */
+/*
+USER='rmt'                      okay
+TYPE='A '                       okay
+NAME='TO.RICK'                  okay
+DATE='26.5.29 9:01:33 EDT'      okay
+RECFM='V'                       okay
+RECLEN='40'                     okay
+ */
 /* the following are explicitly okay:
-    CLASS               okay
-    DATE                okay
+    CLASS                       okay
+    DATE                        okay
     DEST
     DIST
     FCB
-    FORM                okay
+    FORM                        okay
     GROUP
-    NAME
+    NAME                        okay
     NOTIFY
     OWNER
-    RECFMT
-    RECLEN
+    RECFMT                      okay
+    RECLEN                      okay
     SEQ
     TITLE
-    UCS                 okay
+    UCS                         okay
     VERSION
-    XDATE               okay
+    XDATE                       okay
     XPERM
  */
 

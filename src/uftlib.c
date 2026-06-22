@@ -59,7 +59,7 @@
  * which is maintained separately from the UFT package.               */
 #include "xmitmsgx/xmitmsgx.h"
 char *xmmprefix = PREFIX;            /* tells XMM to share our prefix */
-static struct MSGSTRUCT uftmsgs;      /* info for the message handler */
+static struct MSGSTRUCT uftmsgs, *uftmsgp = NULL;         /* XMM data */
 
 #include "uft.h"
 
@@ -77,20 +77,25 @@ static int gsbl = 0;                     /* global string buffer size */
  *    It's a different way of doing gettext() type processing
  *    which is compatible with the 'XMITMSG' command and APPLMSG macro
  *    from VM/CMS land. (POSIX UFT shares the same messages with CMS.)
+ *    Returns: length of the message upon success or negative if error.
  */
 int uftx_message(char*mo,int ml,                    /* buffer, buflen */
-                 int mn,                            /* message number */
+                 int mn0,                           /* message number */
                  char*mq,                                   /* caller */
                  int mc,char*mv[])                      /* msgc, msgv */
   { static char _eyecatcher[] = "uftx_message()";
-    int rc;
+    int rc, mn;
     char *p;
 
     /* Open the messages file, read it, get ready for service.        */
-    rc = xmopen("uft",0,&uftmsgs);        /* FIXME: check indirection */
-/*  rc = xmopenl("uft",0,&uftmsgs,MSGROUTE_FILE);         // LOG_UUCP */
-    if (rc != 0) { if (errno != 0) perror("xmopen()"); return rc; }
+    if (uftmsgp == NULL)
+      { rc = xmopen("uft",0,&uftmsgs);    /* FIXME: check indirection */
+/*      rc = xmopenl("uft",0,&uftmsgs,MSGROUTE_FILE);     // LOG_UUCP */
+        if (rc != 0) { if (errno != 0) perror("xmopen()");
+                                   if (rc > 0) rc = 0 - rc; return rc; }
+        uftmsgp = &uftmsgs; }
 
+    mn = mn0;
     if (mn < 0) mn = 0 - mn;   /* force message number to be positive */
 
     /* do we need this? */
@@ -98,19 +103,61 @@ int uftx_message(char*mo,int ml,                    /* buffer, buflen */
 
     /* using pfxmaj and pfxmin is definitely outside the XMITMSGX API */
     strncpy(uftmsgs.pfxmaj,UFT_TAG,4);
+    if (mq != NULL) if (*mq != 0x00)       /* avoid NULL pointer here */
     strncpy(uftmsgs.pfxmin,mq,4);
-    /* also remember to up-case the latter */
     uftmsgs.pfxmin[3] = 0x00;
+    /* also remember to up-case the latter */
     for (p = uftmsgs.pfxmin; *p != 0x00; p++) if (islower(*p)) *p = toupper(*p);
 
     /* Generate a message and store it as a string.                   */
-    rc = xmstring(mo,ml,mn,mc,mv,&uftmsgs);
+    rc = xmstring(mo,ml,mn,mc,mv,uftmsgp);
+    if (rc < 0) { if (errno != 0) perror("xmstring()"); return rc; }
+
+    return rc;
+  }
+
+/* -------------------------------------------------------- UFTX_MSGWTAG
+ *    This is exactly like uftx_message() except that we allow
+ *    an override of the "tag" (first part of the code) of the message.
+ *    Returns: length of the message upon success or negative if error.
+ */
+int uftx_msgwtag(char*mo,int ml,                    /* buffer, buflen */
+                 int mn0,                           /* message number */
+                 char*mq,char*mt,                      /* caller, tag */
+                 int mc,char*mv[])                      /* msgc, msgv */
+  { static char _eyecatcher[] = "uftx_msgwtag()";
+    int rc, mn;
+    char *p;
+
+    /* Open the messages file, read it, get ready for service.        */
+    if (uftmsgp == NULL)
+      { rc = xmopen("uft",0,&uftmsgs);    /* FIXME: check indirection */
+        if (rc != 0) { if (errno != 0) perror("xmopen()");
+                                   if (rc > 0) rc = 0 - rc; return rc; }
+        uftmsgp = &uftmsgs; }
+
+    mn = mn0;
+    if (mn < 0) mn = 0 - mn;   /* force message number to be positive */
+
+    /* do we need this? */
+    uftmsgs.msglevel = 0;
+
+    /* using pfxmaj and pfxmin is definitely outside the XMITMSGX API */
+    strncpy(uftmsgs.pfxmaj,mt,4); uftmsgs.pfxmaj[3] = 0x00;
+    for (p = uftmsgs.pfxmaj; *p != 0x00; p++) if (islower(*p)) *p = toupper(*p);
+    strncpy(uftmsgs.pfxmin,mq,4); uftmsgs.pfxmin[3] = 0x00;
+    for (p = uftmsgs.pfxmin; *p != 0x00; p++) if (islower(*p)) *p = toupper(*p);
+
+    /* Generate a message and store it as a string.                   */
+    rc = xmstring(mo,ml,mn,mc,mv,uftmsgp);
+    if (rc < 0) { if (errno != 0) perror("xmstring()"); return rc; }
 
     return rc;
   }
 
 /* -------------------------------------------------------- UFTX_MSGPRTL
  *    Print and log an enumerated message.
+ *    Returns: length of the message upon success or negative if error.
  *    See also: uftx_message()
  */
 int uftx_msgprtl(int mn,                            /* message number */
@@ -121,9 +168,12 @@ int uftx_msgprtl(int mn,                            /* message number */
     char *p;
 
     /* Open the messages file, read it, get ready for service.        */
-    rc = xmopen("uft",0,&uftmsgs);        /* FIXME: check indirection */
-/*  rc = xmopenl("uft",0,&uftmsgs,MSGROUTE_FILE);         // LOG_UUCP */
-    if (rc != 0) { if (errno != 0) perror("xmopen()"); return rc; }
+    if (uftmsgp == NULL)
+      { rc = xmopen("uft",0,&uftmsgs);    /* FIXME: check indirection */
+/*      rc = xmopenl("uft",0,&uftmsgs,MSGROUTE_FILE);     // LOG_UUCP */
+        if (rc != 0) { if (errno != 0) perror("xmopen()");
+                                   if (rc > 0) rc = 0 - rc; return rc; }
+        uftmsgp = &uftmsgs; }
 
     if (mn < 0) mn = 0 - mn;   /* force message number to be positive */
 
@@ -138,7 +188,8 @@ int uftx_msgprtl(int mn,                            /* message number */
     for (p = uftmsgs.pfxmin; *p != 0x00; p++) if (islower(*p)) *p = toupper(*p);
 
     /* Generate the message, print it, and SYSLOG it.                 */
-    rc = xmprint(mn,mc,mv,MSGFLAG_SYSLOG,&uftmsgs);
+    rc = xmprint(mn,mc,mv,MSGFLAG_SYSLOG,uftmsgp);
+    if (rc < 0) { if (errno != 0) perror("xmprint()"); return rc; }
 
     return rc;
   }
@@ -166,7 +217,7 @@ int uftd_message(char*user,char*text)
 
     /* now invoke 'write' taking the temporary file as input          */
     sprintf(ts,"write %s 0< %s 1> /dev/null 2> /dev/null",user,fn);
-    rc = system(ts);
+    rc = system(ts);     /* NOTE: *must* be Unix 'write' and no other */
     unlink(fn);
 
     /* return code is that of the command issued via system() call    */
@@ -1093,6 +1144,8 @@ struct addrinfo
     return -1;
   }
 
+/* start to here confirmed function args are isolated                 */
+
 /* ----------------------------------------------------------- UFTC_PEER
  *    Rough equivalent to tcpident() from tcpip.c sans IDENT logic.
  */
@@ -1711,7 +1764,7 @@ int uftdnext()
     int         i, n, n0, sf;
     char        temp[256], *seq;
 
-    char *exts[] = {  UFT_EXT_BATCH,    /*    ".bf" ** batch, SIFT    */
+    char *exts[] = {  UFT_EXT_BATCH,    /*    ".bf" ** batch, pv SIFT */
                       UFT_EXT_CONTROL,  /*    ".cf" ** control/meta   */
                       UFT_EXT_DATA,     /*    ".df" ** data           */
                       UFT_EXT_EXTRA,    /*    ".ef" ** resource fork  */
@@ -1751,21 +1804,22 @@ int uftdnext()
     n0 = atoi(temp);                         /* convert string to int */
 
     /* increment the sequence number until a free slot is found       */
-    for (n = n0; ++n; n != n0)
+    for (n = n0 + 1; n != n0; n++)
       { if (n > 9999) n = 1;         /* wrap at 10000 (0000 reserved) */
-/*      (void) sprintf(temp,"%04d.cf",n);                          // */
-/*      if (access(temp,0) != 0) break;                            // */
+//fprintf(stderr,"199 seq %d\n",n);                           /* TRIAGE */
         /* loop while <nnnn>.cf exists (or .df or .ef or other)       */
         i = 0; while (*exts[i] != 0x00) {
-            sprintf(temp,"%04d.%s",n,exts[i]);   /* the physical file */
+            sprintf(temp,"%04d%s",n,exts[i]);    /* the physical file */
+//fprintf(stderr,"199 checking '%s' ...\n",temp);             /* TRIAGE */
             if (access(temp,0) == 0) break;         /* does it exist? */
-            i++;       /* next */       }
-        if (exts[i] != 0x00) break;     }
+            i++;  /* next file type */  }       /* .cf, .df, .ef, etc */
+        if (*exts[i] == 0x00) break; }
+//fprintf(stderr,"199 seq %d final\n",n);                     /* TRIAGE */
 
     /* if we've been around once, don't continue */
     if (n == n0)
       { (void) close(sf);
-        /* implies there are 10000 files in this directory! */
+        /* implies there are 10000 files in this directory!           */
         errno = ENOENT;
         return -1; }
 
