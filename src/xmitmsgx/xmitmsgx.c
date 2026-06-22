@@ -102,6 +102,20 @@ char *localedirs[] = {                   /* system locale directories */
 
 static struct MSGSTRUCT *msglobal = NULL, msstatic;
 
+/* --------------------------------------------------------- XM_BASENAME
+ *    This routine exists purely because of a segmentation fault
+ *    when invoking stock basename() on a recent FreeBSD installation.
+ *    NOTE: this routine is NOT prototyped and not called externally
+ */
+char*xm_basename(char*path)
+  { char *p, *q;
+    p = q = path;
+    while (*p != 0x00)
+      { while (*p != 0x00 && *p != '/') p++;
+        if (*p == '/') q = p; }
+    return q;
+  }
+
 /* -------------------------------------------------------------- XMOPEN
  * Open the messages file, read it, get ready for service.
  * Returns: zero upon successful operation,
@@ -176,7 +190,8 @@ int xmopen(char*fn,int opts,struct MSGSTRUCT*ms)
         i++;                       }         /* localevars loop 1 end */
 
     /* beyond this point, ignore any prepended path info ------------ */
-    file = basename(file);
+/*  file = basename(file);                    (see xm_basename above) */
+    file = xm_basename(file);
     /* NOTE: in the following several stanzas, we attempt variations  *
      *       with several standard locations for locale content       */
 
@@ -393,7 +408,8 @@ int xmopen(char*fn,int opts,struct MSGSTRUCT*ms)
       }
 
     /* use basename of the file as the applid */
-    p = basename(ms->msgfile);
+/*  p = basename(ms->msgfile);                (see xm_basename above) */
+    p = xm_basename(ms->msgfile);
     (void) strncpy(ms->applid,p,sizeof(ms->applid)-1);
     p = ms->applid;
     while (*p != 0x00 && *p != '.') p++; *p = 0x00;
