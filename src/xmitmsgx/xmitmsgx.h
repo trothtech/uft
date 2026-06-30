@@ -11,8 +11,10 @@
 #ifndef _XMITMSGX_H
 #define _XMITMSGX_H
 
-/* xmitmsgx-2.2.8            v2            r2            m8           */
-#define  XMITMSGX_VERSION  (((2) << 24) + ((2) << 16) + ((8) << 8) + (0))
+/* xmitmsgx-2.2.9            v2            r2            m9           */
+#define  XMITMSGX_VERSION  (((2) << 24) + ((2) << 16) + ((9) << 8) + (0))
+/* version 2.2.9 adds xm_findfile() internal locale search function   */
+/* version 2.2.8 removes "extern" from prototype statements (below)   */
 /* version 2.2.7 includes a built-in SYSLOG place holder for Windows  */
 /* version 2.2.5 removes "unsigned char" for to build on IBM VM/CMS   */
 /*  ... but characters are NOT "signed" in practice anyway ... WCGW?  */
@@ -85,7 +87,7 @@ typedef struct MSGSTRUCT
   } MSGSTRUCT;        /* we will expand this struct for release 2.2.x */
 
 /* Open the messages file, read it, get ready for service. */
-extern int xmopen(char*,int,struct MSGSTRUCT*);
+int xmopen(char*,int,struct MSGSTRUCT*);
 /* args: filename, opts, MSGSTRUCT */
 /* calls xminit()                                                     */
 /* may call openlog(char*ident,int option,int facility)               */
@@ -93,29 +95,31 @@ extern int xmopen(char*,int,struct MSGSTRUCT*);
 /* specify a syslog facility via optional MSGSTRUCT */
 
 /* This is the heart of the utility. */
-extern int xmmake(struct MSGSTRUCT*);
+int xmmake(struct MSGSTRUCT*);
+/* args: MSGSTRUCT - provide all details via this DSECT */
 
 /* Print to stdout or stderr depending on level, optionally syslog. */
-extern int xmprint(int,int,char**,int,struct MSGSTRUCT*);
-/* args: msgnum, msgc, msgv, opts */
+int xmprint(int,int,char**,int,struct MSGSTRUCT*);
+/* args: msgnum, msgc, msgv, opts, MSGSTRUCT */
 
 /* Write to file descriptor, optionally syslog. */
-extern int xmwrite(int,int,int,char**,int,struct MSGSTRUCT*);
-/* args: fd, msgnum, msgc, msgv, opts */
+int xmwrite(int,int,int,char**,int,struct MSGSTRUCT*);
+/* args: fd, msgnum, msgc, msgv, opts, MSGSTRUCT */
 
 /* Generate a message and store it as a string. */
-extern int xmstring(char*,int,int,int,char**,struct MSGSTRUCT*);
-/* args: output, outlen, msgnum, msgc, msgv */
+int xmstring(char*,int,int,int,char**,struct MSGSTRUCT*);
+/* args: output, outlen, msgnum, msgc, msgv, MSGSTRUCT */
 
 /* Clear the message repository struct. */
-extern int xmclose(struct MSGSTRUCT*);
+int xmclose(struct MSGSTRUCT*);
+/* args: MSGSTRUCT - allocations performed by xmopen() will be undone */
 /* calls xmquit()                                                     */
 /* may call closelog()                                                */
 
 /* internal functions */
-extern int xm_lev2pri(char*);
-extern int xm_negative(int);
-extern int xm_deliver(char*,int);
+int xm_lev2pri(char*);
+int xm_negative(int);
+int xm_deliver(char*,int);
 
 #endif
 
