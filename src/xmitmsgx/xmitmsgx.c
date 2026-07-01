@@ -109,10 +109,10 @@ static struct MSGSTRUCT *msglobal = NULL, msstatic;
  */
 char*xm_basename(char*path)
   { char *p, *q;
-    p = q = path;
-    while (*p != 0x00)
-      { while (*p != 0x00 && *p != '/') p++;
-        if (*p == '/') q = p; }
+    p = q = path;               /* do not modify path in this routine */
+    while (*p != 0x00)                             /* scan the string */
+      { while (*p != 0x00 && *p != '/') p++;   /* looking for slashes */
+        if (*p == '/') q = p; }           /* pointing to the last one */
     return q;
   }
 
@@ -140,7 +140,6 @@ int xm_findfile(char*fn0,struct MSGSTRUCT*ms)
     ms->msgfile = filename;
     (void) memset(ms->locale,0x00,sizeof(ms->locale));
     (void) memset(ms->applid,0x00,sizeof(ms->applid));
-
     ms->msgmax = 0;
 
     /* try the named file directly */
@@ -166,7 +165,8 @@ int xm_findfile(char*fn0,struct MSGSTRUCT*ms)
 
     /* try the named file with any locale value */
     i = 0; while (*localevars[i] != 0x00)      /* localevars loop top */
-      { lc = getenv(localevars[i++]);
+      {
+        lc = getenv(localevars[i++]);
         if (lc == NULL) continue;       /* skip all unset locale vars */
         if (*lc == 0x00) continue;       /* skip empty locale strings */
         stpncpy(ms->locale,lc,sizeof(ms->locale));        /* pass one */
@@ -199,7 +199,8 @@ int xm_findfile(char*fn0,struct MSGSTRUCT*ms)
 
     /* try using the name in locale search */
     i = 0; while (*localevars[i] != 0x00)      /* localevars loop top */
-      { lc = getenv(localevars[i++]);
+      {
+        lc = getenv(localevars[i++]);
         if (lc == NULL) continue;       /* skip all unset locale vars */
         if (*lc == 0x00) continue;       /* skip empty locale strings */
         stpncpy(ms->locale,lc,sizeof(ms->locale));        /* pass two */
@@ -389,10 +390,10 @@ int xmopen(char*fn,int opts,struct MSGSTRUCT*ms)
 
     /* use basename of the file as the applid */
 /*  p = basename(ms->msgfile);                (see xm_basename above) */
-    p = xm_basename(ms->msgfile);
-    (void) strncpy(ms->applid,p,sizeof(ms->applid)-1);
-    p = ms->applid;
-    while (*p != 0x00 && *p != '.') p++; *p = 0x00;
+//  p = xm_basename(ms->msgfile);
+//  (void) strncpy(ms->applid,p,sizeof(ms->applid)-1);
+//  p = ms->applid;
+//  while (*p != 0x00 && *p != '.') p++; *p = 0x00;
 
     /* establish major and minor prefix area */
     /* if (ms->prefix == NULL || *ms->prefix == 0x00) */ ms->prefix = ms->applid;
@@ -508,23 +509,28 @@ int xmmake(struct MSGSTRUCT*ms)
   }
 
 /* ------------------------------------------------------------- XMPRINT
- * Print a message, stdout or stderr depending on level/letter.
+ * Print a message to stdout or stderr depending on level/letter.
  * Newline automatically appended. Optionally SYSLOG the message.
  * Returns: number of characters printed, negative indicates error
  * Calls: xmmake()
- * Return value does not reflect SYSLOG effects or errors.
+ * Return value does not reflect SYSLOG effects or SYSLOG errors.
  * The VM/CMS counterpart is the APPLMSG macro (high level assembler).
+ *
+ *    NOTE: as of 2026-06-30 (2.2.9) there is some kind of bug
+ *    where xmprint() may fail even if xmstring() would work.
  */
 int xmprint(int msgnum,int msgc,char*msgv[],int msgopts,struct MSGSTRUCT*ms0)
   { static char _eyecatcher[] = "xmprint()";
     int  rc;
     struct MSGSTRUCT ts, *ms;
-    char buffer[256];
+    char buffer[1024];
+
+    ms = ms0;                /* treat supplied arguments as read-only */
 
     /* NULL message struct means use the static common struct */
     if (ms == NULL) ms = msglobal;
     if (ms == NULL) return xm_negative(EINVAL);
-    (void) memcpy(&ts,ms0,sizeof(ts));   /* make a copy of the struct */
+    (void) memcpy(&ts,ms,sizeof(ts));    /* make a copy of the struct */
     ms = &ts;
 
     ms->msgbuf = buffer;    /* output buffer supplied by this routine */
@@ -541,13 +547,14 @@ int xmprint(int msgnum,int msgc,char*msgv[],int msgopts,struct MSGSTRUCT*ms0)
     /* optionally route to SYSLOG */
     if (ms->msgopts & MSGFLAG_SYSLOG) syslog(ms->msglevel,"%s",ms->msgbuf);
 
-    if (ms->msgopts & MSGFLAG_NOPRINT) ; else
+    if (ms->msgopts & MSGFLAG_NOPRINT) return 0;      /* non-printing */
+
     if (ms->msglevel > 5)
     rc = fprintf(stdout,"%s\n",ms->msgbuf);   /* 5 and 6 are "normal" */
     else                                      /* (and 7 is "debug")   */
     rc = fprintf(stderr,"%s\n",ms->msgbuf);   /* 4, 3, 2, 1 "errors"  */
 
-    return rc;
+    return rc;            /* normal return is number of bytes printed */
   }
 
 /* ------------------------------------------------------------- XMWRITE
@@ -562,12 +569,14 @@ int xmwrite(int fd,int msgnum,int msgc,char*msgv[],int msgopts,struct MSGSTRUCT*
   { static char _eyecatcher[] = "xmwrite()";
     int  rc;
     struct MSGSTRUCT ts, *ms;
-    char buffer[256];
+    char buffer[1024];
+
+    ms = ms0;                /* treat supplied arguments as read-only */
 
     /* NULL message struct means use the static common struct */
     if (ms == NULL) ms = msglobal;
     if (ms == NULL) return xm_negative(EINVAL);
-    (void) memcpy(&ts,ms0,sizeof(ts));   /* make a copy of the struct */
+    (void) memcpy(&ts,ms,sizeof(ts));    /* make a copy of the struct */
     ms = &ts;
 
     ms->msgbuf = buffer;    /* output buffer supplied by this routine */
@@ -596,16 +605,18 @@ int xmwrite(int fd,int msgnum,int msgc,char*msgv[],int msgopts,struct MSGSTRUCT*
  * Calls: xmmake()
  * The VM/CMS counterpart (for Rexx variables) is the XMITMSG command.
  */
-int xmstring(char*output,int outlen,int msgnum,
-                      int msgc,char*msgv[],struct MSGSTRUCT*ms0)
+int xmstring(char*output,int outlen,
+            int msgnum,int msgc,char*msgv[],            struct MSGSTRUCT*ms0)
   { static char _eyecatcher[] = "xmstring()";
     int  rc;
     struct MSGSTRUCT ts, *ms;
 
+    ms = ms0;                /* treat supplied arguments as read-only */
+
     /* NULL message struct means use the static common struct */
     if (ms == NULL) ms = msglobal;
     if (ms == NULL) return xm_negative(EINVAL);
-    (void) memcpy(&ts,ms0,sizeof(ts));   /* make a copy of the struct */
+    (void) memcpy(&ts,ms,sizeof(ts));    /* make a copy of the struct */
     ms = &ts;
 
     ms->msgbuf = output;      /* output buffer supplied by the caller */
