@@ -35,11 +35,11 @@
 /* the version number and copyright */
 #define         UFT_PROTOCOL    "UFT/2"
 #ifndef         UFT_VERSION
- #define        UFT_VERSION     "POSIXUFT/2.1.0"
+ #define        UFT_VERSION     "POSIXUFT/2.1.1"
 #endif
-#define         UFT_COPYRIGHT   "© Copyright 1995-2025 Richard M. Troth"
-#define         UFT_VRM         "2.1.0"
-#define    UFT_VERINT    (((2) << 24) + ((1) << 16) + ((0) << 8) + (0))
+#define         UFT_COPYRIGHT   "© Copyright 1995-2026 Richard M. Troth"
+#define         UFT_VRM         "2.1.1"
+#define    UFT_VERINT    (((2) << 24) + ((1) << 16) + ((1) << 8) + (0))
 
 #ifndef         UFT_TAG
  #define        UFT_TAG         "UFT"
@@ -114,7 +114,7 @@ typedef struct  UFTFILE {
                         form[16], dist[16], dest[16];         /* same */
                 int     size, copies;   /* uft_size, uft_nlink        */
                 char    title[64];      /* same in UFTSTAT struct     */
-                        } UFTFILE ;             /* see also: UFTSTAT  */
+                        } UFTFILE;              /* see also: UFTSTAT  */
 
 #define         UFT_B64_CODE    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 
@@ -157,7 +157,7 @@ typedef struct  UFTNDIO {
             int   bufmax;
             int   buflen;
             int   bufdex;
-                        } UFTNDIO ;
+                        } UFTNDIO;
 
 /*
 
@@ -173,7 +173,7 @@ UFT_ND_FIRST|UFT_ND_LAST|UFT_ND_CTRL is a single control record
                     X'20' - This is (part of) a control record.
                     X'10' - This is record number of next record.
 
-2       n-2     Data (n is in the range of 0 to 253).
+2       n-2     Data (n-2 is in the range of 0 to 253).
                 Control records have a control record identifier
                 (for example, INMR01) in bytes 2-7. Text units generally
                 begin in byte 8. Data records begin directly in byte 2.
@@ -181,29 +181,37 @@ UFT_ND_FIRST|UFT_ND_LAST|UFT_ND_CTRL is a single control record
 https://www.ibm.com/docs/en/zvm/7.2?topic=reference-netdata-format
 
 66E0C9D5D4D9F0F1 always the first record of a transmission
- " " I N M R 0 1
-                  if (memcmp("\311\325\324\331\360\361",line+4,6)==0)
-                    is_netdata = 1;      ** INMR01 at start of record **
-
+ " " I N M R 0 1     if (memcmp("\311\325\324\331\360\361",line+4,6)==0)
+                     is_netdata = 1;     ** INMR01 at start of record **
 75E0C9D5D4D9F0F2
  " " I N M R 0 2
-
 30E0C9D5D4D9F0F3
  " " I N M R 0 3
-
 08E0C9D5D4D9F0F6
  " " I N M R 0 6
 
-time
-    year (4)
-    month (2)
-    day (2)
-    hour (2)
-    minute (2)
-    second (2)
-    fraction of seconds (n).
-
+time  year (4)
+      month (2)
+      day (2)
+      hour (2)
+      minute (2)
+      second (2)
+      fraction of seconds (n).
  */
+
+/* varying connection types */
+#define         UFT_FD_SOCKET   0x0001
+#define         UFT_FD_PROXY    0x0002
+#define         UFT_FD_SSL      0x0004
+#define         UFT_FD_CLIENT   0x0010
+#define         UFT_FD_SERVER   0x0020
+
+typedef struct  UFTFD   {
+      int       fd0;            /* for read operations                */
+      int       fd1;            /* for write operations               */
+      int       fdt;            /* FD "type" (see constants above)    */
+      void      *fdssl;         /* pointer to SSL struct if any       */
+                        } UFTFD;
 
 static char *uft_copyright = UFT_COPYRIGHT;
 
@@ -258,9 +266,7 @@ typedef struct  UFTSTAT {
                 uft_dist[16],   /* z/VM, mainframe, or print concept  */
                 uft_dest[16],   /* z/VM, mainframe, or print concept  */
                 uft_title[64];  /* z/VM, mainframe, or print concept  */
-
 /*
-
     CLASS               char uft_class
     COPY | COPIES       int uft_nlink
     DATE | XDATE        time_t uft_mtime
@@ -291,10 +297,9 @@ tqcdhkm--- cpy user     host         size year mm dd time  sid  name
 |\________ CC (Asa, Machine, none)
 \_________ type (I or A or N)
  */
-
     char        uft_sidp[64];           /* SID full path              */
     void        *uft_prev, *uft_next;   /* pointers if chaining       */
-                        } UFTSTAT ;
+                        } UFTSTAT;
 
 /*
         unsigned long  st_dev;          see uft_rudev
@@ -387,6 +392,14 @@ int uftdl699(int,char*);
 int uftc_open(char*,char*,int*);          /* open a client connection */
 int uftc_peer(int,char*,int);         /* info about this network peer */
 int uftc_close(int*);                    /* close a client connection */
+
+int uftx_open(char*,char*,struct  UFTFD*);
+int uftx_close(struct UFTFD*);
+int uftx_read(struct UFTFD*,char*,int);
+int uftx_write(struct UFTFD*,char*,int);
+int uftx_gets(struct UFTFD*,char*,int);
+int uftx_puts(struct UFTFD*,char*,int);
+int uftx_wack(struct UFTFD*,char*,int);               /* wait for ACK */
 
 int uftx_b64enc(char*,int,char*,int);
 int uftx_b64dec(char*,int,char*,int);

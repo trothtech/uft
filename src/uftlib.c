@@ -91,7 +91,7 @@ int uftx_message(char*mo,int ml,                    /* buffer, buflen */
     if (uftmsgp == NULL)
       { rc = xmopen("uft",0,&uftmsgs);    /* FIXME: check indirection */
 /*      rc = xmopenl("uft",0,&uftmsgs,MSGROUTE_FILE);     // LOG_UUCP */
-        if (rc != 0) { if (errno != 0) perror("xmopen()");
+        if (rc != 0) { if (errno != 0) perror("uftx_message(): xmopen()");
                                    if (rc > 0) rc = 0 - rc; return rc; }
         uftmsgp = &uftmsgs; }
 
@@ -99,19 +99,18 @@ int uftx_message(char*mo,int ml,                    /* buffer, buflen */
     if (mn < 0) mn = 0 - mn;   /* force message number to be positive */
 
     /* do we need this? */
-    uftmsgs.msglevel = 0;
+//  uftmsgs.msglevel = 0;
 
     /* using pfxmaj and pfxmin is definitely outside the XMITMSGX API */
-    strncpy(uftmsgs.pfxmaj,UFT_TAG,4);
+    strncpy(uftmsgp->pfxmaj,UFT_TAG,4); uftmsgp->pfxmaj[3] = 0x00;
     if (mq != NULL) if (*mq != 0x00)       /* avoid NULL pointer here */
-    strncpy(uftmsgs.pfxmin,mq,4);
-    uftmsgs.pfxmin[3] = 0x00;
+    strncpy(uftmsgp->pfxmin,mq,4); uftmsgp->pfxmin[3] = 0x00;
     /* also remember to up-case the latter */
-    for (p = uftmsgs.pfxmin; *p != 0x00; p++) if (islower(*p)) *p = toupper(*p);
+    for (p = uftmsgp->pfxmin; *p != 0x00; p++) if (islower(*p)) *p = toupper(*p);
 
     /* Generate a message and store it as a string.                   */
     rc = xmstring(mo,ml,mn,mc,mv,uftmsgp);
-    if (rc < 0) { if (errno != 0) perror("xmstring()"); return rc; }
+    if (rc < 0) { if (errno != 0) perror("uftx_message(): xmstring()"); return rc; }
 
     return rc;
   }
@@ -132,7 +131,7 @@ int uftx_msgwtag(char*mo,int ml,                    /* buffer, buflen */
     /* Open the messages file, read it, get ready for service.        */
     if (uftmsgp == NULL)
       { rc = xmopen("uft",0,&uftmsgs);    /* FIXME: check indirection */
-        if (rc != 0) { if (errno != 0) perror("xmopen()");
+        if (rc != 0) { if (errno != 0) perror("uftx_msgwtag(): xmopen()");
                                    if (rc > 0) rc = 0 - rc; return rc; }
         uftmsgp = &uftmsgs; }
 
@@ -140,17 +139,19 @@ int uftx_msgwtag(char*mo,int ml,                    /* buffer, buflen */
     if (mn < 0) mn = 0 - mn;   /* force message number to be positive */
 
     /* do we need this? */
-    uftmsgs.msglevel = 0;
+//  uftmsgs.msglevel = 0;
 
     /* using pfxmaj and pfxmin is definitely outside the XMITMSGX API */
-    strncpy(uftmsgs.pfxmaj,mt,4); uftmsgs.pfxmaj[3] = 0x00;
-    for (p = uftmsgs.pfxmaj; *p != 0x00; p++) if (islower(*p)) *p = toupper(*p);
-    strncpy(uftmsgs.pfxmin,mq,4); uftmsgs.pfxmin[3] = 0x00;
-    for (p = uftmsgs.pfxmin; *p != 0x00; p++) if (islower(*p)) *p = toupper(*p);
+    strncpy(uftmsgp->pfxmaj,mt,4); uftmsgp->pfxmaj[3] = 0x00;
+    for (p = uftmsgp->pfxmaj; *p != 0x00; p++) if (islower(*p)) *p = toupper(*p);
+    if (mq != NULL) if (*mq != 0x00)       /* avoid NULL pointer here */
+    strncpy(uftmsgp->pfxmin,mq,4); uftmsgp->pfxmin[3] = 0x00;
+    /* also remember to up-case the latter */
+    for (p = uftmsgp->pfxmin; *p != 0x00; p++) if (islower(*p)) *p = toupper(*p);
 
     /* Generate a message and store it as a string.                   */
     rc = xmstring(mo,ml,mn,mc,mv,uftmsgp);
-    if (rc < 0) { if (errno != 0) perror("xmstring()"); return rc; }
+    if (rc < 0) { if (errno != 0) perror("uftx_msgwtag(): xmstring()"); return rc; }
 
     return rc;
   }
@@ -160,36 +161,43 @@ int uftx_msgwtag(char*mo,int ml,                    /* buffer, buflen */
  *    Returns: length of the message upon success or negative if error.
  *    See also: uftx_message()
  */
-int uftx_msgprtl(int mn,                            /* message number */
+int uftx_msgprtl(int mn0,                           /* message number */
                  char*mq,                                   /* caller */
                  int mc,char*mv[])                      /* msgc, msgv */
   { static char _eyecatcher[] = "uftx_msgprtl()";
-    int rc;
-    char *p;
+    int rc, mn;
+    char *p, b[1024];
 
     /* Open the messages file, read it, get ready for service.        */
     if (uftmsgp == NULL)
       { rc = xmopen("uft",0,&uftmsgs);    /* FIXME: check indirection */
 /*      rc = xmopenl("uft",0,&uftmsgs,MSGROUTE_FILE);     // LOG_UUCP */
-        if (rc != 0) { if (errno != 0) perror("xmopen()");
+        if (rc != 0) { if (errno != 0) perror("uftx_msgprtl(): xmopen()");
                                    if (rc > 0) rc = 0 - rc; return rc; }
         uftmsgp = &uftmsgs; }
 
+    mn = mn0;
     if (mn < 0) mn = 0 - mn;   /* force message number to be positive */
 
     /* do we need this? */
-    uftmsgs.msglevel = 0;
+//  uftmsgs.msglevel = 0;
 
     /* using pfxmaj and pfxmin is definitely outside the XMITMSGX API */
-    strncpy(uftmsgs.pfxmaj,UFT_TAG,4);
-    strncpy(uftmsgs.pfxmin,mq,4);
+    strncpy(uftmsgp->pfxmaj,UFT_TAG,4); uftmsgp->pfxmaj[3] = 0x00;
+    if (mq != NULL) if (*mq != 0x00)       /* avoid NULL pointer here */
+    strncpy(uftmsgp->pfxmin,mq,4); uftmsgp->pfxmin[3] = 0x00;
     /* also remember to up-case the latter */
-    uftmsgs.pfxmin[3] = 0x00;
-    for (p = uftmsgs.pfxmin; *p != 0x00; p++) if (islower(*p)) *p = toupper(*p);
+    for (p = uftmsgp->pfxmin; *p != 0x00; p++) if (islower(*p)) *p = toupper(*p);
 
     /* Generate the message, print it, and SYSLOG it.                 */
-    rc = xmprint(mn,mc,mv,MSGFLAG_SYSLOG,uftmsgp);
-    if (rc < 0) { if (errno != 0) perror("xmprint()"); return rc; }
+//  rc = xmprint(mn,mc,mv,MSGFLAG_SYSLOG,uftmsgp);           /* buggy */
+//  if (rc < 0) { if (errno != 0) perror("uftx_msgprtl(): xmprint()"); return rc; }
+    rc = xmstring(b,sizeof(b),mn,mc,mv,uftmsgp);
+    if (rc < 0) { if (errno != 0) perror("uftx_msgprtl(): xmstring()"); return rc; }
+    if (uftmsgp->msglevel > 5)
+    rc = fprintf(stdout,"%s\n",b);            /* 5 and 6 are "normal" */
+    else                                      /* (and 7 is "debug")   */
+    rc = fprintf(stderr,"%s\n",b);            /* 4, 3, 2, 1 "errors"  */
 
     return rc;
   }
@@ -206,6 +214,8 @@ int uftd_message(char*user,char*text)
     int rc, fd;
     char fn[64], ts[256];
 
+#if !defined(_WIN32) && !defined(_WIN64)
+
     /* create and open a temporary file to hold the message text      */
     strcpy(fn,"/tmp/uftd-message-XXXXXX");
     fd = mkstemp(fn);
@@ -218,7 +228,9 @@ int uftd_message(char*user,char*text)
     /* now invoke 'write' taking the temporary file as input          */
     sprintf(ts,"write %s 0< %s 1> /dev/null 2> /dev/null",user,fn);
     rc = system(ts);     /* NOTE: *must* be Unix 'write' and no other */
-    unlink(fn);
+    unlink(fn);            /* in particular, DON'T do this on Windoze */
+
+#endif
 
     /* return code is that of the command issued via system() call    */
     return rc;
@@ -1008,11 +1020,53 @@ int uftc_wack(int s,char*b,int l)
       }
   }
 
+/* ----------------------------------------------------------- UFTX_WACK
+ *    UFT Client "Wait for ACK" function
+ *        Date: 2026-07-02 (Thursday)
+ */
+int uftx_wack(struct UFTFD*ufdp,char*b,int l)
+  { static char _eyecatcher[] = "uftx_wack()";
+    int         rc, i;
+    char       *p;
+
+    b[0] = 0x00;
+    while (1)
+//    { rc = i = tcpgets(ufdp->fd0,b,l);
+//fprintf(stderr,"uftx_wack(): tcpgets() returned %d\n",rc);   /* TRIAGE */
+      { rc = i = uftx_gets(ufdp,b,l);   /* get a line from the server */
+//fprintf(stderr,"uftx_wack(): uftx_gets() returned %d\n",rc);   /* TRIAGE */
+        if (rc < 0) return rc;        /* broken pipe or network error */
+        switch (b[0])                   /* trigger on first character */
+          { case 0x00:                       /* NULL ACK (deprecated) */
+                strncpy(b,"2XX ACK (NULL)",l); return 0;       // break;
+            case '6':                   /* write to stdout, then loop */
+                p = b; while (*p != ' ' && *p != 0x00) p++;
+                /* skip past code */    if (*p == ' ') p++;
+                if (*p != 0x00) fprintf(stdout,"%s\n",p);         break;
+            case '1':   case '#':   case '*':   /* discard, then loop */
+                break;
+            case '2':                          /* simple ACK, is okay */
+                return 2;                                      // break;
+            case '3':                /* or "more required", also okay */
+                return 3;                                      // break;
+            case '4':                       /* "4" means client error */
+                return 4;                                      // break;
+            case '5':                   /* and "5" means server error */
+                return 5;                                      // break;
+            default:                                /* protocol error */
+                return -1;                                     // break;
+          }
+        if (uftcflag & UFT_VERBOSE) if (b[0] != 0x00)
+                                               fprintf(stderr,"%s\n",b);
+      }
+    return -1;
+  }
+
 /* ----------------------------------------------------------- UFTC_OPEN
  *    open a connection to the UFT server - direct TCP or via proxy
- *    Note: 2.0.17 revision eliminates use of tcpopen() from tcpio.c
+ *    Note: 2.0.17 revision eliminates need for tcpopen() from tcpio.c
  */ 
-int uftc_open(char*peer,char*prox,int*pipe)
+int uftc_open(char*peer,char*prox,int*fd)
   { static char _eyecatcher[] = "uftc_open()";
     int s, rc, i, j, sok;
     char temp[256], *host, *port, *tail;
@@ -1039,16 +1093,16 @@ struct addrinfo
 
     /* if either supplied peer or pipe is bogus then stop right here  */
     if (peer == NULL && *peer == 0x00) { errno = EINVAL; return -1; }
-    if (pipe == NULL) { errno = EINVAL; return -1; }
+    if (pipe == NULL) { errno = EINVAL; return -1; } // ufdp
 
     /* just in case ... prep the pipe pair as "disconnected"          */
-    pipe[0] = pipe[1] = -1;       /* preset file descriptors to error */
+    fd[0] = fd[1] = -1;           /* preset file descriptors to error */
 
     /* tack-on the TCP port number                                    */
     snprintf(temp,sizeof(temp)-1,"%s:%d",peer,UFT_PORT);
 
     /* if a proxy string was provided then try connecting that way    */
-    if (prox != NULL && *prox != 0x00) return uftx_proxy(temp,prox,pipe);
+    if (prox != NULL && *prox != 0x00) return uftx_proxy(temp,prox,fd);
 
     /* special consideration for MS Windows with MINGW/MSYS framework */
 #if defined(_WIN32) || defined(_WIN64)
@@ -1096,7 +1150,7 @@ struct addrinfo
 
         if (s >= 0)                          /* looks like it worked! */
           { /* proper Berkeley socket handles both in (0) and out (1) */
-            pipe[0] = pipe[1] = s; return 0; }
+            fd[0] = fd[1] = s; return 0; }
 
                  } /* all of that from a good getaddrinfo() result    */
 
@@ -1134,7 +1188,8 @@ struct addrinfo
         /* can we talk? */
 /*      rc = connect(s,&name,hent->h_length);                      // */
         rc = connect(s,&name,sizeof(name));
-        if (rc == 0) return s; }
+        if (rc == 0)              /* flag this has using older method */
+          { pipe[0] = pipe[1] = s; return 0; } }        // ufdp
     if (errno != 0) perror("uftc_open(): connect()");
 
     /* can't seem to reach this host on this port */
@@ -1144,7 +1199,101 @@ struct addrinfo
     return -1;
   }
 
-/* start to here confirmed function args are isolated                 */
+/* ----------------------------------------------------------- UFTX_OPEN
+ *    open a connection to the UFT server - direct TCP or via proxy
+ *    Note: 2.1.1 revision introduces UFTFD struct vs file descriptors.
+ */ 
+int uftx_open(char*peer,char*prox,struct UFTFD*ufdp)
+  { static char _eyecatcher[] = "uftx_open()";
+    int s, rc, i, j, sok;
+    char temp[256], *host, *port, *tail;
+
+    struct sockaddr name;
+//  struct hostent *hent, myhent;
+
+    /* special consideration for z/VM CMS particularly in the shell   */
+#ifdef          __OPEN_VM
+struct addrinfo
+{
+  int ai_flags;                 /* Input flags.  */
+  int ai_family;                /* Protocol family for socket.  */
+  int ai_socktype;              /* Socket type.  */
+  int ai_protocol;              /* Protocol for socket.  */
+  socklen_t ai_addrlen;         /* Length of socket address.  */
+  struct sockaddr *ai_addr;     /* Socket address for socket.  */
+  char *ai_canonname;           /* Canonical name for service location.  */
+  void *ai_next;                /* Pointer to next in list.  */
+} *res, *res2;
+#else
+    struct addrinfo *res, *res2;
+#endif
+
+    /* if either supplied peer or pipe is bogus then stop right here  */
+    if (peer == NULL && *peer == 0x00) { errno = EINVAL; return -1; }
+    if (ufdp == NULL) { errno = EINVAL; return -1; }       // ufdp
+
+    /* just in case ... prep the pipe pair as "disconnected"          */
+    ufdp->fd0 = ufdp->fd1 = -1;      /* set file descriptors to error */
+    ufdp->fdt = 0x0000; ufdp->fdssl = NULL; /* reset flags and no SSL */
+
+    /* tack-on the TCP port number                                    */
+    snprintf(temp,sizeof(temp)-1,"%s:%d",peer,UFT_PORT);
+
+    /* if a proxy string was provided then try connecting that way    */
+//  if (prox != NULL && *prox != 0x00) return uftx_proxy(temp,prox,ufdp); <<< FIXME
+
+    /* special consideration for MS Windows with MINGW/MSYS framework */
+#if defined(_WIN32) || defined(_WIN64)
+    WSADATA wsa;
+    rc = WSAStartup(MAKEWORD(2,2),&wsa);
+    if (rc != 0) {
+        fprintf(stderr,"Windows socket subsytsem could not be initialized.\n");
+        fprintf(stderr,"Error Code: %d. Exiting..\n", WSAGetLastError());
+        return -1; }
+#endif
+
+    /* parse host address and port number by colon                    */
+    host = port = temp;
+    if (*peer == '[') { host++; port++;
+        while (*port != ']' && *port != 0x00) port++;
+        if (*port == ']') *port++ = 0x00; }
+                 else
+        while (*port != ':' && *port != 0x00) port++;
+    if (*port == ':') *port++ = 0x00;
+    tail = port; while (*tail != ':' && *tail != 0x00) tail++;
+    if (*tail == ':') *tail = 0x00;
+
+    /* drop the heavy lifting onto getaddrinfo()                      */
+    rc = getaddrinfo(host,port,NULL,&res);
+#ifdef EAI_SYSTEM
+    if (rc == EAI_SYSTEM) perror("uftx_open(): getaddrinfo()");
+#endif
+    if (rc == 0) { /* that is, if getaddrinfo() worked                */
+        /* step through the addrinfo structures from getaddrinfo()    */
+        res2 = res;
+        while (res2 != NULL)
+          { /* saprint(res2->ai_addr,res2->ai_addrlen);               */
+            sok = 0;
+            rc = s = socket(res2->ai_family,SOCK_STREAM,0);
+            if (rc >= 0) { sok = 1;      /* on success try to connect */
+            rc = connect(s,res2->ai_addr,res2->ai_addrlen); }
+            if (rc == 0) break;  /* on success break out of this loop */
+            close(s); s = -1;            /* reset socket for next try */
+            res2 = res2->ai_next; }
+        if (rc < 0) if (errno != 0)
+          { if (sok) perror("uftx_open(): connect()");
+                else perror("uftx_open(): socket()"); }
+        freeaddrinfo(res);
+
+        if (s >= 0)                          /* looks like it worked! */
+          { /* proper Berkeley socket handles both in (0) and out (1) */
+            ufdp->fdt = UFT_FD_SOCKET; ufdp->fdssl = NULL;
+            ufdp->fd0 = ufdp->fd1 = s; return 0; }
+
+                 } /* all of that from a good getaddrinfo() result    */
+
+    return -1;
+  }
 
 /* ----------------------------------------------------------- UFTC_PEER
  *    Rough equivalent to tcpident() from tcpip.c sans IDENT logic.
@@ -1207,24 +1356,164 @@ int uftc_peer(int s,char*buff,int blen)
 
 /* ---------------------------------------------------------- UFTC_WRITE
  */
-int uftc_write() { return 0; }
+int uftc_write() { return -1; }
 
 /* ----------------------------------------------------------- UFTC_READ
  */
-int uftc_read() { return 0; }
+int uftc_read() { return -1; }
 
 /* ---------------------------------------------------------- UFTC_CLOSE
  *    close the pair of file descriptors talking to the server
  */
-int uftc_close(int*pipe)
+int uftc_close(int*fd)
   { static char _eyecatcher[] = "uftc_close()";
     int rc;
     rc = 0;
-    if (pipe[0] >= 0) rc = close(pipe[0]);
+    if (fd[0] >= 0) rc = close(fd[0]);
     if (rc < 0) return rc;
-    if (pipe[1] >= 0 && pipe[1] != pipe[0]) rc = close(pipe[1]);
+    if (fd[1] >= 0 && fd[1] != fd[0]) rc = close(fd[1]);
     if (rc < 0) return rc;
-    pipe[0] = pipe[1] = -1;
+    fd[0] = fd[1] = -1;
+    return 0;
+  }
+
+/* ----------------------------------------------------------- UFTX_READ
+ *    read data from our peer using socket, proxy, or SSL
+ *    Note: this function is *not* intended for reading local files
+ */
+int uftx_read(struct  UFTFD*ufdp,char*buffer,int buflen)
+  { static char _eyecatcher[] = "uftx_read()";
+
+    switch (ufdp->fdt)
+      { case UFT_FD_SOCKET:
+            return recv(ufdp->fd0,buffer,buflen,0);
+            break;
+        case UFT_FD_PROXY:
+            return read(ufdp->fd0,buffer,buflen);
+            break;
+        case UFT_FD_SSL:
+//          return SSL_read(ufdp->fdssl,buffer,buflen);
+            return -3;
+            break;
+        default: break; }
+
+    return -1;
+  }
+
+/* ----------------------------------------------------------- UFTX_GETS
+ *    read a text line from our peer using socket, proxy, or SSL
+ *    Note: this function is *not* intended for reading local files
+ */
+int uftx_gets(struct UFTFD*ufdp,char*buffer,int buflen)
+  { static char _eyecatcher[] = "uftx_gets()";
+    int i, l, rc;
+    char *p, *b;
+
+#ifdef  OECS
+    char snl;
+    snl = '\n';
+#endif
+
+    b = buffer;
+    l = buflen;
+
+    p = b; i = 0;
+    while (i < l)
+      {
+
+    switch (ufdp->fdt)
+      { case UFT_FD_SOCKET:
+            rc = recv(ufdp->fd0,p,1,0); if (rc != 1)    /* get a byte */
+            rc = recv(ufdp->fd0,p,1,0); if (rc != 1)     /* try again */
+            rc = recv(ufdp->fd0,p,1,0); if (rc != 1) return -1;
+            break;
+        case UFT_FD_PROXY:
+            rc = read(ufdp->fd0,p,1); if (rc != 1)      /* get a byte */
+            rc = read(ufdp->fd0,p,1); if (rc != 1)       /* try again */
+            rc = read(ufdp->fd0,p,1); if (rc != 1) return -1;
+            break;
+        case UFT_FD_SSL:
+//          return SSL_read(ufdp->fdssl,p,1);
+            return -3;
+            break;
+        default: break; }
+
+        switch (*p)
+          {
+#ifdef  OECS
+            case 0x0A:                      /* found an ASCII newline */
+                *p = 0x00;                    /* terminate the string */
+                /* on an EBCDIC system? */
+                if (snl != 0x0A) (void) stratoe(b);
+                break;
+            case 0x15:                     /* found an EBCDIC newline */
+                *p = 0x00;                    /* terminate the string */
+                /* on an ASCII system? */
+                if (snl != 0x15) (void) stretoa(b);
+                break;
+#else
+            case '\n':                     /* found a generic newline */
+                *p = 0x00;                    /* terminate the string */
+                break;
+#endif
+            default: break; }
+        if (*p == 0x00) break;                     /* NULL terminates */
+        p++; i++;                      /* increment pointer and index */
+      }
+    *p = 0x00;                        /* NULL terminate, even if NULL */
+
+    if (i > 0 && b[i-1] == '\r')           /* is there a trailing CR? */
+      { i = i - 1; p--;           /* shorten the length and backspace */
+        *p = 0x00; }                    /* and remove the trailing CR */
+
+    return i;
+  }
+
+/* ---------------------------------------------------------- UFTX_WRITE
+ *    write data to our peer using socket, proxy, or SSL
+ *    Note: this function is *not* intended for writing local files
+ */
+int uftx_write(struct  UFTFD*ufdp,char*buffer,int buflen)
+  { static char _eyecatcher[] = "uftx_write()";
+
+    switch (ufdp->fdt)
+      { case UFT_FD_SOCKET:
+            return send(ufdp->fd1,buffer,buflen,0);
+            break;
+        case UFT_FD_PROXY:
+            return write(ufdp->fd1,buffer,buflen);
+            break;
+        case UFT_FD_SSL:
+//          return SSL_write(ufdp->fdssl,buffer,buflen);
+            return -3;
+            break;
+        default: break; }
+
+    return -1;
+  }
+
+/* ----------------------------------------------------------- UFTX_PUTS
+ *    send a text line to our peer using socket, proxy, or SSL
+ *    Note: this function is *not* intended for writing local files
+ */
+int uftx_puts(struct  UFTFD*ufdp,char*buffer,int buflen)
+  { static char _eyecatcher[] = "uftx_puts()";
+    return -1;
+  }
+
+/* ---------------------------------------------------------- UFTX_CLOSE
+ *    close the pair of file descriptors talking to the server
+ */
+int uftx_close(struct  UFTFD*ufdp)
+  { static char _eyecatcher[] = "uftx_close()";
+    int rc;
+    rc = 0;
+    if (ufdp->fd0 >= 0) rc = close(ufdp->fd0);
+    if (rc < 0) return rc;
+    if (ufdp->fd1 >= 0 && ufdp->fd1 != ufdp->fd0) rc = close(ufdp->fd1);
+    if (rc < 0) return rc;
+    ufdp->fd0 = ufdp->fd1 = -1;      /* set file descriptors to bogus */
+    ufdp->fdt = 0x0000; ufdp->fdssl = NULL;    /* clear flags; no SSL */
     return 0;
   }
 
@@ -1232,10 +1521,12 @@ int uftc_close(int*pipe)
  *    This routine handles an AGENT inquiry commant. (agent check)
  *    Return values: 2 ACK, 4 NAK client, 5 NAK server
  */
-int uftd_agck(char*k)
+int uftd_agck(char*k0)
   { static char _eyecatcher[] = "uftd_agck()";
     int rc, fd;
-    char *p;
+    char *p, *k;
+
+    k = k0;
 
     /* clean-up arguments of the AGENT command */
     while (*k <= ' ' && *k != 0x00) k++;
@@ -1295,10 +1586,10 @@ char*uftx_getenv(char*var,char*env)
 /* ------------------------------------------------------- UFTX_BASENAME
  *    Returns a pointer to the filename at the enf of a path.
  */
-char*uftx_basename(char*s)
+char*uftx_basename(char*s0)
   { static char _eyecatcher[] = "uftx_basename()";
-    char *p;
-    p = s;
+    char *p, *s;
+    p = s = s0;
     while (*s != 0x00) switch (*s)
       { case '/': case '\\': p = s; p++;
                  s++; break;
@@ -1317,6 +1608,8 @@ char*uftx_parse1(char*s)
     *p = 0x00;
     return s;
   }
+
+/* start to here confirmed function args are isolated                 */
 
 /* ---------------------------------------------------------- UFTX_PROXY
  *    Launch a proxy program with its stdin and stdout connected,
@@ -1366,6 +1659,7 @@ int uftx_proxy(char*host,char*prox,int*fd)
                         close(us[0]); close(us[1]); return rc; }
     if (rc > 0) { close(ds[0]); close(us[1]); sleep(1);
                       fd[0] = us[0]; fd[1] = ds[1]; return 0; }
+      /*        ufd->fd0 = us[0]; ufd->fd1 = ds[1]; return 0; }       */
 
     /* if return from fork() is zero then we *are* the child process  */
                   close(ds[1]); close(us[0]);
@@ -1806,15 +2100,15 @@ int uftdnext()
     /* increment the sequence number until a free slot is found       */
     for (n = n0 + 1; n != n0; n++)
       { if (n > 9999) n = 1;         /* wrap at 10000 (0000 reserved) */
-//fprintf(stderr,"199 seq %d\n",n);                           /* TRIAGE */
+//fprintf(stderr,"199 seq %d\n",n);                         /* TRIAGE */
         /* loop while <nnnn>.cf exists (or .df or .ef or other)       */
         i = 0; while (*exts[i] != 0x00) {
             sprintf(temp,"%04d%s",n,exts[i]);    /* the physical file */
-//fprintf(stderr,"199 checking '%s' ...\n",temp);             /* TRIAGE */
+//fprintf(stderr,"199 checking '%s' ...\n",temp);           /* TRIAGE */
             if (access(temp,0) == 0) break;         /* does it exist? */
             i++;  /* next file type */  }       /* .cf, .df, .ef, etc */
         if (*exts[i] == 0x00) break; }
-//fprintf(stderr,"199 seq %d final\n",n);                     /* TRIAGE */
+//fprintf(stderr,"199 seq %d final\n",n);                   /* TRIAGE */
 
     /* if we've been around once, don't continue */
     if (n == n0)
@@ -2134,9 +2428,11 @@ int uftx_ccap(int*fd,char*c,char*rb,int rl,char*sb,int sl)
     n = 0;                            /* initial response length zero */
 
     rc = tcpputs(fd[1],c);                       /* issue the command */
+//  rc = tcpputs(ufd->fd1,c);                    /* issue the command */
 
     while (1)
       { rc = uftx_getline(fd[0],mybuff,sizeof(mybuff)); /* get a line */
+/*      rc = uftx_getline(ufd->fd0,mybuff,sizeof(mybuff));            */
         p = mybuff;  while (*p <= ' ' && *p != 0x00) p++;
         switch (*p)
           {

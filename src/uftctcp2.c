@@ -34,10 +34,12 @@ int _sift_send(int fd[],char*b,int l)
 
     /* send the command record */
     rc = tcpputs(fd[1],b);
+/*  rc = tcpputs(ufd->fd1,b);  */
     if (rc < 0) return rc;
 
     /* wait for ACK */
     rc = uftc_wack(fd[0],buffer,sizeof(buffer)-1);
+/*  rc = uftc_wack(ufd->fd0,buffer,sizeof(buffer)-1);  */
     if (rc < 0) return rc;
     if (rc != 2) { fprintf(stderr,"%s\n",buffer); return rc; }
 
@@ -76,19 +78,23 @@ int _sift_abort(int fd[])
 
     /* send an "ABORT" command (because we're not sending a file */
     rc = tcpputs(fd[1],"ABORT");
+/*  rc = tcpputs(ufd->fd1,"ABORT");  */
     if (rc < 0) return rc;
 
     /* wait for ACK */
     rc = uftc_wack(fd[0],buffer,sizeof(buffer)-1);
+/*  rc = uftc_wack(ufd->fd0,buffer,sizeof(buffer)-1);  */
     if (rc < 0) return rc;
     if (rc != 2) { fprintf(stderr,"%s\n",buffer); return rc; }
 
     /* send a "QUIT" command to cleanly end the session */
     rc = tcpputs(fd[1],"QUIT");
+/*  rc = tcpputs(ufd->fd1,"QUIT");  */
     if (rc < 0) return rc;
 
     /* wait for ACK */
     rc = uftc_wack(fd[0],buffer,sizeof(buffer)-1);
+/*  rc = uftc_wack(ufd->fd0,buffer,sizeof(buffer)-1);  */
     if (rc < 0) return rc;
     if (rc != 2) { fprintf(stderr,"%s\n",buffer); return rc; }
 
@@ -102,6 +108,7 @@ int main(int argc,char*argv[])
     char *p, *q, *arg0, *ptitle,
          line[1024], copy[1024], buff[256], user[256], host[256];
     struct UFTSTAT us;
+    struct UFTFD ufd;
 
     /* variables for the message formatter */
     int mn, mc; char *mv[16];
@@ -182,6 +189,7 @@ int main(int argc,char*argv[])
 
     /* file descriptors mark that we are not connected to the server  */
     fd[0] = fd[1] = -1;
+/*  ufd.fd0 = ufd.fd1 = -1;  */
 
     /* process the metadata (before the "DATA" statement)             */
     while (1)
@@ -262,6 +270,7 @@ int main(int argc,char*argv[])
             if (*q != 0x00) *q++ = 0x00;                 /* vestigial */
 
             if (fd[0] >= 0 && fd[1] >= 0) _sift_file(fd,&us);
+/*          if (ufd.fd0 >= 0 && ufd.fd1 >= 0) _sift_file(&ufd,&us);  */
 
             continue; }                             /* loop on header */
 
@@ -293,6 +302,7 @@ int main(int argc,char*argv[])
 
             /* wait for herald from server - the rest via uftc_wack() */
             rc = tcpgets(fd[0],buff,sizeof(buff));
+/*          rc = tcpgets(ufd.fd0,buff,sizeof(buff));  */
             if (rc < 0) { mc = 0; mn = 26; break; }      /* wrong msg */
             /* should we retain anything from the herald?             */
 
@@ -375,6 +385,7 @@ int main(int argc,char*argv[])
     /* generic error handler */
     if (rc < 0)  {
         if (fd[0] >= 0 && fd[1] >= 0) { _sift_abort(fd); uftc_close(fd); }
+/*      if (ufd.fd0 >= 0 && ufd.fd1 >= 0) { _sift_abort(&ufd); uftc_close(&ufd); }  */
         rc = uftx_message(line,sizeof(line)-1,mn,"TCP",mc,mv);
         if (rc >= 0) fprintf(stderr,"%s\n",line);
         if (*copy != 0x00) fprintf(stderr,"%s\n",copy);
@@ -402,37 +413,49 @@ int main(int argc,char*argv[])
           { rc = i = uft_readspan(0,buff,sizeof(buff)); if (rc == 0)
             rc = i = uft_readspan(0,buff,sizeof(buff)); if (rc < 1) break;
             sprintf(line,"DATA %d",i); tcpputs(fd[1],line);
+/*          sprintf(line,"DATA %d",i); tcpputs(ufd.fd1,line);  */
             rc = uftc_wack(fd[0],line,sizeof(line));      /* expect 3 */
+/*          rc = uftc_wack(ufd.fd0,line,sizeof(line));    // expect 3 */
             if (rc != 3) break;
             tcpwrite(fd[1],buff,i);     /* send it - we live for this */
+/*          tcpwrite(ufd.fd1,buff,i)    // send it - we live for this */
             rc = uftc_wack(fd[0],line,sizeof(line));      /* expect 2 */
+/*          rc = uftc_wack(ufd.fd0,line,sizeof(line));    // expect 2 */
             if (rc != 2) break; }
     else /* plain text */ while (1)
           { rc = i = uftctext(0,buff,sizeof(buff)); if (rc == 0)
             rc = i = uftctext(0,buff,sizeof(buff)); if (rc < 1) break;
             sprintf(line,"DATA %d",i); tcpputs(fd[1],line);
+/*          sprintf(line,"DATA %d",i); tcpputs(ufd.fd1,line);  */
 /*      if (uftcflag & UFT_VERBOSE || i == 5) uftx_putline(2,line,0); */
             rc = uftc_wack(fd[0],line,sizeof(line));      /* expect 3 */
+/*          rc = uftc_wack(ufd.fd0,line,sizeof(line));    // expect 3 */
             if (rc != 3) break;
             tcpwrite(fd[1],buff,i);     /* send it - we live for this */
+/*          tcpwrite(ufd.fd1,buff,i);   // send it - we live for this */
             rc = uftc_wack(fd[0],line,sizeof(line));      /* expect 2 */
+/*          rc = uftc_wack(ufd.fd0,line,sizeof(line));    // expect 2 */
             if (rc != 2) break; }
 
     /* send an "EOF" command to indicate clean end-of-file            */
     rc = tcpputs(fd[1],"EOF");
+/*  rc = tcpputs(ufd.fd1,"EOF");  */
     if (rc < 0) { uftc_close(fd); return 1; }
 
     /* wait for ACK */
     rc = uftc_wack(fd[0],line,sizeof(line)-1);
+/*  rc = uftc_wack(ufd.fd0,line,sizeof(line)-1);  */
     if (rc < 0) { uftc_close(fd); return 1; }
     if (rc != 2) fprintf(stderr,"%s\n",line);
 
     /* send a "QUIT" command to cleanly end the session */
     rc = tcpputs(fd[1],"QUIT");
+/*  rc = tcpputs(ufd.fd1,"QUIT");  */
     if (rc < 0) { uftc_close(fd); return 1; }
 
     /* wait for ACK */
     rc = uftc_wack(fd[0],line,sizeof(line)-1);
+/*  rc = uftc_wack(ufd.fd0,line,sizeof(line)-1);  */
     if (rc < 0) { uftc_close(fd); return 1; }
     if (rc != 2) fprintf(stderr,"%s\n",line);
 

@@ -388,13 +388,6 @@ int xmopen(char*fn,int opts,struct MSGSTRUCT*ms)
         if (i > ms->msgmax) ms->msgmax = i;
       }
 
-    /* use basename of the file as the applid */
-/*  p = basename(ms->msgfile);                (see xm_basename above) */
-//  p = xm_basename(ms->msgfile);
-//  (void) strncpy(ms->applid,p,sizeof(ms->applid)-1);
-//  p = ms->applid;
-//  while (*p != 0x00 && *p != '.') p++; *p = 0x00;
-
     /* establish major and minor prefix area */
     /* if (ms->prefix == NULL || *ms->prefix == 0x00) */ ms->prefix = ms->applid;
     p = ms->prefix;     /* application prefix not installation prefix */

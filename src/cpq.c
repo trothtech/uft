@@ -21,6 +21,7 @@ int main(int argc,char*argv[])
     char        temp[UFT_BUFSIZ], cpqs[UFT_BUFSIZ], *host, *proxy, *arg1;
     int         rc, i, j, fd[2];
     char       *arg0, *p;
+    UFTFD       ufd;
 
     /* note command name and set defaults */
     arg0 = uftx_basename(argv[0]);
@@ -87,9 +88,11 @@ int main(int argc,char*argv[])
     rc = uftc_open(temp,proxy,fd);
     if (rc != 0) { if (errno != 0) perror(temp); return 1; }
     /* r = fd[0] for read and s = fd[1] for send */
+    /* r = ufd.fd0 for read and s = ufd.fd1 for send */
 
     /* read and discard the herald */
-     uftx_getline(fd[0],temp,UFT_BUFSIZ);
+    uftx_getline(fd[0],temp,UFT_BUFSIZ);
+/*  uftx_getline(ufd.fd0,temp,UFT_BUFSIZ); */
 
     /* join commandline args into one CPQuery string */
     cpqs[0] = 0x00;
@@ -101,10 +104,12 @@ int main(int argc,char*argv[])
     /* send the CPQ request to the remote UFT server */
     sprintf(temp,"CPQ %s",cpqs);
     tcpputs(fd[1],temp);
+/*  tcpputs(ufd.fd1,temp);  */
 
     /* ... and wait for the ACK */
     while (1)
       { uftx_getline(fd[0],temp,UFT_BUFSIZ);
+/*    { uftx_getline(ufd.fd0,temp,UFT_BUFSIZ);  */
         p = temp;  while (*p > ' ') p++;  while (*p <= ' ') p++;
         if (temp[0] == '6') /* uftx_putline(1,p,0); */ fprintf(stdout,"%s\n",p);
         else if (temp[0] != '1' &&
@@ -113,7 +118,9 @@ temp[0] != '2') fprintf(stderr,"%s\n",temp);
 
     /* exit cleanly */
     tcpputs(fd[1],"QUIT");
+/*  tcpputs(ufd.fd1,"QUIT");  */
     uftc_wack(fd[0],temp,UFT_BUFSIZ);
+/*  uftc_wack(ufd.fd0,temp,UFT_BUFSIZ);  */
 
     uftc_close(fd);
 

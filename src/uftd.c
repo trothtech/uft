@@ -102,9 +102,10 @@ int main(int argc,char*argv[])
     uftfile0.name[0]    = 0x00;
     uftfile0.from[0]    = 0x00;
 
-    /* If we're not running as root (or if we don't at least           *
-     * own the UFT spooling directory) then we're hopeless.            *
-     * But we might also want to be in the UFT_GROUP (typically 0).    */
+
+    /* If we're not running as root (or if we don't at least          *
+     * own the UFT spooling directory) then we're hopeless.           *
+     * But we might also want to be in the UFT_GROUP (typically 0).   */
 #ifdef UFT_POSIX
     (void) setgid(UFT_GID);
 #endif
@@ -188,6 +189,7 @@ int main(int argc,char*argv[])
     (void) sprintf(temp,"118 SEQ=%04d (server)",n);
     (void) uftdstat(1,temp);                      /* stat and logging */
 #endif
+
 
     /* loop forever on commands from client */
     while (1)

@@ -144,7 +144,8 @@ fprintf(stderr,"%s: open('%s.df',) returned %d\n",arg0,us.uft_sidp,rc);
       { sprintf(buff,"META PROT %s",uftcprot(us.uft_mode));
         uftx_putline(1,buff,0);                         /* VMS format */
         /* also send it as bits in octal format                       */
-        sprintf(buff,"META XPERM 0%lo",us.uft_mode);
+/*      sprintf(buff,"META XPERM 0%lo",us.uft_mode);                  */
+        sprintf(buff,"META XPERM 0%o",us.uft_mode);
         uftx_putline(1,buff,0); }                /* octal Unix format */
 
     /* does this file have a specific class?                          */
