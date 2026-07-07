@@ -211,6 +211,7 @@ typedef struct  UFTFD   {
       int       fd1;            /* for write operations               */
       int       fdt;            /* FD "type" (see constants above)    */
       void      *fdssl;         /* pointer to SSL struct if any       */
+      void      *fdctx;         /* pointer to SSL context struct      */
                         } UFTFD;
 
 static char *uft_copyright = UFT_COPYRIGHT;
@@ -369,7 +370,7 @@ int uftd_agck(char*);
 
 int uftc_wack(int,char*,int);                         /* wait for ACK */
 
-int uftx_proxy(char*,char*,int*);
+int uftx_proxy(char*,char*,struct UFTFD*);
 int uft_stat(char*,struct UFTSTAT*);         /* info about a UFT file */
 int uft_purge(struct UFTSTAT*);               /* discard the UFT file */
 int uftx_atoi(char*);                         /* character to integer */
@@ -407,14 +408,12 @@ int uftx_b64dec(char*,int,char*,int);
 int sendimsg(char*,char*);
 int msglocal(char*,char*);
 
+int ufts_open(char*,char*,struct UFTFD*);
+int ufts_close(struct UFTFD*);
+int ufts_read(struct UFTFD*,char*,int);
+int ufts_write(struct UFTFD*,char*,int);
+
 #define         _UFT_HEADER_
 #endif
-
-/*
-int msgwrite(char*,char*);                                            *
-int msgsmtps(char*,char*);                                            *
-int msgsmtpm(char*,char*);                                            *
-int msgmail(char*,chat*);                                             *
- */
 
 

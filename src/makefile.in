@@ -8,7 +8,7 @@
 #
 
 APPLID          =       uft
-VERSION         =       2.1.0
+VERSION         =       2.1.1
 DELIVERABLES    =       sf rls rcv rstat rrm uftcndd tell cpq \
                         uftd uftxdspl uftctcp2
 SOURCEURL       =       https://raw.githubusercontent.com/trothtech/uft/refs/heads/main
@@ -18,8 +18,8 @@ SOURCEURL       =       https://raw.githubusercontent.com/trothtech/uft/refs/hea
 
 PREFIX          =       %PREFIX%
 LDFLAGS         =       %LDFLAGS%
-LIBS            =       %LIBS%
-CFLAGS          =       %CFLAGS% -DPREFIX=\"$(PREFIX)\"
+LIBS            =       %LIBS% -lssl -lcrypto
+CFLAGS          =       %CFLAGS% -DPREFIX=\"$(PREFIX)\" -DUFT_SSL
 SHFLAGS         =       %SHFLAGS%
 # we may later use CC, CXX, CPP, CPPFLAGS, and/or CXXFLAGS
 

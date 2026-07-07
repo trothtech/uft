@@ -55,6 +55,11 @@
  #define PREFIX "/usr"
 #endif
 
+#ifdef UFT_SSL
+ #include <openssl/ssl.h>
+ #include <openssl/err.h>
+#endif
+
 /* The following three lines are related to the XMITMSGX package      *
  * which is maintained separately from the UFT package.               */
 #include "xmitmsgx/xmitmsgx.h"
@@ -1034,7 +1039,6 @@ int uftx_wack(struct UFTFD*ufdp,char*b,int l)
 //    { rc = i = tcpgets(ufdp->fd0,b,l);
 //fprintf(stderr,"uftx_wack(): tcpgets() returned %d\n",rc);   /* TRIAGE */
       { rc = i = uftx_gets(ufdp,b,l);   /* get a line from the server */
-//fprintf(stderr,"uftx_wack(): uftx_gets() returned %d\n",rc);   /* TRIAGE */
         if (rc < 0) return rc;        /* broken pipe or network error */
         switch (b[0])                   /* trigger on first character */
           { case 0x00:                       /* NULL ACK (deprecated) */
@@ -1102,7 +1106,9 @@ struct addrinfo
     snprintf(temp,sizeof(temp)-1,"%s:%d",peer,UFT_PORT);
 
     /* if a proxy string was provided then try connecting that way    */
-    if (prox != NULL && *prox != 0x00) return uftx_proxy(temp,prox,fd);
+//  if (prox != NULL && *prox != 0x00) return uftx_proxy(temp,prox,fd);
+//    NOTE: uftx_proxy now uses UFTFD struct
+    if (prox != NULL && *prox != 0x00) return -1;
 
     /* special consideration for MS Windows with MINGW/MSYS framework */
 #if defined(_WIN32) || defined(_WIN64)
@@ -1201,15 +1207,13 @@ struct addrinfo
 
 /* ----------------------------------------------------------- UFTX_OPEN
  *    open a connection to the UFT server - direct TCP or via proxy
+ *    Returns: zero on success, any other value indicates an error
  *    Note: 2.1.1 revision introduces UFTFD struct vs file descriptors.
  */ 
 int uftx_open(char*peer,char*prox,struct UFTFD*ufdp)
   { static char _eyecatcher[] = "uftx_open()";
     int s, rc, i, j, sok;
     char temp[256], *host, *port, *tail;
-
-    struct sockaddr name;
-//  struct hostent *hent, myhent;
 
     /* special consideration for z/VM CMS particularly in the shell   */
 #ifdef          __OPEN_VM
@@ -1230,7 +1234,7 @@ struct addrinfo
 
     /* if either supplied peer or pipe is bogus then stop right here  */
     if (peer == NULL && *peer == 0x00) { errno = EINVAL; return -1; }
-    if (ufdp == NULL) { errno = EINVAL; return -1; }       // ufdp
+    if (ufdp == NULL) { errno = EINVAL; return -1; }
 
     /* just in case ... prep the pipe pair as "disconnected"          */
     ufdp->fd0 = ufdp->fd1 = -1;      /* set file descriptors to error */
@@ -1240,7 +1244,7 @@ struct addrinfo
     snprintf(temp,sizeof(temp)-1,"%s:%d",peer,UFT_PORT);
 
     /* if a proxy string was provided then try connecting that way    */
-//  if (prox != NULL && *prox != 0x00) return uftx_proxy(temp,prox,ufdp); <<< FIXME
+    if (prox != NULL && *prox != 0x00) return uftx_proxy(temp,prox,ufdp);
 
     /* special consideration for MS Windows with MINGW/MSYS framework */
 #if defined(_WIN32) || defined(_WIN64)
@@ -1381,7 +1385,7 @@ int uftc_close(int*fd)
  *    read data from our peer using socket, proxy, or SSL
  *    Note: this function is *not* intended for reading local files
  */
-int uftx_read(struct  UFTFD*ufdp,char*buffer,int buflen)
+int uftx_read(struct UFTFD*ufdp,char*buffer,int buflen)
   { static char _eyecatcher[] = "uftx_read()";
 
     switch (ufdp->fdt)
@@ -1392,8 +1396,13 @@ int uftx_read(struct  UFTFD*ufdp,char*buffer,int buflen)
             return read(ufdp->fd0,buffer,buflen);
             break;
         case UFT_FD_SSL:
+//fdef UFT_SSL
 //          return SSL_read(ufdp->fdssl,buffer,buflen);
-            return -3;
+//lse
+//          errno = ENOPROTOOPT;
+//          return -1;
+//ndif
+            return ufts_read(ufdp,buffer,buflen);
             break;
         default: break; }
 
@@ -1408,10 +1417,8 @@ int uftx_gets(struct UFTFD*ufdp,char*buffer,int buflen)
   { static char _eyecatcher[] = "uftx_gets()";
     int i, l, rc;
     char *p, *b;
-
 #ifdef  OECS
-    char snl;
-    snl = '\n';
+    char snl; snl = '\n';
 #endif
 
     b = buffer;
@@ -1433,8 +1440,13 @@ int uftx_gets(struct UFTFD*ufdp,char*buffer,int buflen)
             rc = read(ufdp->fd0,p,1); if (rc != 1) return -1;
             break;
         case UFT_FD_SSL:
-//          return SSL_read(ufdp->fdssl,p,1);
-            return -3;
+//fdef UFT_SSL
+//          rc = SSL_read(ufdp->fdssl,p,1);
+//lse
+//          errno = ENOPROTOOPT;
+//          return -1;
+//ndif
+            rc = ufts_read(ufdp,p,1);
             break;
         default: break; }
 
@@ -1462,7 +1474,7 @@ int uftx_gets(struct UFTFD*ufdp,char*buffer,int buflen)
       }
     *p = 0x00;                        /* NULL terminate, even if NULL */
 
-    if (i > 0 && b[i-1] == '\r')           /* is there a trailing CR? */
+    if (i > 0) if (b[i-1] == '\r')         /* is there a trailing CR? */
       { i = i - 1; p--;           /* shorten the length and backspace */
         *p = 0x00; }                    /* and remove the trailing CR */
 
@@ -1484,8 +1496,13 @@ int uftx_write(struct  UFTFD*ufdp,char*buffer,int buflen)
             return write(ufdp->fd1,buffer,buflen);
             break;
         case UFT_FD_SSL:
+//fdef UFT_SSL
 //          return SSL_write(ufdp->fdssl,buffer,buflen);
-            return -3;
+//lse
+//          errno = ENOPROTOOPT;
+//          return -1;
+//ndif
+            return ufts_write(ufdp,buffer,buflen);
             break;
         default: break; }
 
@@ -1495,16 +1512,44 @@ int uftx_write(struct  UFTFD*ufdp,char*buffer,int buflen)
 /* ----------------------------------------------------------- UFTX_PUTS
  *    send a text line to our peer using socket, proxy, or SSL
  *    Note: this function is *not* intended for writing local files
+ *    Returns: number bytes written (sans line ending) or neg for error.
+ *    based on tcpputs() from the tcpio suite
  */
-int uftx_puts(struct  UFTFD*ufdp,char*buffer,int buflen)
+int uftx_puts(struct UFTFD*ufdp,char*buffer,int buflen)
   { static char _eyecatcher[] = "uftx_puts()";
-    return -1;
+    int rc, i, l;
+    char *p, temp[4096];
+#ifdef  OECS
+    char snl; snl = '\n';
+#endif
+
+    p = buffer;
+    l = buflen; if (l <= 0) l = strlen(p);
+
+    /* copy supplied string to buffer because we'll modify slightly   */
+    for (i = 0; p[i] != 0x00 && i < sizeof(temp)-3; i++) temp[i] = p[i];
+    temp[i] = 0x00;
+#ifdef  OECS
+    /* if client speaks EBCDIC then translate for ASCII on the wire   */
+    if (snl == 0x15) stretoa(temp);
+#endif
+    temp[i+0] = 0x0D;            /* NVT format for text strings CR/lf */
+    temp[i+1] = 0x0A;            /* NVT format for text strings cr/LF */
+    temp[i+2] = 0x00;                                  /* reterminate */
+
+    /* write entire string, WITH line interpolation, at once          */
+    rc = uftx_write(ufdp,temp,i+2);
+
+    if (rc < 0) return rc;
+    rc = rc - 2;
+    if (rc != i) return -1;
+    return rc;  
   }
 
 /* ---------------------------------------------------------- UFTX_CLOSE
  *    close the pair of file descriptors talking to the server
  */
-int uftx_close(struct  UFTFD*ufdp)
+int uftx_close(struct UFTFD*ufdp)
   { static char _eyecatcher[] = "uftx_close()";
     int rc;
     rc = 0;
@@ -1616,10 +1661,11 @@ char*uftx_parse1(char*s)
  *    something like ... ProxyCommand='netcat -x 127.0.0.1:9050 %h %p'
  *
  *    NOTE: this routine does *not* tack-on the TCP port number
+ *    Note: 2.1.1 revision introduces UFTFD struct vs file descriptors
+ *          which then forces changes to anyhting claling this routine.
  */
-int uftx_proxy(char*host,char*prox,int*fd)
+int uftx_proxy(char*host,char*prox,struct UFTFD*ufdp)
   { static char _eyecatcher[] = "uftx_proxy()";
-#ifdef UFT_POSIX
     int rc, us[2], ds[2], argc;
     char myhost[256], *port, myprox[256], *p, *argv[32];
 
@@ -1658,8 +1704,10 @@ int uftx_proxy(char*host,char*prox,int*fd)
                         close(ds[0]); close(ds[1]);
                         close(us[0]); close(us[1]); return rc; }
     if (rc > 0) { close(ds[0]); close(us[1]); sleep(1);
-                      fd[0] = us[0]; fd[1] = ds[1]; return 0; }
-      /*        ufd->fd0 = us[0]; ufd->fd1 = ds[1]; return 0; }       */
+//                    fd[0] = us[0]; fd[1] = ds[1]; return 0; }
+                      ufdp->fd0 = us[0]; ufdp->fd1 = ds[1];
+                      ufdp->fdt = UFT_FD_PROXY; ufdp->fdssl = NULL;
+                      return 0; }
 
     /* if return from fork() is zero then we *are* the child process  */
                   close(ds[1]); close(us[0]);
@@ -1670,7 +1718,6 @@ int uftx_proxy(char*host,char*prox,int*fd)
     rc = execvp(argv[0],argv);
 
     if (rc < 0) { rc = errno; if (rc == 0) rc = -1; return rc; }
-#endif
     return -1;
   }
 
@@ -2051,7 +2098,7 @@ char *uftcprot(mode_t prot)
 /* ------------------------------------------------------------ UFTDNEXT
  *        Name: uftdnext.c (C program source)
  *              Unsolicited File Transfer daemon "next" routine
- *              returns next available SEQuence number
+ *     Returns: next available SEQuence number
  */
 int uftdnext()
   { static char _eyecatcher[] = "uftdnext()";
@@ -2100,15 +2147,12 @@ int uftdnext()
     /* increment the sequence number until a free slot is found       */
     for (n = n0 + 1; n != n0; n++)
       { if (n > 9999) n = 1;         /* wrap at 10000 (0000 reserved) */
-//fprintf(stderr,"199 seq %d\n",n);                         /* TRIAGE */
         /* loop while <nnnn>.cf exists (or .df or .ef or other)       */
         i = 0; while (*exts[i] != 0x00) {
             sprintf(temp,"%04d%s",n,exts[i]);    /* the physical file */
-//fprintf(stderr,"199 checking '%s' ...\n",temp);           /* TRIAGE */
             if (access(temp,0) == 0) break;         /* does it exist? */
             i++;  /* next file type */  }       /* .cf, .df, .ef, etc */
         if (*exts[i] == 0x00) break; }
-//fprintf(stderr,"199 seq %d final\n",n);                   /* TRIAGE */
 
     /* if we've been around once, don't continue */
     if (n == n0)
@@ -2689,5 +2733,161 @@ int msgsmtpm(char*user,char*text) { return -1; }
  *  Try queued mail (sendmail) as a last resort.                 DEFUNCT
  */
 int msgmail(char*user,char*text) { return -1; }
+
+/*
+ *    SSL/TLS support follows
+ *        Date: 2026-06-28 (Sunday)
+ *      Author: Richard Troth, Cedarville, Ohio, USA
+ *              with help from DuckDuckGo assistant in this age of AI
+ */
+
+#ifdef UFT_SSL
+
+/* ----------------------------------------------------------- UFTS_INIT
+ *    Note: this routine is not prototyped and not called from outside
+ */ 
+void ufts_init()
+  {
+    SSL_library_init();                  // Initialize core library
+    OpenSSL_add_all_algorithms();        // Load crypto algorithms
+    SSL_load_error_strings();            // Load error messages
+  }
+
+/* ---------------------------------------------------------- UFTX_CLOSE
+ *    shut down the SSL context and then close the TCP socket
+ */
+int ufts_close(struct UFTFD*ufdp)
+  {
+    int sockfd;
+
+    sockfd = ufdp->fd0;             //* FIXME: we should sanity check
+
+    // Cleanup
+    SSL_shutdown(ufdp->fdssl);
+    SSL_free(ufdp->fdssl);
+    close(sockfd);
+    SSL_CTX_free(ufdp->fdctx);
+    EVP_cleanup();
+
+    return uftx_close(ufdp);
+  }
+
+/* ----------------------------------------------------------- UFTS_OPEN
+ *    open a connection to the UFT server attempting SSL first
+ *    Returns: zero on success, any other value indicates an error
+ */ 
+int ufts_open(char*peer,char*prox,struct UFTFD*ufdp)
+  { static char _eyecatcher[] = "ufts_open()";
+    int rc, sockfd;
+    char temp[256];
+
+    SSL_CTX *ctx;
+//  const SSL_METHOD *method = TLS_client_method();
+    const SSL_METHOD *method = TLSv1_client_method();
+    SSL *ssl;
+
+    /* if either supplied peer or pipe is bogus then stop right here  */
+    if (peer == NULL && *peer == 0x00) { errno = EINVAL; return -1; }
+    if (ufdp == NULL) { errno = EINVAL; return -1; }
+
+    /* if a proxy string was provided then try connecting that way    */
+//  if (prox != NULL && *prox != 0x00) return uftx_proxy(temp,prox,ufdp);
+// this is ham-strung until we can figure out better proxy port logic
+
+    /* tack-on the TLS/SSL port number                                */
+    snprintf(temp,sizeof(temp)-1,"%s:%d",peer,UFT_SECPORT);
+
+    /* "Step 1: Connect to server via TCP"                            */
+    /* try connecting to the remote server using the SSL/TLS port     */
+    rc = uftx_open(temp,"",ufdp);
+    if (rc != 0) return rc;
+    if (ufdp->fd0 != ufdp->fd1 || ufdp->fdt != UFT_FD_SOCKET)
+      { fprintf(stderr,"FD mismatch or flag failure in uftx_open()\n");
+        return -1; }
+    sockfd = ufdp->fd0;
+
+    /* "Step 2: Initialize OpenSSL"                                   */
+    ufts_init();
+
+    /* "Step 3: Create SSL context and object"                        */
+    ctx = SSL_CTX_new(method);
+    if (ctx == NULL)
+      { perror("client SSL context failed");
+        ERR_print_errors_fp(stderr);
+        uftx_close(ufdp); return -1; }
+
+    ssl = SSL_new(ctx);
+    SSL_set_fd(ssl,sockfd);          /* associate the socket with SSL */
+
+    /* "Step 4: Perform SSL handshake"                                */
+    rc = SSL_connect(ssl);
+    if (rc <= 0)
+      { ERR_print_errors_fp(stderr);
+        ufts_close(ufdp); return rc; }
+
+/*  ufdp->fd0 remains unchanged */
+/*  ufdp->fd1 remains unchanged */
+    ufdp->fdssl = ssl;
+    ufdp->fdctx = ctx;
+    ufdp->fdt = UFT_FD_SSL;               /* override connection type */
+
+    return 0;
+  }
+
+/* ----------------------------------------------------------- UFTS_READ
+ *    read data from our peer using SSL
+ */
+int ufts_read(struct UFTFD*ufdp,char*buffer,int buflen)
+  { static char _eyecatcher[] = "ufts_read()";
+    return SSL_read(ufdp->fdssl,buffer,buflen); }
+
+/* ---------------------------------------------------------- UFTS_WRITE
+ *    write data to our peer using SSL
+ */
+int ufts_write(struct UFTFD*ufdp,char*buffer,int buflen)
+  { static char _eyecatcher[] = "ufts_write()";
+    return SSL_write(ufdp->fdssl,buffer,buflen); }
+
+#else
+
+int ufts_open(char*peer,char*prox,struct UFTFD*ufdp)         /* dummy */
+  { errno = ENOPROTOOPT; return -1; }
+
+int ufts_close(struct UFTFD*ufdp) { return uftx_close(ufdp); }
+
+int ufts_read(struct UFTFD*ufdp,char*buffer,int buflen)      /* dummy */
+  { errno = ENOPROTOOPT; return -1; }
+
+int ufts_write(struct UFTFD*ufdp,char*buffer,int buflen)     /* dummy */
+  { errno = ENOPROTOOPT; return -1; }
+
+#endif
+
+/*
+
+4.2 Client-Side: Connecting to an SSL Socket#
+
+client uses TLS_client_method() and SSL_connect()
+server uses SSL_accept()
+Step 1: Create TCP Socket and Connect to Server#
+Standard TCP client code to connect to the server:
+
+Step 2: Initialize OpenSSL and Create SSL Context#
+Same as the server, but use TLS_client_method():
+
+Step 3: Create SSL context and object
+
+ */
+
+/*
+
+Step 3: Connect Securely and Transfer Data#
+
+The client connects to the server, performs an SSL handshake, and uses SSL_write()/SSL_read():
+
+        printf("SSL handshake successful!\n");
+        printf("Using cipher: %s\n", SSL_get_cipher(ssl));
+
+ */
 
 
