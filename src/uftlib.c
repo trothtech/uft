@@ -2463,34 +2463,35 @@ int uftx_abbrev(char*informat,char*info,int minlen)
       Returns: positive (length of string in main), negative (error)
       Negative return values usually convey code from UFT server.
  */
-int uftx_ccap(int*fd,char*c,char*rb,int rl,char*sb,int sl)
-  {
-    int rc, l, n;
-    char mybuff[1024], *p;
+int uftx_ccap(struct UFTFD*ufdp,char*c,char*rb,int rl0,char*sb,int sl0)
+  { static char _eyecatcher[] = "uftx_ccap()";
+    int rc, l, n, rl, sl;
+    char mybuff[4096], *p;
 
-    rl = rl - 1; sl = sl - 1;      /* room for NULL string terminator */
+    rl = rl0 - 1; sl = sl0 - 1;    /* room for NULL string terminator */
     n = 0;                            /* initial response length zero */
 
-    rc = tcpputs(fd[1],c);                       /* issue the command */
+//  rc = tcpputs(fd[1],c);                       /* issue the command */
 //  rc = tcpputs(ufd->fd1,c);                    /* issue the command */
+    rc = uftx_puts(ufdp,c,0);                    /* issue the command */
 
     while (1)
-      { rc = uftx_getline(fd[0],mybuff,sizeof(mybuff)); /* get a line */
-/*      rc = uftx_getline(ufd->fd0,mybuff,sizeof(mybuff));            */
+//    { rc = uftx_getline(fd[0],mybuff,sizeof(mybuff)); /* get a line */
+//    { rc = uftx_getline(ufd->fd0,mybuff,sizeof(mybuff));
+      { rc = uftx_gets(ufdp,mybuff,sizeof(mybuff)-1);
         p = mybuff;  while (*p <= ' ' && *p != 0x00) p++;
         switch (*p)
-          {
-            case '1':          /* output only if "verbose", then loop */
-                if (uftcflag & UFT_VERBOSE) /* putline */ ;
+          { case '1':          /* output only if "verbose", then loop */
+                if (uftcflag & UFT_VERBOSE) fprintf(stderr,"%s\n",p);
                 break;                                        /* loop */
-            case '2':                         /* store status, return */
+            case '2':                 /* store status and then return */
 /*              while (*p > ' ') p++; if (*p == ' ') p++;             */
                 l = strlen(p); if (l > sl) l = sl;
                 memcpy(sb,p,l);
                 sb[l] = 0x00;
                 return n;           /* return 0 or length of response */
                 break;
-            case '6':                      /* queue into buffer, loop */
+            case '6':                  /* queue into buffer then loop */
                 while (*p > ' ') p++; if (*p == ' ') p++;
                 l = strlen(p); if (l > rl) l = rl;
                 memcpy(rb,p,l);
@@ -2500,8 +2501,7 @@ int uftx_ccap(int*fd,char*c,char*rb,int rl,char*sb,int sl)
                 break;                                        /* loop */
             default:           /* report or store error, return error */
                 return -1;
-                break;
-          }
+                break; }
       }
   }
 
@@ -2667,7 +2667,7 @@ int uftx_b64dq(int c)      /* just a helper routine for uftx_b64dec() */
         default:  return -1;                                  break; } }
 
 int uftx_b64dec(char*ib,int il,char*ob,int ol)
-  {   /* eye catcher */
+  { static char _eyecatcher[] = "uftx_b64dec()";
     int rc, i, j, c;
 
     if (il == 0) il = strlen(ib);         /* input length is optional */

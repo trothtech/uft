@@ -382,7 +382,8 @@ int uftx_isbinary(char*,int);         /* content appears to be binary */
 
 int uftx_autotype(char*,int,int*);          /* set dotran/notran flag */
 
-int uftx_ccap(int*,char*,char*,int,char*,int);  /* UFT command output */
+/* "command capture" - capture output of the supplied UFT command     */
+int uftx_ccap(struct UFTFD*,char*,char*,int,char*,int);
 int saprint(void*,int);                             /* sockaddr print */
 
 void uftdstat(int,char*);
