@@ -360,7 +360,7 @@ char*uftx_getenv(char*,char*);       /* extract a var=val from buffer */
 char*uftx_basename(char*);          /* point to basename of file path */
 char*uftx_parse1(char*);          /* point to, and delimit, one token */
 
-int msgc_uft(char*,char*);
+int msgc_uft(char*,char*,char*);      /* 2.1.1 adds proxy argument here */
 int msgc_rdm(char*,char*);
 int msgc_msp(char*,char*);
 

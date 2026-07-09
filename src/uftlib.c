@@ -885,18 +885,21 @@ int uftx_putline(int s,char*b,int l)
  *      the name of the sender, and
  *      an authentication token (if available)
  */
-int msgc_uft(char*user,char*text)
+int msgc_uft(char*user,char*text,char*proxy)
   { static char _eyecatcher[] = "msgc_uft()";
-    int rc, mysock, i;
-    char buffer[4096], agentkey[256], un[256], *p, hn[256];
+    int rc, fd, i;
+    char buffer[4096], agentkey[256], un[256], *p, hn[256], *host, *mv[8];
+    UFTFD   ufd, *ufdp;
+
+    ufdp = &ufd;
 
     /* open /var/run/uft/agent.key for the magical AGENT string       */
-    rc = mysock = open("/var/run/uft/agent.key",O_RDONLY);
+    rc = fd = open("/var/run/uft/agent.key",O_RDONLY);
     if (rc >= 0)
-      { rc = read(mysock,agentkey,sizeof(agentkey)-1);
+      { rc = read(fd,agentkey,sizeof(agentkey)-1);
         if (rc > 0) agentkey[rc] = 0x00;
         else agentkey[0] = 0x00;
-        close(mysock);
+        close(fd);
       } else agentkey[0] = 0x00;
     p = agentkey; while (*p > ' ') p++; *p = 0x00;     /* trim string */
 
@@ -910,15 +913,22 @@ int msgc_uft(char*user,char*text)
     if (*p == '@') p++;
     if (*p == 0x00) p = "localhost"; 
     snprintf(hn,sizeof(hn),"%s:%d",p,UFT_PORT);
+    host = p;
 
-    /* connect to the UFT server */
-    rc = mysock = tcpopen(hn,0,0);
-    if (rc < 0) { if (errno != 0) perror("tcpopen()"); return rc; }
+    /* try first to connect with our peer using SSL                   */
+    rc = ufts_open(host,proxy,ufdp);
+    if (rc != 0)      /* if TLS/SSL failed then retry using cleartext */
+    rc = uftx_open(host,proxy,ufdp);
+    if (rc != 0) { /* if (errno != 0) perror(host); */
+        mv[0] = ""; mv[1] = host;    /* cannot connect to target host */
+        uftx_msgprtl(20,"CLI",2,mv);   /* 20 E target UFT not reached */
+        return -1; }
 
     /* look for the herald */
-    rc = tcpgets(mysock,buffer,sizeof(buffer)-1);
+//  rc = tcpgets(mysock,buffer,sizeof(buffer)-1);
+    rc = uftx_gets(ufdp,buffer,sizeof(buffer)-1);
     if (rc < 0)
-      { if (errno != 0) perror("tcpgets():");
+      { if (errno != 0) perror("uftx_gets()");
 fprintf(stderr,"msgc_uft(): failed to fetch herald; RC = %d\n",rc);
         return rc; }
 
@@ -926,51 +936,60 @@ fprintf(stderr,"msgc_uft(): failed to fetch herald; RC = %d\n",rc);
     if (*agentkey == 0x00)
          snprintf(buffer,sizeof(buffer)-1,"FILE 0 %s -",uftx_user());
     else snprintf(buffer,sizeof(buffer)-1,"FILE 0 %s AGENT %s",uftx_user(),agentkey);
-    rc = tcpputs(mysock,buffer);
-    if (rc < 0) { perror("tcpputs()"); close(mysock); return rc; }
+//  rc = tcpputs(mysock,buffer);
+    rc = uftx_puts(ufdp,buffer,0);
+    if (rc < 0) { perror("tcpputs()"); ufts_close(ufdp); return rc; }
 
     /* wait for ACK */
-    rc = uftc_wack(mysock,buffer,sizeof(buffer)-1);
+//  rc = uftc_wack(mysock,buffer,sizeof(buffer)-1);
+    rc = uftx_wack(ufdp,buffer,sizeof(buffer)-1);
     if (rc < 0) { if (errno != 0) perror("uftc_wack()");
-                  close(mysock); return rc; }
-    if (rc != 2) { fprintf(stderr,"%s\n",buffer); close(mysock); return rc; }
+                  ufts_close(ufdp); return rc; }
+    if (rc != 2) { fprintf(stderr,"%s\n",buffer); ufts_close(ufdp); return rc; }
 
     /* send a "MSG user text" command */
     snprintf(buffer,sizeof(buffer)-1,"MSG %s %s",un,text);
-    rc = tcpputs(mysock,buffer);
-    if (rc < 0) { perror("tcpputs()"); close(mysock); return rc; }
+//  rc = tcpputs(mysock,buffer);
+    rc = uftx_puts(ufdp,buffer,0);
+    if (rc < 0) { perror("tcpputs()"); ufts_close(ufdp); return rc; }
 
     /* wait for ACK */
-    rc = uftc_wack(mysock,buffer,sizeof(buffer)-1);
+//  rc = uftc_wack(mysock,buffer,sizeof(buffer)-1);
+    rc = uftx_wack(ufdp,buffer,sizeof(buffer)-1);
     if (rc < 0) { if (errno != 0) perror("uftc_wack()");
-                  close(mysock); return rc; }
-    if (rc != 2) { fprintf(stderr,"%s\n",buffer); close(mysock); return rc; }
+                  ufts_close(ufdp); return rc; }
+    if (rc != 2) { fprintf(stderr,"%s\n",buffer); ufts_close(ufdp); return rc; }
 
     /* send an "ABORT" command (because we're not sending a file */
-    rc = tcpputs(mysock,"ABORT");
-    if (rc < 0) { perror("tcpputs()"); close(mysock); return rc; }
+//  rc = tcpputs(mysock,"ABORT");
+    rc = uftx_puts(ufdp,"ABORT",0);
+    if (rc < 0) { perror("tcpputs()"); ufts_close(ufdp); return rc; }
 
     /* wait for ACK */
-    rc = uftc_wack(mysock,buffer,sizeof(buffer)-1);
+//  rc = uftc_wack(mysock,buffer,sizeof(buffer)-1);
+    rc = uftx_wack(ufdp,buffer,sizeof(buffer)-1);
     if (rc < 0) { if (errno != 0) perror("uftc_wack()");
-                  close(mysock); return rc; }
-    if (rc != 2) { fprintf(stderr,"%s\n",buffer); close(mysock); return rc; }
+                  ufts_close(ufdp); return rc; }
+    if (rc != 2) { fprintf(stderr,"%s\n",buffer); ufts_close(ufdp); return rc; }
 
     /* send a "QUIT" command to close the session */
-    rc = tcpputs(mysock,"QUIT");
-    if (rc < 0) { perror("tcpputs()"); close(mysock); return rc; }
+//  rc = tcpputs(mysock,"QUIT");
+    rc = uftx_puts(ufdp,"QUIT",0);
+    if (rc < 0) { perror("tcpputs()"); ufts_close(ufdp); return rc; }
 
     /* wait for ACK */
-    rc = uftc_wack(mysock,buffer,sizeof(buffer)-1);
+//  rc = uftc_wack(mysock,buffer,sizeof(buffer)-1);
+    rc = uftx_wack(ufdp,buffer,sizeof(buffer)-1);
     if (rc < 0) { if (errno != 0) perror("uftc_wack()");
-                  close(mysock); return rc; }
-    if (rc != 2) { fprintf(stderr,"%s\n",buffer); close(mysock); return rc; }
+                  ufts_close(ufdp); return rc; }
+    if (rc != 2) { fprintf(stderr,"%s\n",buffer); ufts_close(ufdp); return rc; }
 
     /* give a little lag time ... just in case */
     sleep(2);
 
     /* close the client end of the socket */
-    close(mysock);
+//  close(mysock);
+    ufts_close(ufdp);
 
     return 0;
   }
@@ -1238,7 +1257,7 @@ struct addrinfo
 
     /* just in case ... prep the pipe pair as "disconnected"          */
     ufdp->fd0 = ufdp->fd1 = -1;      /* set file descriptors to error */
-    ufdp->fdt = 0x0000; ufdp->fdssl = NULL; /* reset flags and no SSL */
+    ufdp->fdt = 0x0000; ufdp->fdssl = ufdp->fdctx = NULL;    /* reset */
 
     /* tack-on the TCP port number                                    */
     snprintf(temp,sizeof(temp)-1,"%s:%d",peer,UFT_PORT);
@@ -1284,17 +1303,17 @@ struct addrinfo
             if (rc == 0) break;  /* on success break out of this loop */
             close(s); s = -1;            /* reset socket for next try */
             res2 = res2->ai_next; }
-        if (rc < 0) if (errno != 0)
-          { if (sok) perror("uftx_open(): connect()");
-                else perror("uftx_open(): socket()"); }
         freeaddrinfo(res);
 
         if (s >= 0)                          /* looks like it worked! */
           { /* proper Berkeley socket handles both in (0) and out (1) */
-            ufdp->fdt = UFT_FD_SOCKET; ufdp->fdssl = NULL;
+            ufdp->fdt = UFT_FD_SOCKET; ufdp->fdssl = ufdp->fdctx = NULL;
             ufdp->fd0 = ufdp->fd1 = s; return 0; }
-
                  } /* all of that from a good getaddrinfo() result    */
+
+//  if (rc < 0) if (errno != 0)
+//    { if (sok) perror("uftx_open(): connect()");
+//          else perror("uftx_open(): socket()"); }
 
     return -1;
   }
@@ -1396,12 +1415,6 @@ int uftx_read(struct UFTFD*ufdp,char*buffer,int buflen)
             return read(ufdp->fd0,buffer,buflen);
             break;
         case UFT_FD_SSL:
-//fdef UFT_SSL
-//          return SSL_read(ufdp->fdssl,buffer,buflen);
-//lse
-//          errno = ENOPROTOOPT;
-//          return -1;
-//ndif
             return ufts_read(ufdp,buffer,buflen);
             break;
         default: break; }
@@ -1440,12 +1453,6 @@ int uftx_gets(struct UFTFD*ufdp,char*buffer,int buflen)
             rc = read(ufdp->fd0,p,1); if (rc != 1) return -1;
             break;
         case UFT_FD_SSL:
-//fdef UFT_SSL
-//          rc = SSL_read(ufdp->fdssl,p,1);
-//lse
-//          errno = ENOPROTOOPT;
-//          return -1;
-//ndif
             rc = ufts_read(ufdp,p,1);
             break;
         default: break; }
@@ -1485,7 +1492,7 @@ int uftx_gets(struct UFTFD*ufdp,char*buffer,int buflen)
  *    write data to our peer using socket, proxy, or SSL
  *    Note: this function is *not* intended for writing local files
  */
-int uftx_write(struct  UFTFD*ufdp,char*buffer,int buflen)
+int uftx_write(struct UFTFD*ufdp,char*buffer,int buflen)
   { static char _eyecatcher[] = "uftx_write()";
 
     switch (ufdp->fdt)
@@ -1496,12 +1503,6 @@ int uftx_write(struct  UFTFD*ufdp,char*buffer,int buflen)
             return write(ufdp->fd1,buffer,buflen);
             break;
         case UFT_FD_SSL:
-//fdef UFT_SSL
-//          return SSL_write(ufdp->fdssl,buffer,buflen);
-//lse
-//          errno = ENOPROTOOPT;
-//          return -1;
-//ndif
             return ufts_write(ufdp,buffer,buflen);
             break;
         default: break; }
@@ -1552,13 +1553,19 @@ int uftx_puts(struct UFTFD*ufdp,char*buffer,int buflen)
 int uftx_close(struct UFTFD*ufdp)
   { static char _eyecatcher[] = "uftx_close()";
     int rc;
+
     rc = 0;
     if (ufdp->fd0 >= 0) rc = close(ufdp->fd0);
     if (rc < 0) return rc;
+
+    rc = 0;
     if (ufdp->fd1 >= 0 && ufdp->fd1 != ufdp->fd0) rc = close(ufdp->fd1);
     if (rc < 0) return rc;
+
     ufdp->fd0 = ufdp->fd1 = -1;      /* set file descriptors to bogus */
     ufdp->fdt = 0x0000; ufdp->fdssl = NULL;    /* clear flags; no SSL */
+/*                      ufdp->fdctx = NULL;                 ** no SSL */
+
     return 0;
   }
 
@@ -1704,9 +1711,9 @@ int uftx_proxy(char*host,char*prox,struct UFTFD*ufdp)
                         close(ds[0]); close(ds[1]);
                         close(us[0]); close(us[1]); return rc; }
     if (rc > 0) { close(ds[0]); close(us[1]); sleep(1);
-//                    fd[0] = us[0]; fd[1] = ds[1]; return 0; }
                       ufdp->fd0 = us[0]; ufdp->fd1 = ds[1];
                       ufdp->fdt = UFT_FD_PROXY; ufdp->fdssl = NULL;
+                                                ufdp->fdctx = NULL;
                       return 0; }
 
     /* if return from fork() is zero then we *are* the child process  */
@@ -2739,6 +2746,8 @@ int msgmail(char*user,char*text) { return -1; }
  *        Date: 2026-06-28 (Sunday)
  *      Author: Richard Troth, Cedarville, Ohio, USA
  *              with help from DuckDuckGo assistant in this age of AI
+ *              Additional help and clues from Darren Smith
+ *              https://github.com/darrenjs/openssl_examples.git
  */
 
 #ifdef UFT_SSL
@@ -2751,25 +2760,35 @@ void ufts_init()
     SSL_library_init();                  // Initialize core library
     OpenSSL_add_all_algorithms();        // Load crypto algorithms
     SSL_load_error_strings();            // Load error messages
+
+#if OPENSSL_VERSION_MAJOR < 3
+  ERR_load_BIO_strings(); // deprecated since OpenSSL 3.0
+#endif
+  ERR_load_crypto_strings();
+
   }
 
 /* ---------------------------------------------------------- UFTX_CLOSE
  *    shut down the SSL context and then close the TCP socket
+ *    Note: this function should be safe to call even for non-SSL
  */
 int ufts_close(struct UFTFD*ufdp)
-  {
-    int sockfd;
+  { static char _eyecatcher[] = "ufts_close()";
 
-    sockfd = ufdp->fd0;             //* FIXME: we should sanity check
+    /* perform a quick sanity check - file descriptors should be same */
+    if (ufdp->fd0 != ufdp->fd1) { errno = EINVAL; return -1; }
 
-    // Cleanup
-    SSL_shutdown(ufdp->fdssl);
-    SSL_free(ufdp->fdssl);
-    close(sockfd);
-    SSL_CTX_free(ufdp->fdctx);
+    /* standard OpenSSL cleanup                                       */
+    if (ufdp->fdssl != NULL)
+      { SSL_shutdown(ufdp->fdssl);
+        SSL_free(ufdp->fdssl);
+        ufdp->fdssl = NULL; }
+    if (ufdp->fdctx != NULL)
+      { SSL_CTX_free(ufdp->fdctx);
+        ufdp->fdctx = NULL; }
     EVP_cleanup();
 
-    return uftx_close(ufdp);
+    return uftx_close(ufdp);               /* close the actual socket */
   }
 
 /* ----------------------------------------------------------- UFTS_OPEN
@@ -2782,8 +2801,11 @@ int ufts_open(char*peer,char*prox,struct UFTFD*ufdp)
     char temp[256];
 
     SSL_CTX *ctx;
-//  const SSL_METHOD *method = TLS_client_method();
+#if OPENSSL_VERSION_MAJOR < 3
     const SSL_METHOD *method = TLSv1_client_method();
+#else
+    const SSL_METHOD *method = TLS_client_method();
+#endif
     SSL *ssl;
 
     /* if either supplied peer or pipe is bogus then stop right here  */
@@ -2839,6 +2861,7 @@ int ufts_open(char*peer,char*prox,struct UFTFD*ufdp)
  */
 int ufts_read(struct UFTFD*ufdp,char*buffer,int buflen)
   { static char _eyecatcher[] = "ufts_read()";
+    /* FIXME: do a quick sanity check on the UFTFD struct             */
     return SSL_read(ufdp->fdssl,buffer,buflen); }
 
 /* ---------------------------------------------------------- UFTS_WRITE
@@ -2846,6 +2869,7 @@ int ufts_read(struct UFTFD*ufdp,char*buffer,int buflen)
  */
 int ufts_write(struct UFTFD*ufdp,char*buffer,int buflen)
   { static char _eyecatcher[] = "ufts_write()";
+    /* FIXME: do a quick sanity check on the UFTFD struct             */
     return SSL_write(ufdp->fdssl,buffer,buflen); }
 
 #else

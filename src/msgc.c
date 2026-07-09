@@ -29,44 +29,50 @@ extern int uftcflag;
 int main(int argc,char*argv[])
   { static char _eyecatcher[] = "msgc.c main()";
     int     rc, i, j, k;
-    char    msgbuf[4096], *arg0;
+    char    msgbuf[4096], *arg0, *proxy, *ptitle, *mv[8];
 
-    uftcflag = 0x00000000;      /* default */
+    ptitle = "Internet TELL client";                 /* program title */
+
+    /* note command name and set defaults */
     arg0 = uftx_basename(argv[0]);
+    proxy = "";
+    uftcflag = 0x0000;                                     /* default */
 
     /* process command-line options                                   */
     for (i = 1; i < argc && argv[i][0] == '-' &&
                             argv[i][1] != 0x00; i++)
-      {
-        switch (argv[i][1])
-          {
-            case '?':                   /* help                       */
+      { switch (argv[i][1])
+          { case '?':                   /* help                       */
             case 'v':   (void) sprintf(msgbuf,
                                 "%s: %s Internet TELL client",
                                 arg0,UFT_VERSION);
-                        (void) uftx_putline(2,msgbuf,0);
+//                      (void) uftx_putline(2,msgbuf,0);
+                        fprintf(stderr,"%s\n",msgbuf);
                         return 0;
                         break;
 
 /* ------------------------------------------------------------------ */
             case '-':                          /* long format options */
                 if (uftx_abbrev("--version",argv[i],5) > 0)
-                  { sprintf(msgbuf,"%s: %s Internet TELL client",
-                                arg0,UFT_VERSION);
-                    uftx_putline(2,msgbuf,0);
+                  { sprintf(msgbuf,"%s: %s %s",arg0,UFT_VERSION,ptitle);
+                    fprintf(stderr,"%s\n",msgbuf);
                     return 0; } else           /* exit from help okay */
-                  { sprintf(msgbuf,"%s: invalid option %s",
-                                arg0,argv[i]);
-                    uftx_putline(2,msgbuf,0);
+
+                if (uftx_abbrev("--proxy",argv[i],7) > 0)
+                  { i++; proxy = argv[i]; } else
+
+                  { mv[0] = arg0; mv[1] = argv[i];
+                    rc = uftx_msgprtl(3,"MSG",2,mv);
+                    if (rc < 0) fprintf(stderr,"%s: invalid option %s",arg0,argv[i]);
                     return 1; }             /* exit on invalid option */
                     break;
 /* ------------------------------------------------------------------ */
 
-            default:    (void) sprintf(msgbuf,"%s: invalid option %s",
-                                arg0,argv[i]);
-                        (void) uftx_putline(2,msgbuf,0);
-                        return 1;           /* exit on invalid option */
-                        break;
+            default: mv[0] = arg0; mv[1] = argv[i];
+                rc = uftx_msgprtl(3,"CLI",2,mv);
+                if (rc < 0) fprintf(stderr,"%s: invalid option %s",arg0,argv[i]);
+                return 1;                   /* exit on invalid option */
+                break;
           }
       }
 
@@ -84,11 +90,11 @@ int main(int argc,char*argv[])
             msgbuf[k++] = argv[i][j];
             msgbuf[k++] = ' '; }
         msgbuf[k++] = 0x00;
-        rc = msgc_uft(argv[1],msgbuf); }
+        rc = msgc_uft(argv[1],msgbuf,proxy); }
     else while (1)
       { (void) uftx_getline(0,msgbuf,sizeof(msgbuf)-1);
         if (msgbuf[0] == '.' && msgbuf[1] == 0x00) break;
-        rc = msgc_uft(argv[1],msgbuf); }
+        rc = msgc_uft(argv[1],msgbuf,proxy); }
     if (rc < 0) return 1;
            else return 0;
   }

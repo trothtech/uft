@@ -239,11 +239,14 @@ int main(int argc,char*argv[])
             meta = 1; }  /* set meta flag but do NOT skip next checks */
 
         /* the normal sequence for a UFT transaction is ...           */
-        /* ------------ 1 ------------------------------ FILE command */
-        /* ------------ 2 ------------------------------ USER command */
-        /* ------------ 3 ------------------------------ TYPE command */
-        /* ------------ 4 ----------------------------- META commands */
-        /* ------------ 5 ------------------------------ DATA command */
+        /* ----- step 1 -------------------------------- FILE command */
+        /* ----- step 2 -------------------------------- USER command */
+        /* ----- step 3 -------------------------------- TYPE command */
+        /* ----- step 4 ------------------------------- META commands */
+        /* --------------- NAME, DATE, XDATE, PROT, XPERM, CLASS, etc */
+        /* ----- step 5 ------------------------------- DATA commands */
+        /* ----- step 6 --------------------------------- EOF command */
+        /* ----- step 7 -------------------------------- QUIT command */
 
         /* --------------------------------------------- FILE command */
         /* This record should come in *before* we connect to server.  */

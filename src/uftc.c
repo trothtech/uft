@@ -35,9 +35,10 @@ int main(int argc,char*argv[])
     struct tm *gmtstamp;
     char   *arg0;
     int     uftv;           /* protocol level (1 or 2) */
-    UFTFD   ufd;
+    UFTFD   ufd, *ufdp;
 
     ptitle = "Internet SENDFILE client";             /* program title */
+    ufdp = &ufd;
 
     /* note command name and set defaults */
             arg0 = uftx_basename(argv[0]);
@@ -50,7 +51,7 @@ int main(int argc,char*argv[])
     flga = flgb = "";
     nop = chf = 0;           /* winnowing and chaffing off by default */
 
-    /* process command-line options */
+    /* process command-line options                                   */
     for (i = 1; i < argc && argv[i][0] == '-' &&
                             argv[i][1] != 0x00; i++)
       { switch (argv[i][1])
@@ -100,6 +101,7 @@ int main(int argc,char*argv[])
                   { sprintf(temp,"%s: %s %s",arg0,UFT_VERSION,ptitle);
                     fprintf(stderr,"%s\n",temp);
                     return 0; } else           /* exit from help okay */
+
                 if (uftx_abbrev("--verbose",argv[i],6) > 0)
                   { uftcflag |= UFT_VERBOSE; } else
                 if (uftx_abbrev("--ascii",argv[i],5) > 0 ||
@@ -120,8 +122,6 @@ int main(int argc,char*argv[])
                   { i++; type = argv[i]; } else
                 if (uftx_abbrev("--name",argv[i],6) > 0)
                   { i++; name = argv[i]; } else
-                if (uftx_abbrev("--verbose",argv[i],6) > 0)
-                  { uftcflag |= UFT_VERBOSE; } else
 
                 if (uftx_abbrev("--chaff",argv[i],7) > 0)
                   { i++; chf = atoi(argv[i]); } else
@@ -141,20 +141,18 @@ int main(int argc,char*argv[])
                 if (uftx_abbrev("--copy",argv[i],4) > 0 ||
                     uftx_abbrev("--copies",argv[i],4) > 0)
                   { i++; copy = atoi(argv[i]); } else
-                  {     mv[1] = argv[i];
-                rc = uftx_message(temp,sizeof(temp)-1,3,"CLI",2,mv);
-                if (rc >= 0) fprintf(stderr,"%s\n",temp); else
-                fprintf(stderr,"%s: invalid option %s",arg0,argv[i]);
+                  { mv[0] = arg0; mv[1] = argv[i];
+                    rc = uftx_msgprtl(3,"CLI",2,mv);
+                    if (rc < 0) fprintf(stderr,"%s: invalid option %s",arg0,argv[i]);
                     return 1; }             /* exit on invalid option */
                     break;
 /* ------------------------------------------------------------------ */
 
-            default:    mv[1] = argv[i];
-                rc = uftx_message(temp,sizeof(temp)-1,3,"CLI",2,mv);
-                if (rc >= 0) fprintf(stderr,"%s\n",temp); else
-                fprintf(stderr,"%s: invalid option %s",arg0,argv[i]);
-                        return 1;           /* exit on invalid option */
-                        break;
+            default: mv[0] = arg0; mv[1] = argv[i];
+                rc = uftx_msgprtl(3,"CLI",2,mv);
+                if (rc < 0) fprintf(stderr,"%s: invalid option %s",arg0,argv[i]);
+                return 1;                   /* exit on invalid option */
+                break;
           }
       }
 
@@ -255,23 +253,25 @@ int main(int argc,char*argv[])
     if (*host == '@') *host++ = 0x00; else host = "localhost";
 
     /* try now to connect with our peer (TCP, proxy, SSL)             */
-    rc = ufts_open(host,proxy,&ufd);
+    rc = ufts_open(host,proxy,ufdp);
     if (rc != 0)      /* if TLS/SSL failed then retry using cleartext */
-
-    /* try now to connect with our peer (TCP, proxy, SSL)             */
-    rc = uftx_open(host,proxy,&ufd);
+    rc = uftx_open(host,proxy,ufdp);
     if (rc != 0) { /* if (errno != 0) perror(host); */
-        mv[1] = host;                /* cannot connect to target host */
+        mv[0] = arg0; mv[1] = host;  /* cannot connect to target host */
         uftx_msgprtl(20,"CLI",2,mv);   /* 20 E target UFT not reached */
         close(fd0); return 1; }
 /*  r = ufd.fd0; s = ufd.fd1;    // r (0) for read and s (1) for send */
+    if (uftcflag & UFT_VERBOSE) {
+if (ufd.fdt == UFT_FD_SOCKET) fprintf(stderr,"connection is standard TCP\n");   /* TRIAGE */
+if (ufd.fdt == UFT_FD_SSL) fprintf(stderr,"connection is SSL\n");   /* TRIAGE */
+                                }
 
     /* wait for the herald from the server */
-    rc = i = uftx_gets(&ufd,temp,sizeof(temp));
+    rc = i = uftx_gets(ufdp,temp,sizeof(temp));
     /* all other server-to-client traffic should use uftx_wack()      */
     if (i < 0)
       { if (errno != 0) perror(host);
-        uftx_close(&ufd); close(fd0);    /* close connection and file */
+        uftx_close(ufdp); close(fd0);    /* close connection and file */
         mv[1] = host;       /* failed reading herald from target host */
         uftx_msgprtl(21,"CLI",2,mv);    /* 21 E failed reading herald */
         return 1; }              /* read of herald from server failed */
@@ -283,7 +283,7 @@ int main(int argc,char*argv[])
 
     /* look for expected error indicators in the herald               */
     if (uftv > 2)     /* not actually the UFT level but an error code */
-      { uftx_close(&ufd); close(fd0);    /* close connection and file */
+      { uftx_close(ufdp); close(fd0);    /* close connection and file */
         mv[1] = host;        /* error reading herald from target host */
         uftx_msgprtl(25,"CLI",2,mv);     /* 25 E error reading herald */
           { char *p; int e;
@@ -303,7 +303,7 @@ int main(int argc,char*argv[])
     /* FIXME: what about anonymous? */
     if (uftcflag & UFT_VERBOSE) fprintf(stderr,"%s\n",temp);
 //  (void) tcpputs(ufd.fd1,temp);     /* FIXME: need uftx_puts() here */
-    rc = uftx_puts(&ufd,temp,0);     /* FIXME: check that return code */
+    rc = uftx_puts(ufdp,temp,0);     /* FIXME: check that return code */
     /* there is no ACK for comments so don't wait for one here        */
 
         /* the normal sequence for a UFT transaction is ...           */
@@ -320,29 +320,29 @@ int main(int argc,char*argv[])
     (void) sprintf(temp,"FILE %d %s %s %s",size,uftx_user(),auth,akey);
     if (uftcflag & UFT_VERBOSE) fprintf(stderr,"%s\n",temp);
 //  (void) tcpputs(ufd.fd1,temp);     /* FIXME: need uftx_puts() here */
-    rc = uftx_puts(&ufd,temp,0);     /* FIXME: check that return code */
-    i = uftx_wack(&ufd,temp,sizeof(temp));
+    rc = uftx_puts(ufdp,temp,0);     /* FIXME: check that return code */
+    i = uftx_wack(ufdp,temp,sizeof(temp));
     if (i < 0)
       { if (errno != 0) (void) perror(arg0);
         else fprintf(stderr,"%s\n",temp);
-        uftx_close(&ufd); return 1; }   /* FIXME: remember file close */
+        uftx_close(ufdp); return 1; }   /* FIXME: remember file close */
     if (uftcflag & UFT_VERBOSE || i == 5) fprintf(stderr,"%s\n",temp);
     if (i == 5)                         /* a 500 NAK here is terminal */
-      { uftx_close(&ufd); return 1; }   /* FIXME: remember file close */
+      { uftx_close(ufdp); return 1; }   /* FIXME: remember file close */
 
     /* tell the server who it's for ---------------- the USER command */
     (void) sprintf(temp,"USER %s",targ);
     if (uftcflag & UFT_VERBOSE) fprintf(stderr,"%s\n",temp);
 //  (void) tcpputs(ufd.fd1,temp);     /* FIXME: need uftx_puts() here */
-    rc = uftx_puts(&ufd,temp,0);     /* FIXME: check that return code */
-    i = uftx_wack(&ufd,temp,sizeof(temp));
+    rc = uftx_puts(ufdp,temp,0);     /* FIXME: check that return code */
+    i = uftx_wack(ufdp,temp,sizeof(temp));
     if (i < 0)
       { if (errno != 0) (void) perror(arg0);
         else fprintf(stderr,"%s\n",temp);
-        uftx_close(&ufd); close(fd0); return 1; }
+        uftx_close(ufdp); close(fd0); return 1; }
     if (uftcflag & UFT_VERBOSE || i == 5) fprintf(stderr,"%s\n",temp);
     if (i == 5)                         /* a 500 NAK here is terminal */
-      { uftx_close(&ufd); close(fd0); return 1; }
+      { uftx_close(ufdp); close(fd0); return 1; }
 
     /* signal the type for canonization ------------ the TYPE command */
     if (type == 0x0000 || type[0] == 0x00)
@@ -352,15 +352,15 @@ int main(int argc,char*argv[])
     (void) sprintf(temp,"TYPE %s",type);
     if (uftcflag & UFT_VERBOSE) fprintf(stderr,"%s\n",temp);
 //  (void) tcpputs(ufd.fd1,temp);     /* FIXME: need uftx_puts() here */
-    rc = uftx_puts(&ufd,temp,0);     /* FIXME: check that return code */
-    i = uftx_wack(&ufd,temp,sizeof(temp));
+    rc = uftx_puts(ufdp,temp,0);     /* FIXME: check that return code */
+    i = uftx_wack(ufdp,temp,sizeof(temp));
     if (i < 0)
       { if (errno != 0) (void) perror(arg0);
         else fprintf(stderr,"%s\n",temp);
-        uftx_close(&ufd); return 1; }   /* FIXME: remember file close */
+        uftx_close(ufdp); return 1; }   /* FIXME: remember file close */
     if (uftcflag & UFT_VERBOSE) fprintf(stderr,"%s\n",temp);
     if (i == 5)                         /* a 500 NAK here is terminal */
-      { uftx_close(&ufd); return 1; }   /* FIXME: remember file close */
+      { uftx_close(ufdp); return 1; }   /* FIXME: remember file close */
 
     /* does this file have a name? ------------------- a META command */
     if (name != 0x0000 && name[0] != 0x00)
@@ -368,12 +368,12 @@ int main(int argc,char*argv[])
         sprintf(temp,"NAME %s",name);    /* but skip META prefix here */
         if (uftcflag & UFT_VERBOSE) fprintf(stderr,"%s\n",temp);
 //      i = tcpputs(ufd.fd1,temp);    /* FIXME: need uftx_puts() here */
-        rc = uftx_puts(&ufd,temp,0);      /* FIXME: check return code */
-        i = uftx_wack(&ufd,temp,sizeof(temp));
+        rc = uftx_puts(ufdp,temp,0);      /* FIXME: check return code */
+        i = uftx_wack(ufdp,temp,sizeof(temp));
         if (i < 0)
           { if (errno != 0) (void) perror(arg0);
             else fprintf(stderr,"%s\n",temp);
-            uftx_close(&ufd); return 1; }    /* FIXME: file close too */
+            uftx_close(ufdp); return 1; }    /* FIXME: file close too */
         if (uftcflag & UFT_VERBOSE) fprintf(stderr,"%s\n",temp); }
 
     /* do we have a time stamp for this file? */
@@ -389,24 +389,24 @@ int main(int argc,char*argv[])
                 gmtstamp->tm_min, gmtstamp->tm_sec, "GMT");
         if (uftcflag & UFT_VERBOSE) fprintf(stderr,"%s\n",temp);
 //      i = tcpputs(ufd.fd1,temp);    /* FIXME: need uftx_puts() here */
-        rc = uftx_puts(&ufd,temp,0);      /* FIXME: check return code */
-        i = uftx_wack(&ufd,temp,sizeof(temp));
+        rc = uftx_puts(ufdp,temp,0);      /* FIXME: check return code */
+        i = uftx_wack(ufdp,temp,sizeof(temp));
         if (i < 0 && temp[0] != '4')
           { if (errno != 0) (void) perror(arg0);
             else fprintf(stderr,"%s\n",temp);
-            uftx_close(&ufd); return 1; }    /* FIXME: file close too */
+            uftx_close(ufdp); return 1; }    /* FIXME: file close too */
         if (uftcflag & UFT_VERBOSE) fprintf(stderr,"%s\n",temp);
 
         /* also send it as number-of-seconds Unix epoch offset value  */
         (void) sprintf(temp,"META XDATE %ld",mtime);
         if (uftcflag & UFT_VERBOSE) fprintf(stderr,"%s\n",temp);
 //      i = tcpputs(ufd.fd1,temp);    /* FIXME: need uftx_puts() here */
-        rc = uftx_puts(&ufd,temp,0);      /* FIXME: check return code */
-        i = uftx_wack(&ufd,temp,sizeof(temp));
+        rc = uftx_puts(ufdp,temp,0);      /* FIXME: check return code */
+        i = uftx_wack(ufdp,temp,sizeof(temp));
         if (i < 0 && temp[0] != '4')
           { if (errno != 0) (void) perror(arg0);
             else fprintf(stderr,"%s\n",temp);
-            uftx_close(&ufd); return 1; }    /* FIXME: file close too */
+            uftx_close(ufdp); return 1; }    /* FIXME: file close too */
         if (uftcflag & UFT_VERBOSE) fprintf(stderr,"%s\n",temp); }
 
     /* do we have a protection bit pattern on this file?              */
@@ -414,36 +414,36 @@ int main(int argc,char*argv[])
       { (void) sprintf(temp,"META PROT %s",uftcprot(prot));
         if (uftcflag & UFT_VERBOSE) fprintf(stderr,"%s\n",temp);
 //      i = tcpputs(ufd.fd1,temp);    /* FIXME: need uftx_puts() here */
-        rc = uftx_puts(&ufd,temp,0);      /* FIXME: check return code */
-        i = uftx_wack(&ufd,temp,sizeof(temp));
+        rc = uftx_puts(ufdp,temp,0);      /* FIXME: check return code */
+        i = uftx_wack(ufdp,temp,sizeof(temp));
         if (i < 0 && temp[0] != '4')
           { if (errno != 0) (void) perror(arg0);
             else fprintf(stderr,"%s\n",temp);
-            uftx_close(&ufd); return 1; }    /* FIXME: file close too */
+            uftx_close(ufdp); return 1; }    /* FIXME: file close too */
         if (uftcflag & UFT_VERBOSE) fprintf(stderr,"%s\n",temp);
 
         /* also send it as bits in octal format                       */
         (void) sprintf(temp,"META XPERM 0%o",prot);
         if (uftcflag & UFT_VERBOSE) fprintf(stderr,"%s\n",temp);
 //      i = tcpputs(ufd.fd1,temp);    /* FIXME: need uftx_puts() here */
-        rc = uftx_puts(&ufd,temp,0);      /* FIXME: check return code */
-        i = uftx_wack(&ufd,temp,sizeof(temp));
+        rc = uftx_puts(ufdp,temp,0);      /* FIXME: check return code */
+        i = uftx_wack(ufdp,temp,sizeof(temp));
         if (i < 0 && temp[0] != '4')
           { if (errno != 0) (void) perror(arg0);
             else fprintf(stderr,"%s\n",temp);
-            uftx_close(&ufd); return 1; }    /* FIXME: file close too */
+            uftx_close(ufdp); return 1; }    /* FIXME: file close too */
         if (uftcflag & UFT_VERBOSE) fprintf(stderr,"%s\n",temp); }
 
     /* does this file have a specific class?           a META command */
     if (class != 0x0000 && class[0] != 0x00)
       { (void) sprintf(temp,"META CLASS %s",class);
         if (uftcflag & UFT_VERBOSE) fprintf(stderr,"%s\n",temp);
-        rc = uftx_puts(&ufd,temp,0);      /* FIXME: check return code */
-        i = uftx_wack(&ufd,temp,sizeof(temp));
+        rc = uftx_puts(ufdp,temp,0);      /* FIXME: check return code */
+        i = uftx_wack(ufdp,temp,sizeof(temp));
         if (i < 0)
           { if (errno != 0) (void) perror(arg0);
             else fprintf(stderr,"%s\n",temp);
-            uftx_close(&ufd); return 1; }    /* FIXME: file close too */
+            uftx_close(ufdp); return 1; }    /* FIXME: file close too */
         if (uftcflag & UFT_VERBOSE) fprintf(stderr,"%s\n",temp); }
 
     /* process the data - everything goes down the pipe mostly as-is  */
@@ -460,14 +460,14 @@ int main(int argc,char*argv[])
 //      sprintf(temp,"DATA %d",i); tcpputs(ufd.fd1,temp);   /* uftx_puts() here */
         sprintf(temp,"DATA %d",i);
         if (uftcflag & UFT_VERBOSE) fprintf(stderr,"%s\n",temp);
-        uftx_puts(&ufd,temp,0);
-        rc = uftx_wack(&ufd,temp,sizeof(temp));      /* expect 3 here */
+        uftx_puts(ufdp,temp,0);
+        rc = uftx_wack(ufdp,temp,sizeof(temp));      /* expect 3 here */
         if (rc != 3) break;
         if (uftcflag & UFT_VERBOSE) fprintf(stderr,"%s\n",temp);
 
 //      rc = tcpwrite(ufd.fd1,b,i); /* send the data - we live for this */
-        rc = uftx_write(&ufd,b,i);    /* send data - we live for this */
-        rc = uftx_wack(&ufd,temp,sizeof(temp));      /* expect 2 here */
+        rc = uftx_write(ufdp,b,i);    /* send data - we live for this */
+        rc = uftx_wack(ufdp,temp,sizeof(temp));      /* expect 2 here */
         if (rc != 2) break;
         if (uftcflag & UFT_VERBOSE) fprintf(stderr,"%s\n",temp); }
 
@@ -479,24 +479,24 @@ int main(int argc,char*argv[])
     /* send an "EOF" command to indicate clean end-of-file            */
     if (uftcflag & UFT_VERBOSE) fprintf(stderr,"EOF\n");
 //  rc = tcpputs(ufd.fd1,"EOF");      /* FIXME: need uftx_puts() here */
-    rc = uftx_puts(&ufd,"EOF",0);     /* FIXME: check the return code */
-    if (rc < 0) { uftx_close(&ufd); return 1; }
+    rc = uftx_puts(ufdp,"EOF",0);     /* FIXME: check the return code */
+    if (rc < 0) { uftx_close(ufdp); return 1; }
 
     /* wait for ACK */
-    rc = uftx_wack(&ufd,temp,sizeof(temp)-1);
-    if (rc < 0) { uftx_close(&ufd); return 1; }
+    rc = uftx_wack(ufdp,temp,sizeof(temp)-1);
+    if (rc < 0) { uftx_close(ufdp); return 1; }
     if (rc != 2) fprintf(stderr,"%s\n",temp); else
     if (uftcflag & UFT_VERBOSE) fprintf(stderr,"%s\n",temp);
 
     /* tell the server we're done - send a "QUIT" command to close    */
     if (uftcflag & UFT_VERBOSE) fprintf(stderr,"QUIT\n");
 //  rc = tcpputs(ufd.fd1,"QUIT");     /* FIXME: need uftx_puts() here */
-    rc = uftx_puts(&ufd,"QUIT",0);    /* FIXME: check the return code */
-    if (rc < 0) { uftx_close(&ufd); return 1; }
+    rc = uftx_puts(ufdp,"QUIT",0);    /* FIXME: check the return code */
+    if (rc < 0) { uftx_close(ufdp); return 1; }
 
     /* wait for ACK */
-    rc = uftx_wack(&ufd,temp,sizeof(temp)-1);
-    if (rc < 0) { uftx_close(&ufd); return 1; }
+    rc = uftx_wack(ufdp,temp,sizeof(temp)-1);
+    if (rc < 0) { uftx_close(ufdp); return 1; }
     if (rc != 2) fprintf(stderr,"%s\n",temp); else
     if (uftcflag & UFT_VERBOSE) fprintf(stderr,"%s\n",temp);
 
@@ -504,7 +504,7 @@ int main(int argc,char*argv[])
     sleep(2);
 
     /* close the socket */
-    uftx_close(&ufd);
+    uftx_close(ufdp);
 
     /* get outta here */
     return 0;
