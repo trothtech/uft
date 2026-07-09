@@ -256,7 +256,7 @@ int main(int argc,char*argv[])
     rc = ufts_open(host,proxy,ufdp);
     if (rc != 0)      /* if TLS/SSL failed then retry using cleartext */
     rc = uftx_open(host,proxy,ufdp);
-    if (rc != 0) { /* if (errno != 0) perror(host); */
+    if (rc != 0) { if (errno != 0) perror(host);
         mv[0] = arg0; mv[1] = host;  /* cannot connect to target host */
         uftx_msgprtl(20,"CLI",2,mv);   /* 20 E target UFT not reached */
         close(fd0); return 1; }

@@ -1,7 +1,10 @@
 # UFT over SSL
 
-As of this writing, the UFT project does not employ SSL directly,
-but both client and server can be "wrapped" using OpenSSL and STunnel.
+As of this writing, the POSIX UFT client has built-in TLS/SSL support
+and can be compiled and linked against OpenSSL. The POSIX UFT server
+has always run under INETD or XINETD and remains so. You can, however,
+easily "wrap" the server using STunnel. You can also use the proxy mode
+to drive traffic through the `openssl s_client` utility.
 
 This applies to the Unix/Linux implementation.
 Invoking SSL support on VM/CMS is theoretically easier,
@@ -49,6 +52,8 @@ to carry the transaction via `s_client` from the OpenSSL suite.
 
 `openssl s_client` has many options, some of which might be helpful.
 This document shows the basic invocation.
+
+But, as mentioned, SSL/TLS can be compiled-in to the client.
 
 ## Variations
 
