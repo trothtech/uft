@@ -102,6 +102,7 @@ int main(int argc,char*argv[])
     uftfile0.name[0]    = 0x00;
     uftfile0.from[0]    = 0x00;
 
+system("set > .set");                                          /* dev */
 
     /* If we're not running as root (or if we don't at least          *
      * own the UFT spooling directory) then we're hopeless.           *
@@ -179,7 +180,7 @@ int main(int argc,char*argv[])
 
     /* who's on the other end of the socket? */
 //  (void) tcpident(0,from,256);      /* IDENT got a bad rap and died */
-    rc = uftc_peer(0,from,sizeof(from)-1);        /* fd 0 is our peer */
+    rc = uftd_peer(0,from,sizeof(from)-1);        /* fd 0 is our peer */
     (void) sprintf(line,"REMOTE=%s",from);
     (void) uftx_putline(tffd,line,0);                      /* logging */
     (void) strncpy(uftfile0.from,from,sizeof(uftfile0.from));

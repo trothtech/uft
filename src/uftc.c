@@ -270,7 +270,7 @@ if (ufd.fdt == UFT_FD_SSL) fprintf(stderr,"connection is SSL\n");   /* TRIAGE */
     rc = i = uftx_gets(ufdp,temp,sizeof(temp));
     /* all other server-to-client traffic should use uftx_wack()      */
     if (i < 0)
-      { if (errno != 0) perror(host);
+      { if (errno != 0) perror("uftx_gets()");
         uftx_close(ufdp); close(fd0);    /* close connection and file */
         mv[1] = host;       /* failed reading herald from target host */
         uftx_msgprtl(21,"CLI",2,mv);    /* 21 E failed reading herald */

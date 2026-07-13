@@ -392,7 +392,8 @@ int uftdcpq(char*,char*,int);                  /* issue a CPQ command */
 int uftdl699(int,char*);
 
 int uftc_open(char*,char*,int*);          /* open a client connection */
-int uftc_peer(int,char*,int);         /* info about this network peer */
+int uftc_peer(int,char*,int);                           /* deprecated */
+int uftd_peer(int,char*,int);         /* info about this network peer */
 int uftc_close(int*);                    /* close a client connection */
 
 int uftx_open(char*,char*,struct  UFTFD*);

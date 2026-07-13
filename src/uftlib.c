@@ -1320,6 +1320,8 @@ struct addrinfo
 
 /* ----------------------------------------------------------- UFTC_PEER
  *    Rough equivalent to tcpident() from tcpip.c sans IDENT logic.
+ *    NOTE: This function is mis-named. It is actually used by UFTD.
+ *    See also: uftc_peer() below
  */
 int uftc_peer(int s,char*buff,int blen)
   { static char _eyecatcher[] = "uftc_peer()";
@@ -1374,6 +1376,78 @@ int uftc_peer(int s,char*buff,int blen)
 
     snprintf(buff,blen,"%s@%s",user,host);
 
+    return 0;
+  }
+
+/* ----------------------------------------------------------- UFTD_PEER
+ *    Rough equivalent to tcpident() from tcpip.c sans IDENT logic.
+ *
+ *    When run under 'stunnel',
+ *    the following environmental variables are set on Unix platforms:
+ *     REMOTE_HOST, REMOTE_PORT, SSL_CLIENT_DN, SSL_CLIENT_I_DN
+
+REMOTE_HOST=::ffff:192.168.29.38
+REMOTE_PORT=36584
+
+HOSTNAME=rmtt16
+FROM_HEADER=
+LANG=en_US.UTF-8
+OSTYPE=linux
+HOST=rmtt16
+LC_CTYPE=en_US.UTF-8
+
+ */
+int uftd_peer(int s,char*buff,int blen)
+  { static char _eyecatcher[] = "uftd_peer()";
+    int rc, alen;
+    union insa {
+        struct sockaddr sa;                 /* as generic as possible */
+        struct sockaddr_in sa4;               /* sockaddr for AF_INET */
+#ifdef AF_INET6
+        struct sockaddr_in6 sa6;             /* sockaddr for AF_INET6 */
+#endif
+        unsigned short int family;     /* common address family value */
+               } insa;                           /* internet sockaddr */
+    void*aptr;
+    char *user, host[256], *p;
+
+    aptr = &insa;                   /* internet socket address struct */
+    user = "";
+
+#ifdef _TO_BE_DELETED
+    /* first, tell me about this end  */
+    alen = sizeof(insa);
+    rc = getsockname(s,aptr,&alen);
+    /*  On success, zero is returned.  On error, -1 is returned,      *
+     *  and errno is set to indicate the error.                       */
+    if (rc != 0)
+      { if (errno != 0) perror("getsockname()");     /* TRIAGE common */
+        if (rc < 0) return rc; else return -1; }
+#endif
+
+    /*  what's the host on the other end?  */
+    alen = sizeof(insa);
+    rc = getpeername(s,aptr,&alen);
+    /*  On success, zero is returned.  On error, -1 is returned,      *
+     *  and errno is set to indicate the error.                       */
+
+    if (rc == 0) {
+    /*  what host is at that address?  */
+#ifndef NI_NAMEREQD
+    rc = getnameinfo(aptr,alen,host,sizeof(host)-1,NULL,0,0);
+#else
+    rc = getnameinfo(aptr,alen,host,sizeof(host),NULL,0,NI_NAMEREQD);
+    /*  On success, 0 is returned, node and service names are filled. *
+     *  On error, one of the nonzero error codes is returned.         */
+#endif
+    if (rc == 0)
+      { snprintf(buff,blen,"%s@%s",user,host); return 0; } }
+
+    p = getenv("REMOTE_HOST");
+    if (p != NULL) if (*p != 0x00)
+      { snprintf(buff,blen,"%s@%s",user,p); return 0; }
+
+    snprintf(buff,blen,"%s@",user);
     return 0;
   }
 
@@ -2762,10 +2836,9 @@ void ufts_init()
     SSL_load_error_strings();            // Load error messages
 
 #if OPENSSL_VERSION_MAJOR < 3
-  ERR_load_BIO_strings(); // deprecated since OpenSSL 3.0
+    ERR_load_BIO_strings();           /* deprecated since OpenSSL 3.0 */
 #endif
-  ERR_load_crypto_strings();
-
+    ERR_load_crypto_strings();
   }
 
 /* ---------------------------------------------------------- UFTX_CLOSE
