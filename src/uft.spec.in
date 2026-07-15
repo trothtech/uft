@@ -101,6 +101,7 @@ rsync -a -u -x -H -O -S -v %SPEC_STAGING%/. $HOME/rpmbuild/BUILD/%SPEC_APPLID%-%
 #%SPEC_PREFIX%/etc/xinetd.d/uft
 #/etc/xinetd.d/uft
 %SPEC_PREFIX%/share/locale/%SPEC_LOCALE%/uft.msgs
+%SPEC_PREFIX%/share/locale/C/uft.msgs
 #
 %SPEC_PREFIX%/share/man/man1/rcv.1.gz
 %SPEC_PREFIX%/share/man/man1/rls.1.gz

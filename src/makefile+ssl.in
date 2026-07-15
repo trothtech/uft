@@ -18,10 +18,10 @@ SOURCEURL       =       https://raw.githubusercontent.com/trothtech/uft/refs/hea
 
 PREFIX          =       %PREFIX%
 LDFLAGS         =       %LDFLAGS%
-LIBS            =       %LIBS%
-#LIBS           =       %LIBS% -lssl -lcrypto
-CFLAGS          =       %CFLAGS% -DPREFIX=\"$(PREFIX)\"
-#CFLAGS         =       %CFLAGS% -DPREFIX=\"$(PREFIX)\" -DUFT_SSL
+#LIBS           =       %LIBS%
+LIBS            =       %LIBS% -lssl -lcrypto
+#CFLAGS         =       %CFLAGS% -DPREFIX=\"$(PREFIX)\"
+CFLAGS          =       %CFLAGS% -DPREFIX=\"$(PREFIX)\" -DUFT_SSL
 SHFLAGS         =       %SHFLAGS%
 # we may later use CC, CXX, CPP, CPPFLAGS, and/or CXXFLAGS
 

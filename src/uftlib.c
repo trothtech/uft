@@ -1382,8 +1382,8 @@ int uftc_peer(int s,char*buff,int blen)
 /* ----------------------------------------------------------- UFTD_PEER
  *    Rough equivalent to tcpident() from tcpip.c sans IDENT logic.
  *
- *    When run under 'stunnel',
- *    the following environmental variables are set on Unix platforms:
+ *    When run under 'stunnel' on Unix platforms,
+ *    the following environment variables are set:
  *     REMOTE_HOST, REMOTE_PORT, SSL_CLIENT_DN, SSL_CLIENT_I_DN
 
 REMOTE_HOST=::ffff:192.168.29.38
