@@ -1,6 +1,6 @@
 # © Copyright 2025 Richard M. Troth, all rights reserved. <plaintext>
 #
-#         Name: SENDFILE CMSMAKE (package rules file for CMS Make)
+#         Name: SENDFILE CMSMAKE (package rules file for Internet SENDFILE)
 #         Date: 2024-04-18 (Thu) and prior (62 since 62)
 #               These rules let you re-package Internet SENDFILE
 #               (UFT for VM/CMS) or even re-download it from the
@@ -8,73 +8,76 @@
 #               CMS Make but parts require VMARC and CMS TAR.
 #
 
-MANIFEST    =   sendfile.filelist       \
-                uft.readme              \
-                sendfile.license        \
-                \
-                sf.exec                 \
-                sf.helpcms              \
-                \
-                uftcfile.rexx           \
-                uftcuser.rexx           \
-                uftchost.rexx           \
-                uftxinmr.rexx           \
-                uftctcp.rexx            \
-                uftctcp2.rexx           \
-                uftcrscs.rexx           \
-                uftcmail.rexx           \
-                \
-                maketext.rexx           \
-                maketext.helppipe       \
-                uftulist.rexx           \
-                \
-                uftume.messages         \
-                \
-                uft.copyright           \
-                uft.html                \
-                uft.install             \
-                uft.protocol            \
-                \
-                64encode.rexx           \
-                64decode.rexx           \
-                uftcmain.rexx           \
-                uftcmain.helppipe       \
-                uftxdspl.rexx           \
-                uftxdspl.helppipe       \
-                \
-                uft.helptask            \
-                file.helpuft            \
-                user.helpuft            \
-                type.helpuft            \
-                name.helpuft            \
-                data.helpuft            \
-                eof.helpuft             \
-                quit.helpuft            \
-                cpq.helpuft             \
-                msg.helpuft             \
-                ufttypes.helpuft        \
-                \
-                uftd.helpcms            \
-                \
-                uftd.exec               \
-                uftd.rexx               \
-                tcpshell.exec           \
-                tcpshell.rexx           \
-                tcpshell.helpcms        \
-                \
-                forward.exec            \
-                forward.helpcms         \
-                sendmail.rexx           \
-                hostname.exec           \
-                \
-                uftdhelp.txt            \
-                rxdiagd4.assemble       \
-                system.snetid           \
-                uftd.direct             \
-                \
-                sendfile.cmsmake
+MANIFEST        =       \
+                        sendfile.filelist       \
+                        uft.readme              \
+                        sendfile.license        \
+                        \
+                        sf.exec                 \
+                        sf.helpcms              \
+                        \
+                        uftcfile.rexx           \
+                        uftcuser.rexx           \
+                        uftchost.rexx           \
+                        uftxinmr.rexx           \
+                        uftctcp.rexx            \
+                        uftctcp2.rexx           \
+                        uftcrscs.rexx           \
+                        uftcmail.rexx           \
+                        \
+                        maketext.rexx           \
+                        maketext.helppipe       \
+                        uftulist.rexx           \
+                        \
+                        uftume.messages         \
+                        \
+                        uft.copyright           \
+                        uft.html                \
+                        uft.install             \
+                        uft.protocol            \
+                        \
+                        64encode.rexx           \
+                        64decode.rexx           \
+                        uftcmain.rexx           \
+                        uftcmain.helppipe       \
+                        uftxdspl.rexx           \
+                        uftxdspl.helppipe       \
+                        \
+                        uft.helptask            \
+                        file.helpuft            \
+                        user.helpuft            \
+                        type.helpuft            \
+                        name.helpuft            \
+                        data.helpuft            \
+                        eof.helpuft             \
+                        quit.helpuft            \
+                        cpq.helpuft             \
+                        msg.helpuft             \
+                        ufttypes.helpuft        \
+                        \
+                        uftd.helpcms            \
+                        \
+                        uftd.exec               \
+                        uftd.rexx               \
+                        tcpshell.exec           \
+                        tcpshell.rexx           \
+                        tcpshell.helpcms        \
+                        \
+                        forward.exec            \
+                        forward.helpcms         \
+                        sendmail.rexx           \
+                        hostname.exec           \
+                        \
+                        uftdhelp.txt            \
+                        rxdiagd4.assemble       \
+                        system.snetid           \
+                        uftd.direct             \
+                        \
+                        sendfile.cmsmake
 
 BASEURL         =       http://www.casita.net/pub/uft
+
+_default:       $(MANIFEST)
 
 64encode.rexx:
         wget http://vm.marist.edu/~pipeline/$@
@@ -116,7 +119,7 @@ sendfile.vmarc:  $(MANIFEST)
 sendfile.vmarcuue:  sendfile.vmarc
         uuencode -m $< < $< > $@
 
-sendfile.tar:  $(MANIFEST)
+sendfile.tar:   $(MANIFEST)
         @rm -f sendfile.tar
 #       @cat < sendfile.filelist \
 #               | grep -v '^*' \
@@ -124,6 +127,9 @@ sendfile.tar:  $(MANIFEST)
 #               | tr A-Z a-z \
 #               | xargs tar cf sendfile.tar
         tar cvf sendfile.tar (include sendfile
+
+sendfile.now:   $(MANIFEST)
+        tar cvs rmt@bit.casita.net (include sendfile name sendfile.tar
 
 sendfile.taruue:  sendfile.tar
         uuencode -m $< < $< > $@

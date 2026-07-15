@@ -26,14 +26,14 @@
 *         Note: the following line is essential:
 & 3
 *
-   0      2.0
-   1      UFT/2.0 client (CMS)
-   2      UFT/2.0 server (z/VM)
+   0      2.1
+   1      UFT/2.1 client (CMS)
+   2      UFT/2.1 server (z/VM)
    3    E invalid option &1
    4      UFT/&1
    5      UFT/&1 client
    6      UFT/&1 server
-   7      2.0
+   7      2.1
 *008    X ........
 *009    X ........
 *010    X ........
@@ -92,7 +92,7 @@
 *   HCP6771E LOGMSG support based on {Account ID|ACI group|Userid} not enabled.
 *
 * spontaneous info messages (including deprecated UFT/1 herald)
-0100      100 &1 UFT/1 VMCMSUFT/1.2.2 ready.
+0100      100 &1 UFT/1 VMCMSUFT/2.1.1 ready.
 *101      (see below)
 0102      102 &1 UFT/2 VMCMSUFT/&2 ready.
 0103      103 &1 UFT/&2 VMCMSUFT/&3 ready.
@@ -151,7 +151,11 @@
 0200      200 ACK
 0201      201 Command okay.
 0202      202 Command not implemented, superfluous at this site.
+0203      203 &1; command &1 okay
+0204      204 &1; meta command &1 okay
+0205      205 &1; name &1 okay
 0208      208 &1; user &1 okay
+0209      209 &1; type &1 okay
 0211      211 System status, or system help reply.
 0213      213 received &1 bytes of data.
 0214      214 HELP: end of HELP
@@ -160,10 +164,10 @@
 0226      226 ABORT/ROLLBACK
 0227      227 Entering Passive Mode (h1,h2,h3,h4,p1,p2).
 0210      210 Restart marker reply.
-0220      220 &1 UFT/2 VMCMSUFT/1.2.2 ready.
+0220      220 &1 UFT/2 VMCMSUFT/2.1.1 ready.
 0221      221 Service closing control connection.
 0222      222 &1 UFT/2 VMCMSUFT/&3 &4 ; ready.
-*223 vloeistof.casita.net UFT/2 POSIXUFT/2.0.7 8192 ; ready.
+*223 vloeistof.casita.net UFT/2 POSIXUFT/2.1.1 8192 ; ready.
 0223      223 &1 UFT/2 POSIXUFT/&3 &4 ; ready.
 0224      224 *anonymous UFT/2 UFT/redacted 0 ; ready.
 0228      228 &1 UFT/2 &3 &4 ; ready.

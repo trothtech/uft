@@ -24,20 +24,23 @@
  */
 
 /*  set some initial values  */
-vrm0 = "2.0"                    /* to coincide with the POSIX version */
+vrm0 = "2.1"                    /* to coincide with the POSIX version */
 
 /*  identify this stage  */
 Parse Source . . arg0 .
 argo = arg0 || ':'
 
 /*  fetch environment variables from TCPSHELL  */
-Address COMMAND 'GLOBALV SELECT' arg0 'GET HOSTID VRM VERBOSE' ,
+Address "COMMAND" 'GLOBALV SELECT' arg0 'GET HOSTID VRM VERBOSE' ,
     'REMOTE_HOST REMOTE_ADDR REMOTE_USER REMOTE_IDENT' ,
         'UFT LOCALHOST SERVER_PIPE_ATTACH'
 If vrm ^= vrm0 Then ,
-    Address COMMAND 'XMITMSG 1200 VRM0 VRM (APPLID UFT CALLER SRV'
+    Address "COMMAND" 'XMITMSG 1200 VRM0 VRM (APPLID UFT CALLER SRV'
 If remote_host = "" Then remote_host = remote_addr
 If remote_user = "" Then remote_user = remote_ident
+
+If localhost = "" Then localhost = hostid
+If localhost = "" Then localhost = "-"
 
 /* the value of uft must be 1 or 2 ... preferably 2 */
 If ^Datatype(uft,'N') Then uft = 1
@@ -104,7 +107,6 @@ If verbose Then ,
 'ADDPIPE *.INPUT.LINE: | CONSOLE | *.INPUT.LINE:'
 
 blksize = 32256
-Say "LOCALHOST" localhost "VRM" vrm "BLKSIZE" blksize
 /* send a hello/herald to our client */
 If uft > 1 Then ,
 'CALLPIPE COMMAND XMITMSG 222 LOCALHOST UFT VRM BLKSIZE' ,
@@ -179,19 +181,19 @@ Do Forever
         When ^meta & Left(verb,1) = '#' Then If verbose Then Say line
 
         When verb = "NOP" | verb = "NOOP" Then ,
-            'CALLPIPE COMMAND XMITMSG 200 (APPLID UFT' ,
+            'CALLPIPE COMMAND XMITMSG 203 VERB (APPLID UFT' ,
                 'CALLER SRV NOHEADER | *.OUTPUT:'
 
         When verb = "AGENT" Then Do
             Parse Var line . agch agrs .
-            'CALLPIPE COMMAND XMITMSG 200 (APPLID UFT' ,
+            'CALLPIPE COMMAND XMITMSG 402 VERB (APPLID UFT' ,
                 'CALLER SRV NOHEADER | *.OUTPUT:'
             End /* When .. Do */
-        /* above is not actually implemented ... in case no obvious */
+        /* above is not actually implemented ... in case not obvious */
 
         When verb = "FILE" Then Do
             Parse Var line . size from auth .
-            'CALLPIPE COMMAND XMITMSG 200 (APPLID UFT' ,
+            'CALLPIPE COMMAND XMITMSG 203 VERB (APPLID UFT' ,
                 'CALLER SRV NOHEADER | *.OUTPUT:'
             End  /*  When .. Do  */
 
@@ -199,7 +201,7 @@ Do Forever
             Parse Upper Var line . user .
             Parse Value _chkuser(user) With rc rs
             If rc = 0 Then ,
-            'CALLPIPE COMMAND XMITMSG 200 (APPLID UFT' ,
+            'CALLPIPE COMMAND XMITMSG 208 USER (APPLID UFT' ,
                 'CALLER SRV NOHEADER | *.OUTPUT:'
                       Else Do
             'CALLPIPE COMMAND XMITMSG 553 USER (APPLID UFT' ,
@@ -211,13 +213,13 @@ Do Forever
         When verb = "TYPE" Then Do
             Parse Upper Var line . type cc .
             Say argo "TYPE" type
-            'CALLPIPE COMMAND XMITMSG 200 (APPLID UFT' ,
+            'CALLPIPE COMMAND XMITMSG 209 TYPE (APPLID UFT' ,
                 'CALLER SRV NOHEADER | *.OUTPUT:'
             End  /*  When .. Do  */
 
         When verb = "NAME" Then Do
             Parse Var line . name
-            'CALLPIPE COMMAND XMITMSG 200 (APPLID UFT' ,
+            'CALLPIPE COMMAND XMITMSG 205 NAME (APPLID UFT' ,
                 'CALLER SRV NOHEADER | *.OUTPUT:'
             End  /*  When .. Do  */
 
@@ -231,63 +233,63 @@ Do Forever
                        Right(yy,2,'0')
                 End
             If tz = "" Then tz = "N/A"
-            'CALLPIPE COMMAND XMITMSG 200 (APPLID UFT' ,
+            'CALLPIPE COMMAND XMITMSG 203 VERB (APPLID UFT' ,
                 'CALLER SRV NOHEADER | *.OUTPUT:'
             End  /*  When .. Do  */
 
         /*  stuff meaningful on print jobs  */
         When verb = "FORM" Then Do
             Parse Upper Var line . form .
-            'CALLPIPE COMMAND XMITMSG 200 (APPLID UFT' ,
+            'CALLPIPE COMMAND XMITMSG 203 VERB (APPLID UFT' ,
                 'CALLER SRV NOHEADER | *.OUTPUT:'
             End  /*  When .. Do  */
 
         When Abbrev("DESTINATION",verb,4) Then Do
             Parse Upper Var line . dest .
-            'CALLPIPE COMMAND XMITMSG 200 (APPLID UFT' ,
+            'CALLPIPE COMMAND XMITMSG 203 VERB (APPLID UFT' ,
                 'CALLER SRV NOHEADER | *.OUTPUT:'
             End  /*  When .. Do  */
 
         When Abbrev("DISTRIBUTION",verb,4) Then Do
             Parse Upper Var line . dist .
-            'CALLPIPE COMMAND XMITMSG 200 (APPLID UFT' ,
+            'CALLPIPE COMMAND XMITMSG 203 VERB (APPLID UFT' ,
                 'CALLER SRV NOHEADER | *.OUTPUT:'
             End  /*  When .. Do  */
 
         When verb = "COPY" | Abbrev("COPIES",verb,4) Then Do
             Parse Upper Var line . copy .
-            'CALLPIPE COMMAND XMITMSG 200 (APPLID UFT' ,
+            'CALLPIPE COMMAND XMITMSG 203 VERB (APPLID UFT' ,
                 'CALLER SRV NOHEADER | *.OUTPUT:'
             End  /*  When .. Do  */
 
         When Abbrev("CLASS",verb,2) Then Do
             Parse Upper Var line . class dev .
-            'CALLPIPE COMMAND XMITMSG 200 (APPLID UFT' ,
+            'CALLPIPE COMMAND XMITMSG 203 VERB (APPLID UFT' ,
                 'CALLER SRV NOHEADER | *.OUTPUT:'
             End  /*  When .. Do  */
 
         /*  stuff meaningful on IBM print jobs  */
         When Abbrev("CTAPE",verb,2) | verb = "FCB"  Then Do
             Parse Upper Var line . fcb .
-            'CALLPIPE COMMAND XMITMSG 200 (APPLID UFT' ,
+            'CALLPIPE COMMAND XMITMSG 203 VERB (APPLID UFT' ,
                 'CALLER SRV NOHEADER | *.OUTPUT:'
             End  /*  When .. Do  */
 
         When Abbrev("CHARSET",verb,2) | verb = "UCS"  Then Do
             Parse Upper Var line . ucs .
-            'CALLPIPE COMMAND XMITMSG 200 (APPLID UFT' ,
+            'CALLPIPE COMMAND XMITMSG 203 VERB (APPLID UFT' ,
                 'CALLER SRV NOHEADER | *.OUTPUT:'
             End  /*  When .. Do  */
 
         When verb = "HOLD" Then Do
             Parse Upper Var line . hold .
-            'CALLPIPE COMMAND XMITMSG 200 (APPLID UFT' ,
+            'CALLPIPE COMMAND XMITMSG 203 VERB (APPLID UFT' ,
                 'CALLER SRV NOHEADER | *.OUTPUT:'
             End  /*  When .. Do  */
 
         When verb = "KEEP" Then Do
             Parse Upper Var line . keep .
-            'CALLPIPE COMMAND XMITMSG 200 (APPLID UFT' ,
+            'CALLPIPE COMMAND XMITMSG 203 VERB (APPLID UFT' ,
                 'CALLER SRV NOHEADER | *.OUTPUT:'
             End  /*  When .. Do  */
 
@@ -295,14 +297,14 @@ Do Forever
         When Abbrev("RECLEN",verb,4) | verb = "LRECL" | ,
              Abbrev("RECORD_LENGTH",verb,8) Then Do
             Parse Upper Var line . lrecl .
-            'CALLPIPE COMMAND XMITMSG 200 (APPLID UFT' ,
+            'CALLPIPE COMMAND XMITMSG 203 VERB (APPLID UFT' ,
                 'CALLER SRV NOHEADER | *.OUTPUT:'
             End  /*  When .. Do  */
 
         When Abbrev("RECFMT",verb,4) | ,
              Abbrev("RECORD_FORMAT",verb,8) Then Do
             Parse Upper Var line . recfm .
-            'CALLPIPE COMMAND XMITMSG 200 (APPLID UFT' ,
+            'CALLPIPE COMMAND XMITMSG 203 VERB (APPLID UFT' ,
                 'CALLER SRV NOHEADER | *.OUTPUT:'
             End  /*  When .. Do  */
 
@@ -336,7 +338,7 @@ Do Forever
             End /* Else Do */
             Select /* rc */
                 When rc = 0 Then ,
-                    'CALLPIPE COMMAND XMITMSG 200 (APPLID UFT' ,
+                    'CALLPIPE COMMAND XMITMSG 203 VERB (APPLID UFT' ,
                     'CALLER SRV NOHEADER | *.OUTPUT:'
                 When rc = 45 Then ,
                     'CALLPIPE COMMAND XMITMSG 545 TST (APPLID UFT' ,
@@ -357,7 +359,7 @@ Do Forever
             If rc = 0 Then Do
                 'CALLPIPE VAR RS | SPLIT AT x15' ,
                     '| SPEC /699 / 1 1-* NEXT | *.OUTPUT:'
-                'CALLPIPE COMMAND XMITMSG 200 (APPLID UFT' ,
+                'CALLPIPE COMMAND XMITMSG 203 VERB (APPLID UFT' ,
                     'CALLER SRV NOHEADER | *.OUTPUT:'
             End ; Else Do
                 Parse Var cpq cpq .
@@ -368,7 +370,7 @@ Do Forever
 
         When Abbrev("SEQUENCE",verb,3) Then Do
             Parse Upper Var line . seq .
-            'CALLPIPE COMMAND XMITMSG 200 (APPLID UFT' ,
+            'CALLPIPE COMMAND XMITMSG 203 VERB (APPLID UFT' ,
                 'CALLER SRV NOHEADER | *.OUTPUT:'
         End /* When .. Do */
 
@@ -410,24 +412,24 @@ Do Forever
 
         When verb = "EOF" | verb = "CLOSE" Then Do
             If open Then Call CLOSE
-            'CALLPIPE COMMAND XMITMSG 200 (APPLID UFT' ,
+            'CALLPIPE COMMAND XMITMSG 203 VERB (APPLID UFT' ,
                 'CALLER SRV NOHEADER | *.OUTPUT:'
         End /* When .. Do */
 
         When verb = "ABORT" Then Do
             If open Then Call ABORT
-            'CALLPIPE COMMAND XMITMSG 200 (APPLID UFT' ,
+            'CALLPIPE COMMAND XMITMSG 203 VERB (APPLID UFT' ,
                 'CALLER SRV NOHEADER | *.OUTPUT:'
         End /* When .. Do */
 
         When ^meta Then Do
-            'CALLPIPE COMMAND XMITMSG 402 "' || verb || '"' ,
-                '(APPLID UFT CALLER SRV NOHEADER | *.OUTPUT:'
+            'CALLPIPE COMMAND XMITMSG 402 VERB (APPLID UFT' ,
+                'CALLER SRV NOHEADER | *.OUTPUT:'
             code = 402
             End  /*  Otherwise Do  */
 
         Otherwise Do
-            'CALLPIPE COMMAND XMITMSG 200 (APPLID UFT' ,
+            'CALLPIPE COMMAND XMITMSG 203 VERB (APPLID UFT' ,
                 'CALLER SRV NOHEADER | *.OUTPUT:'
         End /* Otherwise Do */
 
@@ -456,6 +458,8 @@ Exit rc
  *    Presumes: file output stream is FILE and default output is 0
  */
 DATA:
+
+_count = count    /* hold this for 213 message at end of this routine */
 
 If ^open Then Call OPEN
 If rc = 53 Then Do    /* if we find that the target user is bogus ... */
@@ -518,15 +522,17 @@ Do While count > 0
 
 'SELECT OUTPUT 0'
 
-'CALLPIPE COMMAND XMITMSG 200 (APPLID UFT' ,
+'CALLPIPE COMMAND XMITMSG 213 _COUNT (APPLID UFT' ,
     'CALLER SRV NOHEADER | *.OUTPUT:'
 
 Return
 
 /* ------------------------------------------------------------- AUXDATA
- *  Read a burst of AUXILIARY data then return to command mode.
+ *  Read a burst of auxiliary data then return to command mode.
  */
 AUXDATA:
+
+_count = count    /* hold this for 213 message at end of this routine */
 
 If ^open Then Call OPEN
 If rc = 53 Then Do    /* if we find that the target user is bogus ... */
@@ -589,7 +595,7 @@ End  /*  Do  While  */
 
 /* 'SELECT OUTPUT 0' */
 
-'CALLPIPE COMMAND XMITMSG 200 (APPLID UFT' ,
+'CALLPIPE COMMAND XMITMSG 213 _COUNT (APPLID UFT' ,
     'CALLER SRV NOHEADER | *.OUTPUT:'
 
 Return
