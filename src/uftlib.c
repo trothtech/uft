@@ -18,6 +18,12 @@
  #include <ws2tcpip.h>
  #include <windows.h>
  #include <io.h>
+ int fork() { return -1; }
+ int pipe(int*fd) { return -1; }
+ char*strptime(const char*str,const char*fmt,void*tm0)
+    { struct tm *tms; tms = tm0; /* tms->tm_sec = tms->tm_min = tms->tm_hour
+           = tms->tm_mday = tms->tm_mon = tms->tm_year = 0; */ return NULL; }
+ int uname(void*buf) { return -1; }
 #else
  #include <sys/socket.h>
  #include <sys/un.h>
@@ -1818,12 +1824,6 @@ int uft_stat(char*sid,struct UFTSTAT*us)
     struct  stat  statbuf;
     struct  tm  uft_stat_time;
 
-#ifdef UFT_POSIX
- /* strptime() already prototyped */
-#else
- extern char *strptime (const char *, const char *, struct tm *);
-#endif
-
     /* take the spool ID as numeric (akin to the inode in stat)       */
     us->uft_ino = atoi(uftx_basename(sid));
 
@@ -2025,23 +2025,23 @@ int uftx_atoi(char*s)
   }
 
 /* ------------------------------------------------------------ READSPAN
- *    Read a "spanning record". When reading from a pipe, the requested
+ *    Read a "spanning record". When reading from a stream, the requested
  *    number of bytes might not be available to just one read() call.
  *    This function performs as many read()s as needed until the desired
  *    number of bytes are acquired. This is how we explicitly discard
  *    any record structure that UNIX may have learned about.
  */
-
-int uft_readspan(int s,char*b,int c)
+int uft_readspan(int s,char*b,int c0)
   { static char _eyecatcher[] = "uft_readspan()";
-    int         i,  j;
+    int         i,  j, c;
 
-    for (j = 0; c > 0; )
+    c = c0;
+    j = 0;
+    while (c > 0)
       { i = read(s,&b[j],c);
         if (i < 0) return i;
         if (i < 1) break;
-        j = j + i;
-        c = c - i; }
+        j = j + i; c = c - i; }
     return j;
   }
 

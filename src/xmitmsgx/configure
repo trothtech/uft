@@ -169,18 +169,47 @@ RC=$? ; if [ $RC -ne 0 ] ; then exit $RC ; fi
 
 #
 # create proper makefile from reference input
-cat makefile.in \
-  | sed "s#%CFLAGS%#$CFLAGS#g" \
-  | sed "s#%PREFIX%#$PREFIX#g" \
-  | sed "s#%SYSTEM%#$SYSTEM#g" \
-  | sed "s#%LDFLAGS%#$LDFLAGS#g" \
-  | sed "s#%SHFLAGS%#$SHFLAGS#g" \
-  | sed "s#%LIBS%#$LIBS#g" \
-  | sed "s#%LOCDIR%#$LOCDIR#g" \
-  | sed "s#%LOCALE%#$LOCALE#g" \
-  | sed 's#^        #\t#' \
-  >> makefile
+cat makefile > makefile.tmp
 RC=$? ; if [ $RC -ne 0 ] ; then exit $RC ; fi
+cat makefile.in >> makefile.tmp
+RC=$? ; if [ $RC -ne 0 ] ; then exit $RC ; fi
+sed "s#%CFLAGS%#$CFLAGS#g"   < makefile.tmp > makefile.sed
+RC=$? ; if [ $RC -ne 0 ] ; then exit $RC ; fi
+mv makefile.sed makefile.tmp
+RC=$? ; if [ $RC -ne 0 ] ; then exit $RC ; fi
+sed "s#%PREFIX%#$PREFIX#g"   < makefile.tmp > makefile.sed
+RC=$? ; if [ $RC -ne 0 ] ; then exit $RC ; fi
+mv makefile.sed makefile.tmp
+RC=$? ; if [ $RC -ne 0 ] ; then exit $RC ; fi
+sed "s#%SYSTEM%#$SYSTEM#g"   < makefile.tmp > makefile.sed
+RC=$? ; if [ $RC -ne 0 ] ; then exit $RC ; fi
+mv makefile.sed makefile.tmp
+RC=$? ; if [ $RC -ne 0 ] ; then exit $RC ; fi
+sed "s#%LDFLAGS%#$LDFLAGS#g" < makefile.tmp > makefile.sed
+RC=$? ; if [ $RC -ne 0 ] ; then exit $RC ; fi
+mv makefile.sed makefile.tmp
+RC=$? ; if [ $RC -ne 0 ] ; then exit $RC ; fi
+sed "s#%SHFLAGS%#$SHFLAGS#g" < makefile.tmp > makefile.sed
+RC=$? ; if [ $RC -ne 0 ] ; then exit $RC ; fi
+mv makefile.sed makefile.tmp
+RC=$? ; if [ $RC -ne 0 ] ; then exit $RC ; fi
+sed "s#%LIBS%#$LIBS#g"       < makefile.tmp > makefile.sed
+RC=$? ; if [ $RC -ne 0 ] ; then exit $RC ; fi
+mv makefile.sed makefile.tmp
+RC=$? ; if [ $RC -ne 0 ] ; then exit $RC ; fi
+sed "s#%LOCDIR%#$LOCDIR#g"   < makefile.tmp > makefile.sed
+RC=$? ; if [ $RC -ne 0 ] ; then exit $RC ; fi
+mv makefile.sed makefile.tmp
+RC=$? ; if [ $RC -ne 0 ] ; then exit $RC ; fi
+sed "s#%LOCALE%#$LOCALE#g"   < makefile.tmp > makefile.sed
+RC=$? ; if [ $RC -ne 0 ] ; then exit $RC ; fi
+mv makefile.sed makefile.tmp
+RC=$? ; if [ $RC -ne 0 ] ; then exit $RC ; fi
+sed 's#^        #	#'      < makefile.tmp > makefile.sed
+RC=$? ; if [ $RC -ne 0 ] ; then exit $RC ; fi
+mv makefile.sed makefile
+RC=$? ; if [ $RC -ne 0 ] ; then exit $RC ; fi
+rm makefile.tmp
 
 #
 # create configuration header file and sourcable shell script

@@ -30,7 +30,7 @@ Some older UFT servers will accept `CLASS` as a metadata statement.
 
 ## Command Response
 
-The usual response from `META CLASS` is a 200 ACK.
+The usual response from `META CLASS` is a 200 series ACK.
 
 Being meta data, UFT implementations which do not recognize "class"
 should simply stash the information where it can be used in post procesing.

@@ -9,7 +9,7 @@
 #
 
 APPLID          =       xmitmsgx
-VERSION         =       2.2.4
+VERSION         =       2.3.1
 
 DELIVERABLES    =       xmitmsg xmiterr xmmlogin libxmitmsgx.a libxmitmsgxdyn.so
 SOURCEURL       =       https://raw.githubusercontent.com/trothtech/xmm/master

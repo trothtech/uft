@@ -40,43 +40,43 @@
 0011      VMCMSUFT/&1
 0012      POSIXUFT/&1
 0013      UFT/anonymized
-  14    E protocol violation detected when communicating with &1
-  15    E unknown &1 command
-  16    E missing operand(s)
+0014    E protocol violation detected when communicating with &1
+0015    E unknown &1 command
+0016    E missing operand(s)
 * 17
 * 18
 * 19
-  20    E target UFT host &1 cannot be reached
-  21    E failed reading herald from target host &1
-  22    E file &1 not found
-  23    E unable to open file &1
-  24    S error &1 reading file &2 from disk or directory
-  25    E error reported when reading herald from target host &1
-  26    E socket or stream closed without a QUIT command
+0020    E target UFT host &1 cannot be reached
+0021    E failed reading herald from target host &1
+0022    E file &1 not found
+0023    E unable to open file &1
+0024    S error &1 reading file &2 from disk or directory
+0025    E error reported when reading herald from target host &1
+0026    E socket or stream closed without a QUIT command
 * 36    E operand missing or invalid
-  42    E user &1 spoolid &2 does not exist
-  44    E connection cannot be established
-  45    E protocol sequence error
-  50    E invalid spoolid &1
+0042    E user &1 spoolid &2 does not exist
+0044    E connection cannot be established
+0045    E protocol sequence error
+0050    E invalid spoolid &1
 * 53    E &1 not in CP directory
 * 53    E user &1 does not exist
-  53    E no such user or queue &1
-  54    E incomplete fileid specified
-  66    E &1 and &2 are conflicting options
-  68    E client host is not a peer
-  70    E invalid parameter &1
-  81    E &1 command not supported in batch mode
-  84    I file &1 sent to &2
-  85    I file &1 sent from &2
-  88    I UFT protocol level &1
-  90    E invalid value &1 for &2 parameter
-  92    I file (&1) spooled to &2 -- origin &3(&4) &5 &6 &7
-  93    I file &1 received from &2 sent as &3
-  94    I file &1 spooled to &2 origin &3
-  95    I note &1 received from &2
-  96    I from &1(&2): &3
-  97    I from &1: &2
-  99    E &1
+0053    E no such user or queue &1
+0054    E incomplete fileid specified
+0066    E &1 and &2 are conflicting options
+0068    E client host is not a peer
+0070    E invalid parameter &1
+0081    E &1 command not supported in batch mode
+0084    I file &1 sent to &2
+0085    I file &1 sent from &2
+0088    I UFT protocol level &1
+0090    E invalid value &1 for &2 parameter
+0092    I file (&1) spooled to &2 -- origin &3(&4) &5 &6 &7
+0093    I file &1 received from &2 sent as &3
+0094    I file &1 spooled to &2 origin &3
+0095    I note &1 received from &2
+0096    I from &1(&2): &3
+0097    I from &1: &2
+0099    E &1
 *395    E invalid value &1 for &2 option
 *116    E invalid value &1 for &2 in &3
 *
@@ -100,9 +100,9 @@
 *133      133 SEND &1 bytes of data.
 0145      145 &1 not logged on
 *153      153 &1 not in CP directory
- 153      153 user &1 does not exist
+0153      153 user &1 does not exist
 0185    I Active reader class empty (Next file &1 Class &2).
- 199      199 &1
+0199      199 &1
 *
 * help for curious telnetters and netcatters
 *101  01  101
@@ -218,30 +218,30 @@
 0551    E 551 &1 ; server data file error &1
 0552      552 spool directory unavailable
 *553    E 553 &1 ; &1 not in CP directory
- 553    E 553 &1 ; user &1 does not exist
- 555    E 555 &1 ; user auxdata file error &1
- 557    E 557 &1 not receiving
- 559    E 559 server data error (physical space)
- 567    E 567 user &1 is not enrolled
- 568    E 568 &1 ; client host &1 is not a peer
- 571    E 571 user &1 not available
- 597    E 597 user validation function &1 not found
+0553    E 553 &1 ; user &1 does not exist
+0555    E 555 &1 ; user auxdata file error &1
+0557    E 557 &1 not receiving
+0559    E 559 server data error (physical space)
+0567    E 567 user &1 is not enrolled
+0568    E 568 &1 ; client host &1 is not a peer
+0571    E 571 user &1 not available
+0597    E 597 user validation function &1 not found
 *
- 614      614 HELP:
- 699      699 &1
+0614      614 HELP:
+0699      699 &1
 *
 *HCPMID6001I  TIME IS 00:00:00 EDT  MONDAY 03/23/26
- 706   I time is &1 &2 &3 &4
- 708    E product license has expired
+0706   I time is &1 &2 &3 &4
+0708    E product license has expired
 *
- 844    E Connection cannot be established                  ECONNREFUSED
- 888    R Valid protocol level values are: 0, 1, 2
+0844    E Connection cannot be established                  ECONNREFUSED
+0888    R Valid protocol level values are: 0, 1, 2
 *
- 944    E Connection cannot be established                  ECONNREFUSED
- 948    E UFTserverID not defined in TCPIP DATA
- 949    I Unable to connect to remote UFT server            ECONNREFUSED
- 990    R Valid protocol level values are: 0, 1, 2
- 999      © Copyright 1995, 1997, 2025 Richard M. Troth, all rights reserved.
+0944    E Connection cannot be established                  ECONNREFUSED
+0948    E UFTserverID not defined in TCPIP DATA
+0949    I Unable to connect to remote UFT server            ECONNREFUSED
+0990    R Valid protocol level values are: 0, 1, 2
+0999      © Copyright 1995, 1997, 2025 Richard M. Troth, all rights reserved.
 *
 1049    E Unable to connect to remote UFT server &1
 *

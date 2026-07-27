@@ -11,8 +11,9 @@
 #ifndef _XMITMSGX_H
 #define _XMITMSGX_H
 
-/* xmitmsgx-2.2.9            v2            r2            m9           */
-#define  XMITMSGX_VERSION  (((2) << 24) + ((2) << 16) + ((9) << 8) + (0))
+/* xmitmsgx-2.3.1            v2            r3            m1           */
+#define  XMITMSGX_VERSION  (((2) << 24) + ((3) << 16) + ((1) << 8) + (0))
+/* version 2.3.1 adds initial support for 'XMITMSG' on VM/CMS         */
 /* version 2.2.9 adds xm_findfile() internal locale search function   */
 /* version 2.2.8 removes "extern" from prototype statements (below)   */
 /* version 2.2.7 includes a built-in SYSLOG place holder for Windows  */
@@ -120,6 +121,7 @@ int xmclose(struct MSGSTRUCT*);
 int xm_lev2pri(char*);
 int xm_negative(int);
 int xm_deliver(char*,int);
+int xm_make_cms(struct MSGSTRUCT*);
 
 #endif
 

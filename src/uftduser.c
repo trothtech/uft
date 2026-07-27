@@ -18,11 +18,11 @@
  #include <sys/socket.h>
  #include <netdb.h>
  #include <errno.h>
+ #include <pwd.h>
 #endif
 
 #include <unistd.h>
 #include <sys/stat.h>
-#include <pwd.h>
 
 #include "uft.h"
 
@@ -40,7 +40,11 @@ int uftduser(char*user)
 
     /* pseudo-users are supported;  that is,  one can 'sendfile'
         to a user that doesn't exist iff the sub-directory exists */
+#if defined(_WIN32) || defined(_WIN64)
+    pwdent = NULL;
+#else
     pwdent = getpwnam(user);
+#endif
 
     /* does the directory exist already? */
     i = chdir(user);
@@ -51,6 +55,11 @@ int uftduser(char*user)
 #endif
 
     /* some error; should we create a sub-dir? */
+#if defined(_WIN32) || defined(_WIN64)
+    if (i < 0 && errno == ENOENT)
+      { mkdir(user); i = chdir(user); }
+    uuid = i;
+#else
     if (i < 0 && errno == ENOENT)
       { if (pwdent == NULL) return -1;
         if (mkdir(user,0770) < 0) return i;
@@ -70,6 +79,7 @@ int uftduser(char*user)
         (void) chown(UFT_SEQFILE_ALT,uuid,UFT_GID);
         (void) chmod(UFT_SEQFILE_ALT,0660);
         if (chown(".",uuid,UFT_GID) == 0) (void) seteuid(uuid); }
+#endif
 
     /* return the uid (non-negative) on success */
     return uuid;

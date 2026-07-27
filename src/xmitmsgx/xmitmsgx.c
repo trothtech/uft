@@ -299,8 +299,8 @@ int xmopen(char*fn,int opts,struct MSGSTRUCT*ms)
     int rc, fd, memsize, i, j, filesize;
     char *p, *q, *locale, filename[256], *file;
     struct stat statbuf;
-
     static char ampersand[2] = "&";       /* default escape character */
+
     file = fn;             /* protect arguments from being written to */
 
     /* NULL struct pointer means to use global static storage         *
@@ -318,6 +318,13 @@ int xmopen(char*fn,int opts,struct MSGSTRUCT*ms)
     (void) memset(ms->applid,0x00,sizeof(ms->applid));
 
     rc = fd = xm_findfile(file,ms);   /* find and open the repository */
+
+#ifdef __VM__
+    /* do stuff for VM/CMS in here - cms 'pipe xmmshim'               */
+    ms->msgmax = 9999;         /* CMS handles it so go to four digits */
+    ms->escape = NULL;          /* we won't know the escape character */
+    ms->msgopts = opts;
+#else
 
     /* if we can't find the file then return the best error we know   */
     if (rc < 0) { if (errno != 0) perror("xmopen(): xm_findfile()");
@@ -388,6 +395,14 @@ int xmopen(char*fn,int opts,struct MSGSTRUCT*ms)
         if (i > ms->msgmax) ms->msgmax = i;
       }
 
+    /* handle SYSLOG and record other options */
+    ms->msgopts = opts;
+    if (ms->msgopts & MSGFLAG_SYSLOG) {
+      /* figure out syslog identity */
+      openlog(ms->applid,LOG_PID,MSGROUTE_DEFAULT); }
+
+#endif
+
     /* establish major and minor prefix area */
     /* if (ms->prefix == NULL || *ms->prefix == 0x00) */ ms->prefix = ms->applid;
     p = ms->prefix;     /* application prefix not installation prefix */
@@ -395,12 +410,6 @@ int xmopen(char*fn,int opts,struct MSGSTRUCT*ms)
     ms->pfxmaj[i] = 0x00;
     for (i = 0; i < 3 && *p != 0x00; i++) ms->pfxmin[i] = toupper((int)*p++);
     ms->pfxmin[i] = 0x00;
-
-    /* handle SYSLOG and record other options */
-    ms->msgopts = opts;
-    if (ms->msgopts & MSGFLAG_SYSLOG) {
-      /* figure out syslog identity */
-      openlog(ms->applid,LOG_PID,MSGROUTE_DEFAULT); }
 
     /* default "caller" is the user, but is better as a function name */
 
@@ -434,6 +443,10 @@ int xmmake(struct MSGSTRUCT*ms)
     if (ms == NULL) return EINVAL; /* invalid argument */
     if (ms->msgnum <= 0) return EINVAL; /* invalid argument */
     if (ms->msgnum > ms->msgmax) return EINVAL; /* invalid argument */
+
+#ifdef __VM__
+    return xm_make_cms(ms);
+#else
 
     /* NULL pointer indicates an undefined message */
     if (ms->msgtable[ms->msgnum] == NULL) return 814;     /* no entry */
@@ -499,6 +512,7 @@ int xmmake(struct MSGSTRUCT*ms)
                                       }
 
     return 0;
+#endif
   }
 
 /* ------------------------------------------------------------- XMPRINT
@@ -724,6 +738,79 @@ int xm_deliver(char*buff,int type)
       default:
         return 0;                                                 break;
                   }
+    return 0;
+  }
+
+/* ------------------------------------------------------------- XM_SAFE
+ *    Use this routine to confirm that the first character in the
+ *    provided string is not one of the remaining in the string.
+ *    NOTE: this function returns zero for false and one for true
+ */
+int xm_safe(char*s)
+  { char *q, *p;
+    if (*s == 0x00) return 0;       /* if candidate is NULL then fail */
+    q = p = s;          /* start at the start reserving to-be-checked */
+    p++;             /* list-o-bad-chars begins second char in string */
+    while (*p != 0x00) { if (*q == *p++) return 0; }
+    return 1; }
+
+/* --------------------------------------------------------- XM_MAKE_CMS
+ * This routine replaces xmmake() when we are running on VM/CMS.
+ * This function assumes that we are in a CMS or OpenVM environment.
+ */
+int xm_make_cms(struct MSGSTRUCT*ms)
+  {
+    int i, j, rc;
+    char x1[256], x2[384], *p, checkchars[16];
+    char xd = '/';
+
+    /* ms->msgopts is ignored here                                    */
+    checkchars[0] = 0x00;        /* this to be replaced with examinee */
+    checkchars[1] = xd;           /* delimiter to be used by the shim */
+    checkchars[2] = '"';         /* double quote is special for shell */
+    checkchars[3] = '\'';        /* single quote is special for shell */
+    checkchars[4] = '\\';           /* backslash is special for shell */
+    checkchars[5] = '(';           /* open paren introduces sub-shell */
+    checkchars[6] = ')';                /* close paren ends sub-shell */
+    checkchars[7] = '*';             /* asterisk may lead to globbing */
+    checkchars[8] = '&';              /* ampersand means "background" */
+    checkchars[9] = 0x00;                   /* NULL marks end of list */
+
+//  char *prefix;       /* default is applid[0..2]||caller[0..2] */
+//  ms->prefix
+//  ms->applid
+//  ms->caller
+//  ms->pfxmaj
+//  ms->pfxmin
+
+    /* build a concatenation of all supplied replacement tokens       */
+    j = 0;
+    for (i = 1; i < ms->msgc; i++)
+      { x1[j++] = xd;                /* slip in the delimiter at each */
+        if (j >= sizeof(x1)-1) break;                /* stay in range */
+        p = ms->msgv[i];           /* pointing to this specific token */
+fprintf(stderr,"looping on '%s' %d\n",p,i);
+        while (*p != 0x00)         /* tack it onto the growing string */
+          { checkchars[0] = *p;        /* load the char to be checked */
+            if (xm_safe(checkchars)) x1[j++] = *p++; else p++;
+            if (j >= sizeof(x1)-1) break; }
+      }
+    x1[j] = 0x00;                   /* terminate the resulting string */
+
+    /* now drive our shim to invoke XMITMSG command in CMS            */
+    p = getenv("SHELL");
+    if (p != NULL && *p != 0x00)    /* if we have a shell then use it */
+    sprintf(x2,"cms 'pipe xmmshim %d %s %s %x %d %s'",
+            ms->msgnum,ms->pfxmaj,ms->pfxmin,ms->msgbuf,ms->msglen,x1);
+    else          /* otherwise go directly to the CMS command handler */
+    sprintf(x2,"pipe xmmshim %d %s %s %x %d %s",
+            ms->msgnum,ms->pfxmaj,ms->pfxmin,ms->msgbuf,ms->msglen,x1);
+fprintf(stderr,"%s\n",x2);
+    rc = system(x2);
+    if (rc != 0) return rc;
+
+    ms->msglen = strlen(ms->msgbuf);
+
     return 0;
   }
 

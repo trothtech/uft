@@ -16,20 +16,33 @@
 #include <string.h>
 #include <time.h>
 #include <ctype.h>
-#include <sys/utsname.h>
+
+#if defined(_WIN32) || defined(_WIN64)
+ /* so many broken things */
+#else
+ #include <sys/utsname.h>
+#endif
 
 #include "uft.h"
 
 /* ---------------------------------------------------- UFTD_CPQ_CPLEVEL
  *    provide 'uname' and boot time to emulate CPQ CPLEVEL
-z/VM Version 7 Release 3.0, service level 2401 (64-bit)
-Generated at 2024-03-22 17:29:19 EDT
-IPL at 2025-01-02 13:16:56 EDT
  */
 int uftdcpq_cplevel(char*cpqstr,int cpqsl)                 /* CPLEVEL */
   { static char _eyecatcher[] = "uftdcpq_cplevel()";       /* CPLEVEL */
     int rc;
+
+#if defined(_WIN32) || defined(_WIN64)
+    struct {
+        char*sysname;
+        char*nodename;
+        char*release;
+        char*version;
+        char*machine;
+          } cpquts;
+#else
     struct utsname cpquts;
+#endif
 
 #ifdef          UFT_ANONYMOUS
     snprintf(cpqstr,cpqsl,"CPLEVEL: N/A");                 /* CPLEVEL */

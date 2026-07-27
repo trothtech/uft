@@ -18,6 +18,9 @@
  #ifndef        UFT_SPOOLDIR
   #define       UFT_SPOOLDIR    "C:/ProgramData/uft"
  #endif
+ int fork();
+ int pipe(int*);
+ int uname(void*);
 #else
  #define UFT_POSIX
  /* the SPOOLDIR has a sub-directory for each recipient               */
@@ -35,11 +38,11 @@
 /* the version number and copyright */
 #define         UFT_PROTOCOL    "UFT/2"
 #ifndef         UFT_VERSION
- #define        UFT_VERSION     "POSIXUFT/2.1.1"
+ #define        UFT_VERSION     "POSIXUFT/2.1.2"
 #endif
 #define         UFT_COPYRIGHT   "© Copyright 1995-2026 Richard M. Troth"
-#define         UFT_VRM         "2.1.1"
-#define    UFT_VERINT    (((2) << 24) + ((1) << 16) + ((1) << 8) + (0))
+#define         UFT_VRM         "2.1.2"
+#define    UFT_VERINT    (((2) << 24) + ((1) << 16) + ((2) << 8) + (0))
 
 #ifndef         UFT_TAG
  #define        UFT_TAG         "UFT"
@@ -244,8 +247,8 @@ typedef struct  UFTSTAT {
     int         uft_ino;        /* UFT spoolid */
     mode_t      uft_mode;       /* UFT "xperm" protection */
     int         uft_nlink;      /* UFT copy count, "copies" */
-    uid_t       uft_uid;        /* UFT user ID of owner */
-    gid_t       uft_gid;        /* UFT group ID of owner */
+/* uid_t */ int uft_uid;        /* UFT user ID of owner - int for Win */
+/* gid_t */ int uft_gid;        /* UFT group ID of owner - int for Win */
     int         uft_size;       /* UFT total "data" size, in bytes    */
     int         uft_blksize;    /* UFT blocksize (record length)      */
     time_t      uft_mtime,      /* UFT time of last mod, as sent      */

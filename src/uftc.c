@@ -211,7 +211,11 @@ int main(int argc,char*argv[])
       { fd0 = dup(0); }
     else
       { if (name[0] == 0x00) name = argv[i];
+#if defined(_WIN32) || defined(_WIN64)
+        fd0 = open(argv[i],O_RDONLY|O_BINARY); }
+#else
         fd0 = open(argv[i],O_RDONLY); }
+#endif
 
     /* verify that the open() worked or issue an error message        */
     if (fd0 < 0)
@@ -451,11 +455,11 @@ if (ufd.fdt == UFT_FD_SSL) fprintf(stderr,"connection is SSL\n");   /* TRIAGE */
     /* now send the file down the pipe */
     while (1)
       { if (uftcflag & UFT_BINARY)              /* get binary content */
-          { rc = i = uft_readspan(fd0,b,UFT_BUFSIZ); if (rc == 0)
-            rc = i = uft_readspan(fd0,b,UFT_BUFSIZ); if (rc < 1) break; }
+          { rc = i = uft_readspan(fd0,b,UFT_BUFSIZ-1); if (rc == 0)
+            rc = i = uft_readspan(fd0,b,UFT_BUFSIZ-1); if (rc < 1) break; }
         else                                   /* get textual content */
-          { rc = i = uftctext(fd0,b,UFT_BUFSIZ); if (rc == 0)
-            rc = i = uftctext(fd0,b,UFT_BUFSIZ); if (rc < 1) break; }
+          { rc = i = uftctext(fd0,b,UFT_BUFSIZ-1); if (rc == 0)
+            rc = i = uftctext(fd0,b,UFT_BUFSIZ-1); if (rc < 1) break; }
 
 //      sprintf(temp,"DATA %d",i); tcpputs(ufd.fd1,temp);   /* uftx_puts() here */
         sprintf(temp,"DATA %d",i);
