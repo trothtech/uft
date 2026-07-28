@@ -143,7 +143,7 @@ int xm_findfile(char*fn0,struct MSGSTRUCT*ms)
     ms->msgmax = 0;
 
     /* try the named file directly */
-    stpncpy(filename,fn,sizeof(filename)-1);
+    strncpy(filename,fn,sizeof(filename)-1);
     rc = fd = open(filename,O_RDONLY);
     if (rc >= 0)
       { fn = xm_basename(fn);
@@ -156,12 +156,12 @@ int xm_findfile(char*fn0,struct MSGSTRUCT*ms)
     rc = fd = open(filename,O_RDONLY);
     if (rc >= 0)
       { fn = xm_basename(fn);
-        stpncpy(ms->applid,fn,sizeof(ms->applid));
+        strncpy(ms->applid,fn,sizeof(ms->applid));
         /* NOTE: in this case the locale is not set                   */
         return fd; }
 
     fn = xm_basename(fn);     /* beyond this point fn *is* the applid */
-    stpncpy(ms->applid,fn,sizeof(ms->applid));    /* set it in struct */
+    strncpy(ms->applid,fn,sizeof(ms->applid));    /* set it in struct */
 
     /* try the named file with any locale value */
     i = 0; while (*localevars[i] != 0x00)      /* localevars loop top */
@@ -169,7 +169,7 @@ int xm_findfile(char*fn0,struct MSGSTRUCT*ms)
         lc = getenv(localevars[i++]);
         if (lc == NULL) continue;       /* skip all unset locale vars */
         if (*lc == 0x00) continue;       /* skip empty locale strings */
-        stpncpy(ms->locale,lc,sizeof(ms->locale));        /* pass one */
+        strncpy(ms->locale,lc,sizeof(ms->locale));        /* pass one */
 
         /* try various combinations of named file + locale + ".msgs"  */
         snprintf(filename,sizeof(filename)-1,"%s.%s.msgs",fn,ms->locale);
@@ -203,7 +203,7 @@ int xm_findfile(char*fn0,struct MSGSTRUCT*ms)
         lc = getenv(localevars[i++]);
         if (lc == NULL) continue;       /* skip all unset locale vars */
         if (*lc == 0x00) continue;       /* skip empty locale strings */
-        stpncpy(ms->locale,lc,sizeof(ms->locale));        /* pass two */
+        strncpy(ms->locale,lc,sizeof(ms->locale));        /* pass two */
 
         j = 0; while (*localeoptd[j] != 0x00)  /* localeOPTD loop top */
           { snprintf(filename,sizeof(filename)-1,localeoptd[j++],xmmprefix,ms->locale,fn);
@@ -254,7 +254,7 @@ int xm_findfile(char*fn0,struct MSGSTRUCT*ms)
       }                                        /* localevars loop end */
 
     /* possibly try hard coded "C" or "POSIX" here */
-    lc = "C"; stpncpy(ms->locale,lc,sizeof(ms->locale));
+    lc = "C"; strncpy(ms->locale,lc,sizeof(ms->locale));
     j = 0; while (*localeoptd[j] != 0x00)      /* localeOPTD loop top */
       { snprintf(filename,sizeof(filename)-1,localeoptd[j++],xmmprefix,ms->locale,fn);
         rc = fd = open(filename,O_RDONLY);
@@ -265,7 +265,7 @@ int xm_findfile(char*fn0,struct MSGSTRUCT*ms)
         if (rc >= 0) return fd; }              /* localeDIRs loop end */
 
     /* possibly try hard coded "C" or "POSIX" here */
-    lc = "POSIX"; stpncpy(ms->locale,lc,sizeof(ms->locale));
+    lc = "POSIX"; strncpy(ms->locale,lc,sizeof(ms->locale));
     j = 0; while (*localeoptd[j] != 0x00)      /* localeOPTD loop top */
       { snprintf(filename,sizeof(filename)-1,localeoptd[j++],xmmprefix,ms->locale,fn);
         rc = fd = open(filename,O_RDONLY);
