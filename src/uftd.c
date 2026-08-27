@@ -102,8 +102,6 @@ int main(int argc,char*argv[])
     uftfile0.name[0]    = 0x00;
     uftfile0.from[0]    = 0x00;
 
-system("set > .set");                                          /* dev */
-
     /* If we're not running as root (or if we don't at least          *
      * own the UFT spooling directory) then we're hopeless.           *
      * But we might also want to be in the UFT_GROUP (typically 0).   */

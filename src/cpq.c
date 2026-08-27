@@ -10,6 +10,11 @@
 #include <string.h>
 #include <stdio.h>
 
+#ifdef UFT_SSL
+ #include <openssl/ssl.h>
+ #include <openssl/err.h>
+#endif
+
 #include "uft.h"
 #include <errno.h>
 
@@ -46,9 +51,13 @@ int main(int argc,char*argv[])
 /* ------------------------------------------------------------------ */
             case '-':                          /* long format options */
                 if (uftx_abbrev("--version",argv[i],6) > 0)
-                  { sprintf(temp,"%s: %s Remote CPQUERY client",
+                  { fprintf(stderr,"%s: %s Remote CPQUERY client\n",
                                 arg0,UFT_VERSION);
-                    fprintf(stderr,"%s\n",temp);
+#ifdef UFT_SSL
+ #ifdef OPENSSL_VERSION_TEXT
+                    fprintf(stderr,"%s\n",OPENSSL_VERSION_TEXT);
+ #endif
+#endif
                     return 0; } else           /* exit from help okay */
                 if (uftx_abbrev("--host",argv[i],6) > 0)
                   { i++; host = argv[i]; } else

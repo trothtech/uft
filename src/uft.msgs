@@ -153,7 +153,7 @@
 0221      221 Service closing control connection.
 0222      222 &1 UFT/2 VMCMSUFT/&3 &4 ; ready.
 0223      223 &1 UFT/2 POSIXUFT/&3 &4 ; ready.
-0224      224 *anonymous UFT/2 UFT/redacted 0 ; ready.
+0224      224 *anonymous UFT/2 UFT/redacted &4 ; ready.
 0228      228 &1 UFT/2 &3 &4 ; ready.
 0230      230 Local username okay, proceed.
 0250      250 Requested file action okay, completed.
