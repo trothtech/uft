@@ -23,7 +23,7 @@ LDFLAGS         =       %LDFLAGS%
 LIBS            =       %LIBS% -L/usr/opt/openssl/lib -lssl -lcrypto
 #CFLAGS         =       %CFLAGS% -DPREFIX=\"$(PREFIX)\"
 #CFLAGS         =       %CFLAGS% -DPREFIX=\"$(PREFIX)\" -DUFT_SSL
-CFLAGS          =       %CFLAGS% -DPREFIX=\"$(PREFIX)\" -DUFT_SSL -I-L/usr/opt/openssl/include
+CFLAGS          =       %CFLAGS% -DPREFIX=\"$(PREFIX)\" -DUFT_SSL -I/usr/opt/openssl/include
 SHFLAGS         =       %SHFLAGS%
 # we may later use CC, CXX, CPP, CPPFLAGS, and/or CXXFLAGS
 
