@@ -24,16 +24,16 @@
  */
 int uftddata(int o,int i,int n)
   { static char _eyecatcher[] = "uftddata()";
-    int         j, k, l;
+    int         j, k, l, m;
     char        b[UFT_BUFSIZ];
     l = n;
-    while (n > 0)
-      { j = tcpread(i,b,n);
-        if (j < 0) return j;
-        k = tcpwrite(o,b,j);
-        if (k < 0) return k;
-        n -= j; }
-    return l;
+    while (l > 0)
+      { m = l; if (m > UFT_BUFSIZ) m = UFT_BUFSIZ;
+        j = tcpread(i,b,m);     if (j < 0) return j;
+        k = tcpwrite(o,b,j);    if (k < 0) return k;
+        /* conundrum: if k != j then what?? */
+        l -= j; }
+    return n;
   }
 
 
