@@ -4,7 +4,7 @@
  *              Unsolicited (or Universal) File Transfer client
  *              *finally* an Internet SENDFILE for Unix
  *      Author: Rick Troth, Houston, Texas, USA
- *        Date: 1994-Jun-30, 1995-Jan-22 ... and following ... 2025
+ *        Date: 1994-Jun-30, 1995-Jan-22 ... and following ... 2025, 2026
  *
  */
 
@@ -25,10 +25,10 @@ extern int uftcflag;
 /* ------------------------------------------------------------------ */
 int main(int argc,char*argv[])
   { static char _eyecatcher[] = "uftc.c main()";
-    int         i, fd0, size, copy, fda, rc, uftxflag, nop, chf;
-    char        temp[256], targ[256], b[UFT_BUFSIZ], akey[256], *mv[16],
+    int         i, fd0, size, copy, fda, rc, uftxflag, nop, chf, bs;
+    char        temp[256], targ[256], akey[256], *mv[16],
                *host, *name, *type, *auth, *class, *proxy, *ptitle,
-               *flga, *flgb;
+               *flga, *flgb, *p, *q, *b;
     struct  stat  uftcstat;
     time_t      mtime;
     mode_t      prot;
@@ -50,6 +50,7 @@ int main(int argc,char*argv[])
     uftxflag = 0x0000;                         /* reset all flag bits */
     flga = flgb = "";
     nop = chf = 0;           /* winnowing and chaffing off by default */
+    bs = 0;                 /* zero means block size to be determined */
 
     /* process command-line options                                   */
     for (i = 1; i < argc && argv[i][0] == '-' &&
@@ -93,6 +94,10 @@ int main(int argc,char*argv[])
                         break;
             case '#':   /* COPY -or- COPIES                           */
                         i++; copy = atoi(argv[i]);
+                        break;
+
+            case 'k': case 'q':
+                        i++; bs = atoi(argv[i]);
                         break;
 
 /* ------------------------------------------------------------------ */
@@ -141,6 +146,11 @@ int main(int argc,char*argv[])
                 if (uftx_abbrev("--copy",argv[i],4) > 0 ||
                     uftx_abbrev("--copies",argv[i],4) > 0)
                   { i++; copy = atoi(argv[i]); } else
+
+                if (uftx_abbrev("--blocksize",argv[i],4) > 0 ||
+                    uftx_abbrev("--bs",argv[i],4) > 0)
+                  { i++; bs = atoi(argv[i]); } else
+
                   { mv[0] = arg0; mv[1] = argv[i];
                     rc = uftx_msgprtl(3,"CLI",2,mv);
                     if (rc < 0) fprintf(stderr,"%s: invalid option %s",arg0,argv[i]);
@@ -270,6 +280,18 @@ if (ufd.fdt == UFT_FD_SOCKET) fprintf(stderr,"connection is standard TCP\n");   
 if (ufd.fdt == UFT_FD_SSL) fprintf(stderr,"connection is SSL\n");   /* TRIAGE */
                                 }
 
+    /* ---------------- herald processing --------------------------- *
+     *    222  ibmisv.casita.net       UFT/2  VMCMSUFT/2.1    32256 ; ready.
+     *    223  testcentos7.casita.net  UFT/2  POSIXUFT/2.1.2  32256 ; ready.
+     *    224  *anonymous              UFT/2  UFT/redacted    32256 ; ready.
+     *     #0  #1                         #2   #3                #4
+     *  part 0 - the code (typically 222, 223, or 224) any "2" works
+     *  part 1 - the host (unless redacted)
+     *  part 2 - the protocol
+     *  part 3 - the program (unless redacted)
+     *  part 4 - the hint (advised block size) <-- we need this now
+     * -------------------------------------------------------------- */
+
     /* wait for the herald from the server */
     rc = i = uftx_gets(ufdp,temp,sizeof(temp));
     /* all other server-to-client traffic should use uftx_wack()      */
@@ -298,9 +320,30 @@ if (ufd.fdt == UFT_FD_SSL) fprintf(stderr,"connection is SSL\n");   /* TRIAGE */
         return 1; }                  /* the herald indicated an error */
 
     if (uftcflag & UFT_VERBOSE)
-      { sprintf(temp,"%d",uftv); mv[1] = temp;      /* protocol level */
+      { sprintf(akey,"%d",uftv); mv[1] = akey;      /* protocol level */
         uftx_msgprtl(88,"CLI",2,mv); }  /* 88 I UFT protocol level &1 */
     /* (above is only good for UFT1 or UFT2 but there is no UFT3)     */
+    /* temporarily using akey here so we can keep temp for the moment */
+
+fprintf(stderr,"block size %d\n",bs);
+    if (bs < 1)
+      { p = temp;
+        /* herald part 1 ------------------------------- skipping --- */
+        while (*p > ' ') p++; while (*p <= ' ' && *p != 0x00) p++;
+        /* herald part 2 ------------------------------- skipping --- */
+        while (*p > ' ') p++; while (*p <= ' ' && *p != 0x00) p++;
+        /* herald part 3 ------------------------------- skipping --- */
+        while (*p > ' ') p++; while (*p <= ' ' && *p != 0x00) p++;
+        /* herald part 4 ------------------------------- skipping --- */
+        while (*p > ' ') p++; while (*p <= ' ' && *p != 0x00) p++;
+        q = p; while (*q > ' ') q++; *q = 0x00;   /* terminate string */
+        bs = atoi(p); }
+fprintf(stderr,"block size %d\n",bs);
+
+    /* at this point we need to allocate a buffer to hold each chunk  */
+    if (bs < 1) bs = UFT_BUFSIZ;                /* default block size */
+    b = malloc(bs+256);                  /* block size plus 256 fudge */
+    if (b == NULL) { if (errno != 0) perror("malloc"); return -1; }
 
     /* identify this client to the server */
     (void) sprintf(temp,"#%s client %s",UFT_PROTOCOL,UFT_VERSION);
@@ -455,11 +498,12 @@ if (ufd.fdt == UFT_FD_SSL) fprintf(stderr,"connection is SSL\n");   /* TRIAGE */
     /* now send the file down the pipe */
     while (1)
       { if (uftcflag & UFT_BINARY)              /* get binary content */
-          { rc = i = uft_readspan(fd0,b,UFT_BUFSIZ-1); if (rc == 0)
-            rc = i = uft_readspan(fd0,b,UFT_BUFSIZ-1); if (rc < 1) break; }
+          { rc = i = uft_readspan(fd0,b,bs); if (rc == 0)
+            rc = i = uft_readspan(fd0,b,bs); if (rc < 1) break; }
         else                                   /* get textual content */
-          { rc = i = uftctext(fd0,b,UFT_BUFSIZ-1); if (rc == 0)
-            rc = i = uftctext(fd0,b,UFT_BUFSIZ-1); if (rc < 1) break; }
+          { rc = i = uftctext(fd0,b,bs); if (rc == 0)
+            rc = i = uftctext(fd0,b,bs); if (rc < 1) break; }
+fprintf(stderr,"block: req %d, got %d\n",bs,i);
 
 //      sprintf(temp,"DATA %d",i); tcpputs(ufd.fd1,temp);   /* uftx_puts() here */
         sprintf(temp,"DATA %d",i);

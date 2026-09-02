@@ -1,4 +1,4 @@
-* © Copyright 1993-2025 Richard M. Troth, all rights reserved. <plaintext>
+* © Copyright 1993-2026 Richard M. Troth, all rights reserved. <plaintext>
 *
 *         Name: UFTUME MESSAGES or uft.msgs
 *       Author: Rick Troth, Houston, Texas, USA
@@ -162,8 +162,8 @@
 0300      300 SEND &1 bytes of data.
 0313      313 send &1 bytes of data.
 0323      323 send &1 bytes of data.
-0350      350 Requested file action pending further information.
-0354      354 Enter mail, end with "." on a line by itself
+0350      350 requested file action pending further information
+0354      354 enter mail and end with "." on a line by itself
 * POSIX server sends 313 after "DATA"
 * VM/CMS server sends 323 after "DATA"
 *

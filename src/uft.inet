@@ -5,6 +5,7 @@
 # not needing to have any credentials on the receiving end.
 # ("unsolicited" file transfer, a.k.a.: sender-initiated file transfer)
 #
+# UFT is sometimes called "sift-uft" so the following may need adjustment.
 #service uft
 service sift-uft
 {

@@ -524,7 +524,7 @@ RECLEN='40'                     okay
                 (void) uftdstat(1,temp);  /* signal 4xx NAK to client */
                 continue; }                 /* continue after 4xx NAK */
             i = atoi(q);
-            (void) sprintf(temp,"313 %d; send %d bytes of data.",i,i);
+            (void) sprintf(temp,"313 %d; send %d bytes of auxdata.",i,i);
             (void) uftdstat(1,temp);              /* stat and logging */
 
             i = uftddata(effd,0,i);
