@@ -109,8 +109,6 @@ int uftx_message(char*mo,int ml,                    /* buffer, buflen */
     mn = mn0;
     if (mn < 0) mn = 0 - mn;   /* force message number to be positive */
 
-    /* do we need this? */
-//  uftmsgs.msglevel = 0;
 
     /* using pfxmaj and pfxmin is definitely outside the XMITMSGX API */
     strncpy(uftmsgp->pfxmaj,UFT_TAG,4); uftmsgp->pfxmaj[3] = 0x00;
@@ -149,8 +147,6 @@ int uftx_msgwtag(char*mo,int ml,                    /* buffer, buflen */
     mn = mn0;
     if (mn < 0) mn = 0 - mn;   /* force message number to be positive */
 
-    /* do we need this? */
-//  uftmsgs.msglevel = 0;
 
     /* using pfxmaj and pfxmin is definitely outside the XMITMSGX API */
     strncpy(uftmsgp->pfxmaj,mt,4); uftmsgp->pfxmaj[3] = 0x00;
@@ -190,8 +186,6 @@ int uftx_msgprtl(int mn0,                           /* message number */
     mn = mn0;
     if (mn < 0) mn = 0 - mn;   /* force message number to be positive */
 
-    /* do we need this? */
-//  uftmsgs.msglevel = 0;
 
     /* using pfxmaj and pfxmin is definitely outside the XMITMSGX API */
     strncpy(uftmsgp->pfxmaj,UFT_TAG,4); uftmsgp->pfxmaj[3] = 0x00;
@@ -2867,6 +2861,7 @@ int ufts_close(struct UFTFD*ufdp)
 /* ----------------------------------------------------------- UFTS_OPEN
  *    open a connection to the UFT server attempting SSL first
  *    Returns: zero on success, any other value indicates an error
+ *    Note: this routine calls uftx_open() for some of its work
  */ 
 int ufts_open(char*peer,char*prox,struct UFTFD*ufdp)
   { static char _eyecatcher[] = "ufts_open()";

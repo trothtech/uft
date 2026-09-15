@@ -81,13 +81,16 @@
 #define         UFT_DOTRANS     0x2000         /* translation implied */
 #define         UFT_NOTRANS     0x1000         /* translation not fit */
 
+#define         UFT_DOSSL       0x0100         /* SSL required */
+#define         UFT_NOSSL       0x0200         /* SSL rejected */
+
 /* registered port for this service */
 #define         UFT_PORT         608
 #define         IDENT_PORT       113
 #define         UFT_ANONPORT    1608
 #define         UFT_SECPORT     5608
 
-/* define       UFT_BUFSIZ      64512 */
+/* define       UFT_BUFSIZ      65024 */
 /* reduced from 64K-512 to 32K-512 for more reliable file transfer    */
 #define         UFT_BUFSIZ      32256
 
@@ -249,7 +252,8 @@ typedef struct  UFTSTAT {
     int         uft_nlink;      /* UFT copy count, "copies" */
 /* uid_t */ int uft_uid;        /* UFT user ID of owner - int for Win */
 /* gid_t */ int uft_gid;        /* UFT group ID of owner - int for Win */
-    int         uft_size;       /* UFT total "data" size, in bytes    */
+    int         uft_size,       /* UFT total "data" size, in bytes    */
+                uft_size2;      /* overflow */
     int         uft_blksize;    /* UFT blocksize (record length)      */
     time_t      uft_mtime,      /* UFT time of last mod, as sent      */
                 uft_stime;      /* time stamp on spool file           */
@@ -271,19 +275,9 @@ typedef struct  UFTSTAT {
                 uft_dest[16],   /* z/VM, mainframe, or print concept  */
                 uft_title[64];  /* z/VM, mainframe, or print concept  */
 /*
-    CLASS               char uft_class
-    COPY | COPIES       int uft_nlink
     DATE | XDATE        time_t uft_mtime
-    DEST                char uft_dest[]
-    DIST                char uft_dist[]
-    FORM                char uft_form[]
     GROUP               int uft_gid
-    HOLD                char uft_hold
-    NAME                char uft_name[]
     OWNER               int uft_uid
-    RECFMT              char uft_recfm
-    RECLEN              int uft_blksize
-    TITLE               char uft_title[]
     PROT | XPERM        char uft_mode[]
     FCB
     MSG | NOTIFY

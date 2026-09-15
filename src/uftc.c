@@ -151,16 +151,21 @@ int main(int argc,char*argv[])
                     uftx_abbrev("--bs",argv[i],4) > 0)
                   { i++; bs = atoi(argv[i]); } else
 
+                if (uftx_abbrev("--dossl",argv[i],7) > 0)
+                    uftxflag |= UFT_DOSSL; else
+                if (uftx_abbrev("--nossl",argv[i],7) > 0)
+                    uftxflag |= UFT_NOSSL; else
+
                   { mv[0] = arg0; mv[1] = argv[i];
                     rc = uftx_msgprtl(3,"CLI",2,mv);
-                    if (rc < 0) fprintf(stderr,"%s: invalid option %s",arg0,argv[i]);
+                    if (rc < 0) fprintf(stderr,"%s: invalid option %s\n",arg0,argv[i]);
                     return 1; }             /* exit on invalid option */
                     break;
 /* ------------------------------------------------------------------ */
 
             default: mv[0] = arg0; mv[1] = argv[i];
                 rc = uftx_msgprtl(3,"CLI",2,mv);
-                if (rc < 0) fprintf(stderr,"%s: invalid option %s",arg0,argv[i]);
+                if (rc < 0) fprintf(stderr,"%s: invalid option %s\n",arg0,argv[i]);
                 return 1;                   /* exit on invalid option */
                 break;
           }
@@ -267,14 +272,15 @@ int main(int argc,char*argv[])
     if (*host == '@') *host++ = 0x00; else host = "localhost";
 
     /* try now to connect with our peer (TCP, proxy, SSL)             */
-    rc = ufts_open(host,proxy,ufdp);
-    if (rc != 0)      /* if TLS/SSL failed then retry using cleartext */
-    rc = uftx_open(host,proxy,ufdp);
+    if (uftxflag & UFT_NOSSL) rc = -1; else    /* unless avoiding SSL */
+    rc = ufts_open(host,proxy,ufdp);                    /* so try SSL */
+    if (rc != 0) {    /* if TLS/SSL failed then retry using cleartext */
+    if (uftxflag & UFT_DOSSL) rc = -1; else   /* unless requiring SSL */
+    rc = uftx_open(host,proxy,ufdp); }            /* so try cleartext */
     if (rc != 0) { if (errno != 0) perror(host);
         mv[0] = arg0; mv[1] = host;  /* cannot connect to target host */
         uftx_msgprtl(20,"CLI",2,mv);   /* 20 E target UFT not reached */
         close(fd0); return 1; }
-/*  r = ufd.fd0; s = ufd.fd1;    // r (0) for read and s (1) for send */
     if (uftcflag & UFT_VERBOSE) {
 if (ufd.fdt == UFT_FD_SOCKET) fprintf(stderr,"connection is standard TCP\n");   /* TRIAGE */
 if (ufd.fdt == UFT_FD_SSL) fprintf(stderr,"connection is SSL\n");   /* TRIAGE */
