@@ -331,7 +331,7 @@ if (ufd.fdt == UFT_FD_SSL) fprintf(stderr,"connection is SSL\n");   /* TRIAGE */
     /* (above is only good for UFT1 or UFT2 but there is no UFT3)     */
     /* temporarily using akey here so we can keep temp for the moment */
 
-fprintf(stderr,"block size %d\n",bs);
+/* fprintf(stderr,"block size %d\n",bs);                           // */
     if (bs < 1)
       { p = temp;
         /* herald part 1 ------------------------------- skipping --- */
@@ -344,7 +344,7 @@ fprintf(stderr,"block size %d\n",bs);
         while (*p > ' ') p++; while (*p <= ' ' && *p != 0x00) p++;
         q = p; while (*q > ' ') q++; *q = 0x00;   /* terminate string */
         bs = atoi(p); }
-fprintf(stderr,"block size %d\n",bs);
+/* fprintf(stderr,"block size %d\n",bs);                           // */
 
     /* at this point we need to allocate a buffer to hold each chunk  */
     if (bs < 1) bs = UFT_BUFSIZ;                /* default block size */
@@ -355,7 +355,7 @@ fprintf(stderr,"block size %d\n",bs);
     (void) sprintf(temp,"#%s client %s",UFT_PROTOCOL,UFT_VERSION);
     /* FIXME: what about anonymous? */
     if (uftcflag & UFT_VERBOSE) fprintf(stderr,"%s\n",temp);
-//  (void) tcpputs(ufd.fd1,temp);     /* FIXME: need uftx_puts() here */
+/*  (void) tcpputs(ufd.fd1,temp);     // FIXED: need uftx_puts() here */
     rc = uftx_puts(ufdp,temp,0);     /* FIXME: check that return code */
     /* there is no ACK for comments so don't wait for one here        */
 
@@ -372,7 +372,7 @@ fprintf(stderr,"block size %d\n",bs);
     /* start the transaction ----------------------- the FILE command */
     (void) sprintf(temp,"FILE %d %s %s %s",size,uftx_user(),auth,akey);
     if (uftcflag & UFT_VERBOSE) fprintf(stderr,"%s\n",temp);
-//  (void) tcpputs(ufd.fd1,temp);     /* FIXME: need uftx_puts() here */
+/*  (void) tcpputs(ufd.fd1,temp);     // FIXED: need uftx_puts() here */
     rc = uftx_puts(ufdp,temp,0);     /* FIXME: check that return code */
     i = uftx_wack(ufdp,temp,sizeof(temp));
     if (i < 0)
@@ -386,7 +386,7 @@ fprintf(stderr,"block size %d\n",bs);
     /* tell the server who it's for ---------------- the USER command */
     (void) sprintf(temp,"USER %s",targ);
     if (uftcflag & UFT_VERBOSE) fprintf(stderr,"%s\n",temp);
-//  (void) tcpputs(ufd.fd1,temp);     /* FIXME: need uftx_puts() here */
+/*  (void) tcpputs(ufd.fd1,temp);     // FIXED: need uftx_puts() here */
     rc = uftx_puts(ufdp,temp,0);     /* FIXME: check that return code */
     i = uftx_wack(ufdp,temp,sizeof(temp));
     if (i < 0)
@@ -404,7 +404,7 @@ fprintf(stderr,"block size %d\n",bs);
         else type = "A";    /* "text/plain" */ }
     (void) sprintf(temp,"TYPE %s",type);
     if (uftcflag & UFT_VERBOSE) fprintf(stderr,"%s\n",temp);
-//  (void) tcpputs(ufd.fd1,temp);     /* FIXME: need uftx_puts() here */
+/*  (void) tcpputs(ufd.fd1,temp);     // FIXED: need uftx_puts() here */
     rc = uftx_puts(ufdp,temp,0);     /* FIXME: check that return code */
     i = uftx_wack(ufdp,temp,sizeof(temp));
     if (i < 0)
@@ -420,7 +420,7 @@ fprintf(stderr,"block size %d\n",bs);
       { name = uftx_basename(name);       /* exclude the path from it */
         sprintf(temp,"NAME %s",name);    /* but skip META prefix here */
         if (uftcflag & UFT_VERBOSE) fprintf(stderr,"%s\n",temp);
-//      i = tcpputs(ufd.fd1,temp);    /* FIXME: need uftx_puts() here */
+/*      i = tcpputs(ufd.fd1,temp);    // FIXED: need uftx_puts() here */
         rc = uftx_puts(ufdp,temp,0);      /* FIXME: check return code */
         i = uftx_wack(ufdp,temp,sizeof(temp));
         if (i < 0)
@@ -441,7 +441,7 @@ fprintf(stderr,"block size %d\n",bs);
                 gmtstamp->tm_mday, gmtstamp->tm_hour,
                 gmtstamp->tm_min, gmtstamp->tm_sec, "GMT");
         if (uftcflag & UFT_VERBOSE) fprintf(stderr,"%s\n",temp);
-//      i = tcpputs(ufd.fd1,temp);    /* FIXME: need uftx_puts() here */
+/*      i = tcpputs(ufd.fd1,temp);    // FIXED: need uftx_puts() here */
         rc = uftx_puts(ufdp,temp,0);      /* FIXME: check return code */
         i = uftx_wack(ufdp,temp,sizeof(temp));
         if (i < 0 && temp[0] != '4')
@@ -453,7 +453,7 @@ fprintf(stderr,"block size %d\n",bs);
         /* also send it as number-of-seconds Unix epoch offset value  */
         (void) sprintf(temp,"META XDATE %ld",mtime);
         if (uftcflag & UFT_VERBOSE) fprintf(stderr,"%s\n",temp);
-//      i = tcpputs(ufd.fd1,temp);    /* FIXME: need uftx_puts() here */
+/*      i = tcpputs(ufd.fd1,temp);    // FIXED: need uftx_puts() here */
         rc = uftx_puts(ufdp,temp,0);      /* FIXME: check return code */
         i = uftx_wack(ufdp,temp,sizeof(temp));
         if (i < 0 && temp[0] != '4')
@@ -466,7 +466,7 @@ fprintf(stderr,"block size %d\n",bs);
     if (prot != 0)
       { (void) sprintf(temp,"META PROT %s",uftcprot(prot));
         if (uftcflag & UFT_VERBOSE) fprintf(stderr,"%s\n",temp);
-//      i = tcpputs(ufd.fd1,temp);    /* FIXME: need uftx_puts() here */
+/*      i = tcpputs(ufd.fd1,temp);    // FIXED: need uftx_puts() here */
         rc = uftx_puts(ufdp,temp,0);      /* FIXME: check return code */
         i = uftx_wack(ufdp,temp,sizeof(temp));
         if (i < 0 && temp[0] != '4')
@@ -478,7 +478,7 @@ fprintf(stderr,"block size %d\n",bs);
         /* also send it as bits in octal format                       */
         (void) sprintf(temp,"META XPERM 0%o",prot);
         if (uftcflag & UFT_VERBOSE) fprintf(stderr,"%s\n",temp);
-//      i = tcpputs(ufd.fd1,temp);    /* FIXME: need uftx_puts() here */
+/*      i = tcpputs(ufd.fd1,temp);    // FIXED: need uftx_puts() here */
         rc = uftx_puts(ufdp,temp,0);      /* FIXME: check return code */
         i = uftx_wack(ufdp,temp,sizeof(temp));
         if (i < 0 && temp[0] != '4')
@@ -509,9 +509,9 @@ fprintf(stderr,"block size %d\n",bs);
         else                                   /* get textual content */
           { rc = i = uftctext(fd0,b,bs); if (rc == 0)
             rc = i = uftctext(fd0,b,bs); if (rc < 1) break; }
-fprintf(stderr,"block: req %d, got %d\n",bs,i);
+/* fprintf(stderr,"block: req %d, got %d\n",bs,i);                 // */
 
-//      sprintf(temp,"DATA %d",i); tcpputs(ufd.fd1,temp);   /* uftx_puts() here */
+/*      sprintf(temp,"DATA %d",i); tcpputs(ufd.fd1,temp);   // uftx_puts() here */
         sprintf(temp,"DATA %d",i);
         if (uftcflag & UFT_VERBOSE) fprintf(stderr,"%s\n",temp);
         uftx_puts(ufdp,temp,0);
@@ -519,7 +519,7 @@ fprintf(stderr,"block: req %d, got %d\n",bs,i);
         if (rc != 3) break;
         if (uftcflag & UFT_VERBOSE) fprintf(stderr,"%s\n",temp);
 
-//      rc = tcpwrite(ufd.fd1,b,i); /* send the data - we live for this */
+/*      rc = tcpwrite(ufd.fd1,b,i); // send the data - we live for this */
         rc = uftx_write(ufdp,b,i);    /* send data - we live for this */
         rc = uftx_wack(ufdp,temp,sizeof(temp));      /* expect 2 here */
         if (rc != 2) break;
@@ -532,7 +532,7 @@ fprintf(stderr,"block: req %d, got %d\n",bs,i);
 
     /* send an "EOF" command to indicate clean end-of-file            */
     if (uftcflag & UFT_VERBOSE) fprintf(stderr,"EOF\n");
-//  rc = tcpputs(ufd.fd1,"EOF");      /* FIXME: need uftx_puts() here */
+/*  rc = tcpputs(ufd.fd1,"EOF");      // FIXED: need uftx_puts() here */
     rc = uftx_puts(ufdp,"EOF",0);     /* FIXME: check the return code */
     if (rc < 0) { uftx_close(ufdp); return 1; }
 
@@ -544,7 +544,7 @@ fprintf(stderr,"block: req %d, got %d\n",bs,i);
 
     /* tell the server we're done - send a "QUIT" command to close    */
     if (uftcflag & UFT_VERBOSE) fprintf(stderr,"QUIT\n");
-//  rc = tcpputs(ufd.fd1,"QUIT");     /* FIXME: need uftx_puts() here */
+/*  rc = tcpputs(ufd.fd1,"QUIT");     // FIXED: need uftx_puts() here */
     rc = uftx_puts(ufdp,"QUIT",0);    /* FIXME: check the return code */
     if (rc < 0) { uftx_close(ufdp); return 1; }
 

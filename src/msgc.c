@@ -46,7 +46,7 @@ int main(int argc,char*argv[])
             case 'v':   (void) sprintf(msgbuf,
                                 "%s: %s Internet TELL client",
                                 arg0,UFT_VERSION);
-//                      (void) uftx_putline(2,msgbuf,0);
+/*                      (void) uftx_putline(2,msgbuf,0);           // */
                         fprintf(stderr,"%s\n",msgbuf);
                         return 0;
                         break;

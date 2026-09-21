@@ -58,7 +58,7 @@ int main(int argc,char*argv[])
                         break;
 #ifdef  OECS
             case 'e':   case 'E':       /* EBCDIC (IBM plain text)    */
-//                      uftxflag |= UFT_NOTRANS;
+/*                      uftxflag |= UFT_NOTRANS;                   // */
                         break;
 #endif
 
@@ -77,8 +77,8 @@ int main(int argc,char*argv[])
                     uftx_abbrev("--image",argv[i],4) > 0) {
                     uftxflag |= UFT_NOTRANS; flgb = argv[i]; } else
 #ifdef  OECS
-//              if (uftx_abbrev("--ebcdic",argv[i],8) > 0)
-//                { uftxflag |= UFT_BINARY; type = "E"; } else
+/*              if (uftx_abbrev("--ebcdic",argv[i],8) > 0)         // */
+/*                { uftxflag |= UFT_BINARY; type = "E"; } else     // */
 #endif
                   { mv[1] = argv[i];
                 rc = uftx_message(buffer,sizeof(buffer)-1,3,"CLI",2,mv);

@@ -195,8 +195,8 @@ int uftx_msgprtl(int mn0,                           /* message number */
     for (p = uftmsgp->pfxmin; *p != 0x00; p++) if (islower(*p)) *p = toupper(*p);
 
     /* Generate the message, print it, and SYSLOG it.                 */
-//  rc = xmprint(mn,mc,mv,MSGFLAG_SYSLOG,uftmsgp);           /* buggy */
-//  if (rc < 0) { if (errno != 0) perror("uftx_msgprtl(): xmprint()"); return rc; }
+/*  rc = xmprint(mn,mc,mv,MSGFLAG_SYSLOG,uftmsgp);           // buggy */
+/*  if (rc < 0) { if (errno != 0) perror("uftx_msgprtl(): xmprint()"); return rc; } */
     rc = xmstring(b,sizeof(b),mn,mc,mv,uftmsgp);
     if (rc < 0) { if (errno != 0) perror("uftx_msgprtl(): xmstring()"); return rc; }
     if (uftmsgp->msglevel > 5)
@@ -925,7 +925,7 @@ int msgc_uft(char*user,char*text,char*proxy)
         return -1; }
 
     /* look for the herald */
-//  rc = tcpgets(mysock,buffer,sizeof(buffer)-1);
+/*  rc = tcpgets(mysock,buffer,sizeof(buffer)-1);                  // */
     rc = uftx_gets(ufdp,buffer,sizeof(buffer)-1);
     if (rc < 0)
       { if (errno != 0) perror("uftx_gets()");
@@ -936,12 +936,12 @@ fprintf(stderr,"msgc_uft(): failed to fetch herald; RC = %d\n",rc);
     if (*agentkey == 0x00)
          snprintf(buffer,sizeof(buffer)-1,"FILE 0 %s -",uftx_user());
     else snprintf(buffer,sizeof(buffer)-1,"FILE 0 %s AGENT %s",uftx_user(),agentkey);
-//  rc = tcpputs(mysock,buffer);
+/*  rc = tcpputs(mysock,buffer);                                   // */
     rc = uftx_puts(ufdp,buffer,0);
     if (rc < 0) { perror("tcpputs()"); ufts_close(ufdp); return rc; }
 
     /* wait for ACK */
-//  rc = uftc_wack(mysock,buffer,sizeof(buffer)-1);
+/*  rc = uftc_wack(mysock,buffer,sizeof(buffer)-1);                // */
     rc = uftx_wack(ufdp,buffer,sizeof(buffer)-1);
     if (rc < 0) { if (errno != 0) perror("uftc_wack()");
                   ufts_close(ufdp); return rc; }
@@ -949,36 +949,36 @@ fprintf(stderr,"msgc_uft(): failed to fetch herald; RC = %d\n",rc);
 
     /* send a "MSG user text" command */
     snprintf(buffer,sizeof(buffer)-1,"MSG %s %s",un,text);
-//  rc = tcpputs(mysock,buffer);
+/*  rc = tcpputs(mysock,buffer);                                   // */
     rc = uftx_puts(ufdp,buffer,0);
     if (rc < 0) { perror("tcpputs()"); ufts_close(ufdp); return rc; }
 
     /* wait for ACK */
-//  rc = uftc_wack(mysock,buffer,sizeof(buffer)-1);
+/*  rc = uftc_wack(mysock,buffer,sizeof(buffer)-1);                // */
     rc = uftx_wack(ufdp,buffer,sizeof(buffer)-1);
     if (rc < 0) { if (errno != 0) perror("uftc_wack()");
                   ufts_close(ufdp); return rc; }
     if (rc != 2) { fprintf(stderr,"%s\n",buffer); ufts_close(ufdp); return rc; }
 
     /* send an "ABORT" command (because we're not sending a file */
-//  rc = tcpputs(mysock,"ABORT");
+/*  rc = tcpputs(mysock,"ABORT");                                  // */
     rc = uftx_puts(ufdp,"ABORT",0);
     if (rc < 0) { perror("tcpputs()"); ufts_close(ufdp); return rc; }
 
     /* wait for ACK */
-//  rc = uftc_wack(mysock,buffer,sizeof(buffer)-1);
+/*  rc = uftc_wack(mysock,buffer,sizeof(buffer)-1);                // */
     rc = uftx_wack(ufdp,buffer,sizeof(buffer)-1);
     if (rc < 0) { if (errno != 0) perror("uftc_wack()");
                   ufts_close(ufdp); return rc; }
     if (rc != 2) { fprintf(stderr,"%s\n",buffer); ufts_close(ufdp); return rc; }
 
     /* send a "QUIT" command to close the session */
-//  rc = tcpputs(mysock,"QUIT");
+/*  rc = tcpputs(mysock,"QUIT");                                   // */
     rc = uftx_puts(ufdp,"QUIT",0);
     if (rc < 0) { perror("tcpputs()"); ufts_close(ufdp); return rc; }
 
     /* wait for ACK */
-//  rc = uftc_wack(mysock,buffer,sizeof(buffer)-1);
+/*  rc = uftc_wack(mysock,buffer,sizeof(buffer)-1);                // */
     rc = uftx_wack(ufdp,buffer,sizeof(buffer)-1);
     if (rc < 0) { if (errno != 0) perror("uftc_wack()");
                   ufts_close(ufdp); return rc; }
@@ -988,7 +988,7 @@ fprintf(stderr,"msgc_uft(): failed to fetch herald; RC = %d\n",rc);
     sleep(2);
 
     /* close the client end of the socket */
-//  close(mysock);
+/*  close(mysock);                                                 // */
     ufts_close(ufdp);
 
     return 0;
@@ -1055,13 +1055,12 @@ int uftx_wack(struct UFTFD*ufdp,char*b,int l)
 
     b[0] = 0x00;
     while (1)
-//    { rc = i = tcpgets(ufdp->fd0,b,l);
-//fprintf(stderr,"uftx_wack(): tcpgets() returned %d\n",rc);   /* TRIAGE */
+/*    { rc = i = tcpgets(ufdp->fd0,b,l);                           // */
       { rc = i = uftx_gets(ufdp,b,l);   /* get a line from the server */
         if (rc < 0) return rc;        /* broken pipe or network error */
         switch (b[0])                   /* trigger on first character */
           { case 0x00:                       /* NULL ACK (deprecated) */
-                strncpy(b,"2XX ACK (NULL)",l); return 0;       // break;
+                strncpy(b,"2XX ACK (NULL)",l); return 0;    /* break; */
             case '6':                   /* write to stdout, then loop */
                 p = b; while (*p != ' ' && *p != 0x00) p++;
                 /* skip past code */    if (*p == ' ') p++;
@@ -1069,15 +1068,15 @@ int uftx_wack(struct UFTFD*ufdp,char*b,int l)
             case '1':   case '#':   case '*':   /* discard, then loop */
                 break;
             case '2':                          /* simple ACK, is okay */
-                return 2;                                      // break;
+                return 2;                                   /* break; */
             case '3':                /* or "more required", also okay */
-                return 3;                                      // break;
+                return 3;                                   /* break; */
             case '4':                       /* "4" means client error */
-                return 4;                                      // break;
+                return 4;                                   /* break; */
             case '5':                   /* and "5" means server error */
-                return 5;                                      // break;
+                return 5;                                   /* break; */
             default:                                /* protocol error */
-                return -1;                                     // break;
+                return -1;                                  /* break; */
           }
         if (uftcflag & UFT_VERBOSE) if (b[0] != 0x00)
                                                fprintf(stderr,"%s\n",b);
@@ -1116,7 +1115,7 @@ struct addrinfo
 
     /* if either supplied peer or pipe is bogus then stop right here  */
     if (peer == NULL && *peer == 0x00) { errno = EINVAL; return -1; }
-    if (pipe == NULL) { errno = EINVAL; return -1; } // ufdp
+    if (pipe == NULL) { errno = EINVAL; return -1; }          /* ufdp */
 
     /* just in case ... prep the pipe pair as "disconnected"          */
     fd[0] = fd[1] = -1;           /* preset file descriptors to error */
@@ -1125,8 +1124,8 @@ struct addrinfo
     snprintf(temp,sizeof(temp)-1,"%s:%d",peer,UFT_PORT);
 
     /* if a proxy string was provided then try connecting that way    */
-//  if (prox != NULL && *prox != 0x00) return uftx_proxy(temp,prox,fd);
-//    NOTE: uftx_proxy now uses UFTFD struct
+/*  if (prox != NULL && *prox != 0x00) return uftx_proxy(temp,prox,fd); */
+/*    NOTE: uftx_proxy now uses UFTFD struct                            */
     if (prox != NULL && *prox != 0x00) return -1;
 
     /* special consideration for MS Windows with MINGW/MSYS framework */
@@ -1214,7 +1213,7 @@ struct addrinfo
 /*      rc = connect(s,&name,hent->h_length);                      // */
         rc = connect(s,&name,sizeof(name));
         if (rc == 0)              /* flag this has using older method */
-          { pipe[0] = pipe[1] = s; return 0; } }        // ufdp
+          { pipe[0] = pipe[1] = s; return 0; } }              /* ufdp */
     if (errno != 0) perror("uftc_open(): connect()");
 
     /* can't seem to reach this host on this port */
@@ -1311,9 +1310,9 @@ struct addrinfo
             ufdp->fd0 = ufdp->fd1 = s; return 0; }
                  } /* all of that from a good getaddrinfo() result    */
 
-//  if (rc < 0) if (errno != 0)
-//    { if (sok) perror("uftx_open(): connect()");
-//          else perror("uftx_open(): socket()"); }
+/*  if (rc < 0) if (errno != 0)                                    // */
+/*    { if (sok) perror("uftx_open(): connect()");                 // */
+/*          else perror("uftx_open(): socket()"); }                // */
 
     return -1;
   }
@@ -2546,13 +2545,13 @@ int uftx_ccap(struct UFTFD*ufdp,char*c,char*rb,int rl0,char*sb,int sl0)
     rl = rl0 - 1; sl = sl0 - 1;    /* room for NULL string terminator */
     n = 0;                            /* initial response length zero */
 
-//  rc = tcpputs(fd[1],c);                       /* issue the command */
-//  rc = tcpputs(ufd->fd1,c);                    /* issue the command */
+/*  rc = tcpputs(fd[1],c);                       // issue the command */
+/*  rc = tcpputs(ufd->fd1,c);                    // issue the command */
     rc = uftx_puts(ufdp,c,0);                    /* issue the command */
 
     while (1)
-//    { rc = uftx_getline(fd[0],mybuff,sizeof(mybuff)); /* get a line */
-//    { rc = uftx_getline(ufd->fd0,mybuff,sizeof(mybuff));
+/*    { rc = uftx_getline(fd[0],mybuff,sizeof(mybuff)); // get a line */
+/*    { rc = uftx_getline(ufd->fd0,mybuff,sizeof(mybuff));         // */
       { rc = uftx_gets(ufdp,mybuff,sizeof(mybuff)-1);
         p = mybuff;  while (*p <= ' ' && *p != 0x00) p++;
         switch (*p)
@@ -2825,9 +2824,9 @@ int msgmail(char*user,char*text) { return -1; }
  */ 
 void ufts_init()
   {
-    SSL_library_init();                  // Initialize core library
-    OpenSSL_add_all_algorithms();        // Load crypto algorithms
-    SSL_load_error_strings();            // Load error messages
+    SSL_library_init();                 /* Initialize core library    */
+    OpenSSL_add_all_algorithms();       /* Load crypto algorithms     */
+    SSL_load_error_strings();           /* Load error messages        */
 
 #if OPENSSL_VERSION_MAJOR < 3
     ERR_load_BIO_strings();           /* deprecated since OpenSSL 3.0 */
@@ -2881,8 +2880,8 @@ int ufts_open(char*peer,char*prox,struct UFTFD*ufdp)
     if (ufdp == NULL) { errno = EINVAL; return -1; }
 
     /* if a proxy string was provided then try connecting that way    */
-//  if (prox != NULL && *prox != 0x00) return uftx_proxy(temp,prox,ufdp);
-// this is ham-strung until we can figure out better proxy port logic
+/*  if (prox != NULL && *prox != 0x00) return uftx_proxy(temp,prox,ufdp); // */
+/* this is ham-strung until we can figure out better proxy port logic     // */
 
     /* tack-on the TLS/SSL port number                                */
     snprintf(temp,sizeof(temp)-1,"%s:%d",peer,UFT_SECPORT);
