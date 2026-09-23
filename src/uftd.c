@@ -1,4 +1,4 @@
-/* Copyright 1995-2025 Richard M. Troth, all rights reserved. <plaintext>
+/* © Copyright 1995-2026 Richard M. Troth, all rights reserved. <plaintext>
  *
  *        Name: uftd.c (C program source)
  *              Universal File Transfer daemon
@@ -75,7 +75,7 @@ int main(int argc,char*argv[])
     char        wffn[64];
     char        *mv[8], bss[16];
 
-    uftcflag = 0x00000000;      /* default */
+    uftcflag = 0x00000000;                     /* reset all flag bits */
 
 #ifdef _UFT_DEBUG
     fprintf(stderr,"UFTD: starting\n");

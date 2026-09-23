@@ -119,6 +119,7 @@ int main(int argc,char*argv[])
     mv[0] = arg0 = uftx_basename(argv[0]);
     mn = mc = rc = 0; mv[1] = "";
     user[0] = host[0] = 0x00;
+    uftcflag = 0x00000000;                     /* reset all flag bits */
 
     /* process command-line options */
     for (i = 1; i < argc && argv[i][0] == '-' &&

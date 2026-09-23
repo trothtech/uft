@@ -1,9 +1,10 @@
-/* Copyright 1994-2026 Richard M. Troth, all rights reserved. <plaintext>
+/* © Copyright 1994-2026 Richard M. Troth, all rights reserved. <plaintext>
  *
  *        Name: uftc.c, sendfile.c (C program source)
  *              Unsolicited (or Universal) File Transfer client
  *              *finally* an Internet SENDFILE for Unix
  *      Author: Rick Troth, Houston, Texas, USA
+ *              Rick Troth, rogue programmer, Cedarville, Ohio, USA
  *        Date: 1994-Jun-30, 1995-Jan-22 ... and following ... 2025, 2026
  *
  */
@@ -39,18 +40,19 @@ int main(int argc,char*argv[])
 
     ptitle = "Internet SENDFILE client";             /* program title */
     ufdp = &ufd;
+    uftcflag = 0x00000000;                     /* reset all flag bits */
 
     /* note command name and set defaults */
             arg0 = uftx_basename(argv[0]);
-    uftcflag = UFT_BINARY;      /* default */
+    uftcflag |= UFT_BINARY;     /* default */
     name = type = class = "";
     auth = "-";                /* no particular authentication scheme */
     copy = 0;
     proxy = "";
-    uftxflag = 0x0000;                         /* reset all flag bits */
+    uftxflag = 0x00000000;                     /* reset all flag bits */
     flga = flgb = "";
     nop = chf = 0;           /* winnowing and chaffing off by default */
-    bs = 0;                 /* zero means block size to be determined */
+    bs = 0;      /* zero means the block size is yet to be determined */
 
     /* process command-line options                                   */
     for (i = 1; i < argc && argv[i][0] == '-' &&
@@ -102,13 +104,21 @@ int main(int argc,char*argv[])
 
 /* ------------------------------------------------------------------ */
             case '-':                          /* long format options */
-                if (uftx_abbrev("--version",argv[i],6) > 0)
-                  { sprintf(temp,"%s: %s %s",arg0,UFT_VERSION,ptitle);
-                    fprintf(stderr,"%s\n",temp);
+                if (uftx_abbrev("--version",argv[i],5) > 0)
+                  { fprintf(stderr,"%s: %s %s\n",arg0,UFT_VERSION,ptitle);
                     return 0; } else           /* exit from help okay */
 
                 if (uftx_abbrev("--verbose",argv[i],6) > 0)
                   { uftcflag |= UFT_VERBOSE; } else
+
+                if (uftx_abbrev("--proxy",argv[i],7) > 0)
+                  { i++; proxy = argv[i]; } else
+
+                if (uftx_abbrev("--dossl",argv[i],7) > 0)
+                  { uftxflag |= UFT_DOSSL; } else
+                if (uftx_abbrev("--nossl",argv[i],7) > 0)
+                  { uftxflag |= UFT_NOSSL; } else
+
                 if (uftx_abbrev("--ascii",argv[i],5) > 0 ||
                     uftx_abbrev("--text",argv[i],6) > 0)
                   { uftcflag &= ~UFT_BINARY; type = "A";
@@ -121,8 +131,6 @@ int main(int argc,char*argv[])
                 if (uftx_abbrev("--ebcdic",argv[i],8) > 0)
                   { uftcflag |= UFT_BINARY; type = "E"; } else
 #endif
-                if (uftx_abbrev("--proxy",argv[i],7) > 0)
-                  { i++; proxy = argv[i]; } else
                 if (uftx_abbrev("--type",argv[i],6) > 0)
                   { i++; type = argv[i]; } else
                 if (uftx_abbrev("--name",argv[i],6) > 0)
@@ -150,11 +158,6 @@ int main(int argc,char*argv[])
                 if (uftx_abbrev("--blocksize",argv[i],4) > 0 ||
                     uftx_abbrev("--bs",argv[i],4) > 0)
                   { i++; bs = atoi(argv[i]); } else
-
-                if (uftx_abbrev("--dossl",argv[i],7) > 0)
-                    uftxflag |= UFT_DOSSL; else
-                if (uftx_abbrev("--nossl",argv[i],7) > 0)
-                    uftxflag |= UFT_NOSSL; else
 
                   { mv[0] = arg0; mv[1] = argv[i];
                     rc = uftx_msgprtl(3,"CLI",2,mv);

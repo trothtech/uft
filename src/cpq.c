@@ -1,14 +1,19 @@
-/* © Copyright 1995-2025, Richard M. Troth, all rights reserved. <plaintext>
+/* © Copyright 1995-2026, Richard M. Troth, all rights reserved. <plaintext>
  *
  *        Name: cpq.c (C program source)
  *              for BITNET folks with a habit, CPQuery <something>
  *      Author: Rick Troth, Houston, Texas, USA
+ *              Rick Troth, rogue programmer, Cedarville, Ohio, USA
  *        Date: 1995-Oct-15 and following
  *
+ *        Note: 'cpq' was a popular command on BITNET reporting useful
+ *              information about remote nodes (or even your own)
  */
 
 #include <string.h>
 #include <stdio.h>
+
+#include <errno.h>
 
 #ifdef UFT_SSL
  #include <openssl/ssl.h>
@@ -16,13 +21,12 @@
 #endif
 
 #include "uft.h"
-#include <errno.h>
 
 extern int uftcflag;
 
 /* ------------------------------------------------------------------ */
 int main(int argc,char*argv[])
-  {
+  { static char _eyecatcher[] = "cpq.c main()";
     char        temp[4096], cpqs[4096], *host, *proxy, *arg1;
     int         rc, i, j;
     char       *arg0, *p, *ptitle, *mv[8];
@@ -30,13 +34,14 @@ int main(int argc,char*argv[])
 
     ptitle = "Remote CPQUERY client";                /* program title */
     ufdp = &ufd;
+    uftcflag = 0x00000000;                     /* reset all flag bits */
 
     /* note command name and set defaults */
     arg0 = uftx_basename(argv[0]);
     host = "localhost";
     proxy = "";
 
-    /* process command-line options */
+    /* process command-line options                                   */
     for (i = 1; i < argc && argv[i][0] == '-' &&
                             argv[i][1] != 0x00; i++)
       { switch (argv[i][1])
@@ -50,33 +55,41 @@ int main(int argc,char*argv[])
 
 /* ------------------------------------------------------------------ */
             case '-':                          /* long format options */
-                if (uftx_abbrev("--version",argv[i],6) > 0)
-                  { fprintf(stderr,"%s: %s Remote CPQUERY client\n",
-                                arg0,UFT_VERSION);
+                if (uftx_abbrev("--version",argv[i],5) > 0)
+                  { fprintf(stderr,"%s: %s %s\n",arg0,UFT_VERSION,ptitle);
 #ifdef UFT_SSL
  #ifdef OPENSSL_VERSION_TEXT
                     fprintf(stderr,"%s\n",OPENSSL_VERSION_TEXT);
  #endif
 #endif
                     return 0; } else           /* exit from help okay */
-                if (uftx_abbrev("--host",argv[i],6) > 0)
-                  { i++; host = argv[i]; } else
-                if (uftx_abbrev("--proxy",argv[i],7) > 0)
-                  { i++; proxy = argv[i]; } else
+
                 if (uftx_abbrev("--verbose",argv[i],6) > 0)
                   { uftcflag |= UFT_VERBOSE; } else
-                  { sprintf(temp,"%s: invalid option %s",
-                                arg0,argv[i]);
-                    fprintf(stderr,"%s\n",temp);
+
+                if (uftx_abbrev("--proxy",argv[i],7) > 0)
+                  { i++; proxy = argv[i]; } else
+
+                if (uftx_abbrev("--dossl",argv[i],7) > 0)
+                  { uftcflag |= UFT_DOSSL; } else
+                if (uftx_abbrev("--nossl",argv[i],7) > 0)
+                  { uftcflag |= UFT_NOSSL; } else
+
+                if (uftx_abbrev("--host",argv[i],6) > 0)
+                  { i++; host = argv[i]; } else
+
+                  { mv[0] = arg0; mv[1] = argv[i];
+                    rc = uftx_msgprtl(3,"CPQ",2,mv);
+                    if (rc < 0) fprintf(stderr,"%s: invalid option %s\n",arg0,argv[i]);
                     return 1; }             /* exit on invalid option */
                     break;
 /* ------------------------------------------------------------------ */
 
-            default:    sprintf(temp,"%s: invalid option %s",
-                                arg0,argv[i]);
-                        fprintf(stderr,"%s\n",temp);
-                        return 1;           /* exit on invalid option */
-                        break;
+            default: mv[0] = arg0; mv[1] = argv[i];
+                rc = uftx_msgprtl(3,"CPQ",2,mv);
+                if (rc < 0) fprintf(stderr,"%s: invalid option %s\n",arg0,argv[i]);
+                return 1;                   /* exit on invalid option */
+                break;
           }
       }
 
@@ -95,12 +108,15 @@ int main(int argc,char*argv[])
       { fprintf(stderr,"Usage: %s [-h <host>] <something>\n",argv[0]);
         return 1; }
 
-    /* try now to connect with the server (TCP, proxy, SSL)           */
-    rc = ufts_open(host,proxy,ufdp); if (rc < 0)
-    rc = uftx_open(host,proxy,ufdp);
+    /* try first to connect with our peer using SSL                   */
+    if (uftcflag & UFT_NOSSL) rc = -1; else    /* unless avoiding SSL */
+    rc = ufts_open(host,proxy,ufdp);                    /* so try SSL */
+    if (rc != 0) {    /* if TLS/SSL failed then retry using cleartext */
+    if (uftcflag & UFT_DOSSL) rc = -1; else   /* unless requiring SSL */
+    rc = uftx_open(host,proxy,ufdp); }            /* so try cleartext */
     if (rc != 0) { if (errno != 0) perror(host);
         mv[0] = arg0; mv[1] = host;  /* cannot connect to target host */
-        uftx_msgprtl(20,"CLI",2,mv);   /* 20 E target UFT not reached */
+        uftx_msgprtl(20,"CPQ",2,mv);   /* 20 E target UFT not reached */
         return 1; }
     /* r = ufd.fd0 for read and s = ufd.fd1 for send */
 
@@ -112,7 +128,7 @@ int main(int argc,char*argv[])
     if (rc < 0) { if (errno != 0) perror(host);
         uftx_close(ufdp);                     /* close the connection */
         mv[0] = arg0; mv[1] = host;      /* failed herald from target */
-        uftx_msgprtl(21,"CLI",2,mv);    /* 21 E failed reading herald */
+        uftx_msgprtl(21,"CPQ",2,mv);    /* 21 E failed reading herald */
         return 1; }              /* read of herald from server failed */
     if (uftcflag & UFT_VERBOSE) fprintf(stderr,"%s\n",temp);
 

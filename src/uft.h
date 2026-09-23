@@ -38,11 +38,11 @@
 /* the version number and copyright */
 #define         UFT_PROTOCOL    "UFT/2"
 #ifndef         UFT_VERSION
- #define        UFT_VERSION     "POSIXUFT/2.1.3"
+ #define        UFT_VERSION     "POSIXUFT/2.1.4"
 #endif
 #define         UFT_COPYRIGHT   "© Copyright 1995-2026 Richard M. Troth"
-#define         UFT_VRM         "2.1.3"
-#define    UFT_VERINT    (((2) << 24) + ((1) << 16) + ((3) << 8) + (0))
+#define         UFT_VRM         "2.1.4"
+#define    UFT_VERINT    (((2) << 24) + ((1) << 16) + ((4) << 8) + (0))
 
 #ifndef         UFT_TAG
  #define        UFT_TAG         "UFT"
@@ -206,15 +206,15 @@ time  year (4)
  */
 
 /* varying connection types */
-#define         UFT_FD_SOCKET   0x0001
-#define         UFT_FD_PROXY    0x0002
-#define         UFT_FD_SSL      0x0004
-#define         UFT_FD_CLIENT   0x0010
-#define         UFT_FD_SERVER   0x0020
+#define         UFT_FD_SOCKET   0x0001         /* ufdp->fdt */
+#define         UFT_FD_PROXY    0x0002         /* ufdp->fdt */
+#define         UFT_FD_SSL      0x0004         /* ufdp->fdt */
+#define         UFT_FD_CLIENT   0x0010         /* ufdp->fdt */
+#define         UFT_FD_SERVER   0x0020         /* ufdp->fdt */
 
 typedef struct  UFTFD   {
-      int       fd0;            /* for read operations                */
-      int       fd1;            /* for write operations               */
+      int       fd0;            /* FD for read operations             */
+      int       fd1;            /* FD for write operations            */
       int       fdt;            /* FD "type" (see constants above)    */
       void      *fdssl;         /* pointer to SSL struct if any       */
       void      *fdctx;         /* pointer to SSL context struct      */
@@ -233,8 +233,8 @@ static char *uft_copyright = UFT_COPYRIGHT;
  */
 
 /* flags */
-#define         MSG_IDENT               0x0001
-#define         MSG_VERBOSE             0x0002
+#define         MSG_IDENT       0x0001
+#define         MSG_VERBOSE     0x0002
 
 #define         MSG_MSP_HOST            "localhost"
 #define         MSG_MSP_PORT            18

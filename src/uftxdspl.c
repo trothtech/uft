@@ -31,6 +31,7 @@ int main(int argc,char*argv[])
     /* note command name and set defaults */
     mv[0] = arg0 = uftx_basename(argv[0]);
     hold = keep = 0;         /* "treat as held" and "keep (no purge)" */
+    uftcflag = 0x00000000;                     /* reset all flag bits */
 
     /* process command-line options */
     for (i = 1; i < argc && argv[i][0] == '-' &&

@@ -1,4 +1,4 @@
-/* Copyright 2025 Richard M. Troth, all rights reserved. <plaintext>
+/* © Copyright 2025-2026 Richard M. Troth, all rights reserved. <plaintext>
  *
  *        Name: uftlib.c (C program source)
  *              Unsolicited File Transfer client/server library
@@ -8,7 +8,7 @@
  *        Note: This is in response to the need for an actual LIBRARY.
  *              Individual functions will move here as needed.
  *
- *        Note: This is for UFT but includes MSG functions also.
+ *        Note: This library is for UFT but includes MSG functions also.
  *
  */
 
@@ -884,6 +884,7 @@ int uftx_putline(int s,char*b,int l)
  *    The FILE command provides two things we need for this:
  *      the name of the sender, and
  *      an authentication token (if available)
+ *    The MSG command then conveys the actual message.
  */
 int msgc_uft(char*user,char*text,char*proxy)
   { static char _eyecatcher[] = "msgc_uft()";
@@ -916,12 +917,14 @@ int msgc_uft(char*user,char*text,char*proxy)
     host = p;
 
     /* try first to connect with our peer using SSL                   */
-    rc = ufts_open(host,proxy,ufdp);
-    if (rc != 0)      /* if TLS/SSL failed then retry using cleartext */
-    rc = uftx_open(host,proxy,ufdp);
-    if (rc != 0) { /* if (errno != 0) perror(host); */
+    if (uftcflag & UFT_NOSSL) rc = -1; else    /* unless avoiding SSL */
+    rc = ufts_open(host,proxy,ufdp);                    /* so try SSL */
+    if (rc != 0) {    /* if TLS/SSL failed then retry using cleartext */
+    if (uftcflag & UFT_DOSSL) rc = -1; else   /* unless requiring SSL */
+    rc = uftx_open(host,proxy,ufdp); }            /* so try cleartext */
+    if (rc != 0) { if (errno != 0) perror(host);
         mv[0] = ""; mv[1] = host;    /* cannot connect to target host */
-        uftx_msgprtl(20,"CLI",2,mv);   /* 20 E target UFT not reached */
+        uftx_msgprtl(20,"LIB",2,mv);   /* 20 E target UFT not reached */
         return -1; }
 
     /* look for the herald */
@@ -1488,7 +1491,7 @@ int uftx_read(struct UFTFD*ufdp,char*buffer,int buflen)
             return read(ufdp->fd0,buffer,buflen);
             break;
         case UFT_FD_SSL:
-            return ufts_read(ufdp,buffer,buflen);
+            return ufts_read(ufdp,buffer,buflen);         /* SSL read */
             break;
         default: break; }
 
@@ -1526,7 +1529,7 @@ int uftx_gets(struct UFTFD*ufdp,char*buffer,int buflen)
             rc = read(ufdp->fd0,p,1); if (rc != 1) return -1;
             break;
         case UFT_FD_SSL:
-            rc = ufts_read(ufdp,p,1);
+            rc = ufts_read(ufdp,p,1);                     /* SSL read */
             break;
         default: break; }
 
@@ -1576,7 +1579,7 @@ int uftx_write(struct UFTFD*ufdp,char*buffer,int buflen)
             return write(ufdp->fd1,buffer,buflen);
             break;
         case UFT_FD_SSL:
-            return ufts_write(ufdp,buffer,buflen);
+            return ufts_write(ufdp,buffer,buflen);       /* SSL write */
             break;
         default: break; }
 
