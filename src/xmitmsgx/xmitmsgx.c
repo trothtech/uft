@@ -320,7 +320,7 @@ int xmopen(char*fn,int opts,struct MSGSTRUCT*ms)
     rc = fd = xm_findfile(file,ms);   /* find and open the repository */
 
 #ifdef __VM__
-    /* do stuff for VM/CMS in here - cms 'pipe xmmshim'               */
+    /* do stuff for VM/CMS in here - cms 'xmmshim' macro command      */
     ms->msgmax = 9999;         /* CMS handles it so go to four digits */
     ms->escape = NULL;          /* we won't know the escape character */
     ms->msgopts = opts;
@@ -776,12 +776,12 @@ int xm_make_cms(struct MSGSTRUCT*ms)
     checkchars[8] = '&';              /* ampersand means "background" */
     checkchars[9] = 0x00;                   /* NULL marks end of list */
 
-//  char *prefix;       /* default is applid[0..2]||caller[0..2] */
-//  ms->prefix
-//  ms->applid
-//  ms->caller
-//  ms->pfxmaj
-//  ms->pfxmin
+/*  char *prefix;       // default is applid[0..2]||caller[0..2]      */
+/*  ms->prefix                                                     // */
+/*  ms->applid                                                     // */
+/*  ms->caller                                                     // */
+/*  ms->pfxmaj                                                     // */
+/*  ms->pfxmin                                                     // */
 
     /* build a concatenation of all supplied replacement tokens       */
     j = 0;
@@ -800,10 +800,10 @@ fprintf(stderr,"looping on '%s' %d\n",p,i);
     /* now drive our shim to invoke XMITMSG command in CMS            */
     p = getenv("SHELL");
     if (p != NULL && *p != 0x00)    /* if we have a shell then use it */
-    sprintf(x2,"cms 'pipe xmmshim %d %s %s %x %d %s'",
+    sprintf(x2,"cms 'xmmshim %d %s %s %x %d %s'",
             ms->msgnum,ms->pfxmaj,ms->pfxmin,ms->msgbuf,ms->msglen,x1);
     else          /* otherwise go directly to the CMS command handler */
-    sprintf(x2,"pipe xmmshim %d %s %s %x %d %s",
+    sprintf(x2,"xmmshim %d %s %s %x %d %s",
             ms->msgnum,ms->pfxmaj,ms->pfxmin,ms->msgbuf,ms->msglen,x1);
 fprintf(stderr,"%s\n",x2);
     rc = system(x2);

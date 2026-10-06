@@ -38,10 +38,10 @@
 /* the version number and copyright */
 #define         UFT_PROTOCOL    "UFT/2"
 #ifndef         UFT_VERSION
- #define        UFT_VERSION     "POSIXUFT/2.1.4"
+ #define        UFT_VERSION     "POSIXUFT/2.1.5"
 #endif
 #define         UFT_COPYRIGHT   "© Copyright 1995-2026 Richard M. Troth"
-#define         UFT_VRM         "2.1.4"
+#define         UFT_VRM         "2.1.5"
 #define    UFT_VERINT    (((2) << 24) + ((1) << 16) + ((4) << 8) + (0))
 
 #ifndef         UFT_TAG
@@ -93,6 +93,7 @@
 /* define       UFT_BUFSIZ      65024 */
 /* reduced from 64K-512 to 32K-512 for more reliable file transfer    */
 #define         UFT_BUFSIZ      32256
+#define         UFT_BIGSIZ      1048576
 
 /* the following struct is best used for active UFT files             */
 typedef struct  UFTFILE {
@@ -328,11 +329,11 @@ int uftopen(const char*,int,mode_t);
 
 int uft_readspan(int,char*,int);
 
-int uftddata(int,int,int);
+int uftddata(int,int,int);        /* rolled into uftlib.c as of 2.1.5 */
 int uftdnext();
-int uftduser(char*);
-int uftdmove(int,int);
-int uftdlist(int,char*);
+int uftduser(char*);              /* rolled into uftlib.c as of 2.1.5 */
+int uftdmove(int,int);            /* rolled into uftlib.c as of 2.1.5 */
+int uftdlist(int,char*);          /* rolled into uftlib.c as of 2.1.5 */
 int uftctext(int,char*,int);
 char*uftcprot(mode_t);
 int uftx_abbrev(char*,char*,int);

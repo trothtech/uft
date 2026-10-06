@@ -2984,4 +2984,257 @@ The client connects to the server, performs an SSL handshake, and uses SSL_write
 
  */
 
+/* © Copyright 1995-2025 Richard M. Troth, all rights reserved. <plaintext>
+ *
+ *        Name: uftddata.c (C program source)
+ *              Unsolicited File Transfer daemon "data" routine
+ *
+ *        Note: This source merged into uftlib.c as of 2.1.5 2026-10-06.
+ *              Also increased the buffer size as of 2.1.5 (same time),
+ *              switching from UFT_BUFSIZ to UFT_BIGSIZ constant.
+ */
+
+/* ------------------------------------------------------------ UFTDDATA
+ *  Similar calling syntax to read(),
+ *  from, to, count,  in this case  fd, fd, int.
+ *        NOTE: This routine does NOT perform character set translation.
+ */
+int uftddata(int o,int i,int n)
+  { static char _eyecatcher[] = "uftddata()";
+    int         j, k, l, m;
+    char        b[UFT_BIGSIZ];
+    l = n;
+    while (l > 0)
+      { m = l; if (m > UFT_BIGSIZ) m = UFT_BIGSIZ;
+        j = tcpread(i,b,m);     if (j < 0) return j;
+        k = tcpwrite(o,b,j);    if (k < 0) return k;
+        /* conundrum: if k != j then what?? */
+        l -= j; }
+    return n;
+  }
+
+/* © Copyright 1995-2025, Richard M. Troth, all rights reserved.  <plaintext>
+ *
+ *        Name: uftduser.c (C program source)
+ *              Unsolicited File Transfer daemon "user" function
+ *              Returns a non-negative uid on success.
+ *              Returns zero (root) for valid queues
+ *              which have no real user to back them up.
+ *
+ *              Thanks to Bill Hunter at the University of Alabama
+ *              for reporting certain problems with AIX here.
+ *
+ *        Note: This source merged into uftlib.c as of 2.1.5 2026-10-06.
+ */
+
+/* ------------------------------------------------------------ UFTDUSER
+ *  Move into the specified user's UFT sub-dir, possibly creating it,
+ *  and try to seteuid() to that user too.
+ */
+int uftduser(char*user)
+  { static char _eyecatcher[] = "uftduser()";
+    int         i, uuid;
+    struct passwd *pwdent;
+
+    /* we'll try to make this non-zero later */
+    uuid = 0;
+
+    /* pseudo-users are supported;  that is,  one can 'sendfile'
+        to a user that doesn't exist iff the sub-directory exists */
+#if defined(_WIN32) || defined(_WIN64)
+    pwdent = NULL;
+#else
+    pwdent = getpwnam(user);
+#endif
+
+    /* does the directory exist already? */
+    i = chdir(user);
+
+    /* if we are avoiding metadata leakage then try "anonymous" */
+#ifdef          UFT_ANONYMOUS
+    if (i < 0 && errno == ENOENT) i = chdir("anonymous");
+#endif
+
+    /* some error; should we create a sub-dir? */
+#if defined(_WIN32) || defined(_WIN64)
+    if (i < 0 && errno == ENOENT)
+      { mkdir(user); i = chdir(user); }
+    uuid = i;
+#else
+    if (i < 0 && errno == ENOENT)
+      { if (pwdent == NULL) return -1;
+        if (mkdir(user,0770) < 0) return i;
+        if (pwdent != NULL)
+        (void) chown(user,pwdent->pw_uid,UFT_GID);
+        i = chdir(user); }
+
+    /* errors persist!  bail out! */
+    if (i < 0) return i;
+
+    /* if the user exists,  try chowning the SEQuence file(s)
+        and the directory,  if that works,  set effective UID */
+    if (pwdent != NULL)
+      { uuid = pwdent->pw_uid;
+        (void) chown(UFT_SEQFILE,uuid,UFT_GID);
+        (void) chmod(UFT_SEQFILE,0660);
+        (void) chown(UFT_SEQFILE_ALT,uuid,UFT_GID);
+        (void) chmod(UFT_SEQFILE_ALT,0660);
+        if (chown(".",uuid,UFT_GID) == 0) (void) seteuid(uuid); }
+#endif
+
+    /* return the uid (non-negative) on success */
+    return uuid;
+  }
+
+/* © Copyright 1995-2025, Richard M. Troth, all rights reserved.  <plaintext>
+ *
+ *        Name: uftdmove.c (C program source)
+ *              Unsolicited File Transfer daemon "move" routine
+ *              Moves control file contents accumulated thus far
+ *              from server space into user space.
+ *
+ *        Note: This source merged into uftlib.c as of 2.1.5 2026-10-06.
+ */
+
+/* ------------------------------------------------------------ UFTDMOVE
+ */
+int uftdmove(int a,int b)
+  { static char _eyecatcher[] = "uftdmove()";
+    int         i, j;
+    char        q[4096];
+    (void) lseek(b,0,0);        /*  "rewind"  */
+    while (1)
+      { i = tcpread(b,q,4096);
+        if (i < 1) break;
+        j = tcpwrite(a,q,i);
+        if (j < i) break; }
+    return 0;
+  }
+
+/* Copyright 1995-2025 Richard M. Troth, all rights reserved. <plaintext>
+ *
+ *        Name: uftdlist.c (C program source)
+ *              list a network file after arrival
+ *      Author: Rick Troth, Decatur, Alabama, USA
+ *        Date: 1995-Nov-22
+ *
+ *              This function writes a one-line file
+ *              whose contents mimic  'ls -l'  output,
+ *              but for "network files" available to the user
+ *              rather than ordinary files in a filesystem.
+ *
+ *        Note: This source merged into uftlib.c as of 2.1.5 2026-10-06.
+ *
+ *        Note: This routine should switch to using UFTSTAT instead of UFTFILE.
+ */
+
+/*  there's gotta be a better way to do this than to hard-code it!  */
+static  char  *mon[]  =
+                {       "Jan", "Feb", "Mar", "Apr",
+                        "May", "Jun", "Jul", "Aug",
+                        "Sep", "Oct", "Nov", "Dec"  } ;
+/*  but I haven't learned enough UNIX yet
+    to know where months are localized ... what headers? functions?   */
+
+struct  UFTFILE  uftfile0;
+
+/*  ----------------------------------------------------------- UFTDLIST
+ */
+int uftdlist(int seqn,char*from)
+  { static char _eyecatcher[] = "uftdlist()";
+
+    char        string[80];
+    int         fd, i;
+    char        *p, user[9], host[9], name[17];
+
+    time_t  t0 ;   struct  tm  *t1 ;
+
+    t0 = time(NULL);
+    t1 = localtime(&t0);
+
+    /*  open a listing file for this UFT object  */
+    (void) sprintf(string,"%04d.lf",seqn);
+    fd = open(string,O_RDWR|O_CREAT,S_IRUSR);
+    if (fd < 0) return fd;
+
+    /*  truncate excesses  */
+    (void) strncpy(name,uftfile0.name,16);
+    name[16] = 0x00;
+
+    p = uftfile0.from;
+    for (i = 0 ; i < 8 ; i++)
+      { if (*p == 0x00) break;
+        if (*p == '@') break;
+        user[i] = *p++; }
+    user[i] = 0x00;
+    if (user[0] == 0x00) { user[0] = '-'; user[1] = 0x00; }
+
+    if (*p == '@') p++;
+    for (i = 0 ; i < 8 ; i++)
+      { if (*p == 0x00) break;
+        /*  if (*p == '.') break;  */
+        host[i] = *p++; }
+    host[i] = 0x00;
+    if (host[0] == 0x00) { host[0] = '-'; host[1] = 0x00; }
+
+    /*  build an 'ls'-style list entry for this UFT file  */
+    (void) sprintf(string,
+"%c%c%c%c%c%c%c%c%c%c %3d %-8s %-8s %8d %3s %02d %02d:%02d %04d %s",
+                uftfile0.type[0], uftfile0.cc[0],
+                uftfile0.hold[0], uftfile0.class[0],
+                uftfile0.devtype[0], uftfile0.keep[0], uftfile0.msg[0],
+                '-',    '-',    '-',
+                uftfile0.copies, user, host, uftfile0.size,
+                mon[t1->tm_mon], t1->tm_mday, t1->tm_hour, t1->tm_min,
+                seqn, uftfile0.name);
+
+    /*  write the record  */
+    (void) uftx_putline(fd,string,0);
+
+    (void) close(fd);
+
+    return 0;
+  }
+
+/*
+        Assignments of the left 10 byte positions:
+
+        TYPE
+
+        r CC            ASA (A) or "machine" (M) or none (dash)
+        w HOLD          none (dash), user (H), system (S), both (D)
+        x CLASS         first letter or none (dash)
+
+        r DEVTYPE       PRT (T) or PUN (U) or none (dash)
+        w KEEP
+        x MSG
+
+        r ...
+        w ...
+        x ...
+
+        Not processed: FORM DIST DEST
+ */
+
+/*
+
+for ordinary files:
+-uuugggooo lnk owner... group... ....size mon dd time  name
+trwxrwxrwx --- -------- -------- -------- --- -- ----- ----------------...
+-rw-r--r--   1 troth    root          282 Oct 13 22:31 uftdlist.c
+-rw-r--r--   1 troth    root          281 Nov 22  1995 uftdlist.c;1
+
+for network spool files:
+tqhcdkm--- cpy user     host         size mon dd time  sqid name
+---------- --- -------- -------- -------- --- -- --:-- ---- ----------------
+||||||\___ msg (M) nomsg (-)
+|||||\____ keep (K) consume (-)
+||||\_____ devtype (prT, Con, pUn)
+|||\______ class (A, B, C, etc.)
+||\_______ hold (H) nohold (-)
+|\________ CC (Asa, Machine, none)
+\_________ type (I or A)
+
+ */
+
 

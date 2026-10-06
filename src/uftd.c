@@ -34,8 +34,7 @@ char       *arg0;
 int         tffd,     cffd,     dffd,     effd;       /* file handles */
 char        tffn[64], cffn[64], dffn[64], effn[64];     /* file names */
 
-struct  UFTFILE  uftfile0;
-
+extern struct  UFTFILE  uftfile0;
 extern int uftcflag, uftlogfd;               /* uftlogfd follows tffd */
 
 /* ----------------------------------------------------------- UFTD_PREF
