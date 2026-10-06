@@ -94,6 +94,23 @@ header files for OpenSSL installed. Then `make` as you would normally.
 This has been tested with several levels of OpenSSL.
 Depending on your build environment, `LIBS` might also need `-lpthread`.
 
+## Compiling
+
+There are two reference makefiles: `makefile-ssl.in` to build UFT
+*without* SSL support and `makefile+ssl.in` to build UFT *with*
+SSL support. Copy one or the other to `makefile.in` in order for the
+`configure` script to find and use it.
+
+The code and the build logic are set for OpenSSL and should also work
+with LibreSSL. (In testing, they are interchangeable.)
+
+On development systems, we use a software packaging scheme called Chicory
+which leads to the `-L/usr/opt/openssl/lib` and `-I/usr/opt/openssl/include`
+flags seen in the supplied makefiles. If those flags cause trouble, you
+will have to remove them manually (from the makefile). If you have
+installed OpenSSL or LibreSSL to a different location than standard,
+you will have to change those flags accordingly.
+
 ## Bugs
 
 The above `openssl s_client` proxy command requires OpenSSL version 3.

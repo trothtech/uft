@@ -1,6 +1,6 @@
 # Copyright 1995-2026 Richard M. Troth, all rights reserved. <plaintext>
 #
-#         Name: makefile+ssl.in
+#         Name: makefile-ssl.in
 #               make file source for UFTD and UFTC (Internet SENDFILE)
 #               to be modified by 'configure' and written as "makefile"
 #         Date: 1995-Jan-10, Oct-05, 1997-Feb-02, 2024-03-17
@@ -18,12 +18,12 @@ SOURCEURL       =       https://raw.githubusercontent.com/trothtech/uft/refs/hea
 
 PREFIX          =       %PREFIX%
 LDFLAGS         =       %LDFLAGS%
-#LIBS           =       %LIBS%
+LIBS            =       %LIBS%
 #LIBS           =       %LIBS% -lssl -lcrypto
-LIBS            =       %LIBS% -L/usr/opt/openssl/lib -lssl -lcrypto
-#CFLAGS         =       %CFLAGS% -DPREFIX=\"$(PREFIX)\"
+#LIBS           =       %LIBS% -L/usr/opt/openssl/lib -lssl -lcrypto
+CFLAGS          =       %CFLAGS% -DPREFIX=\"$(PREFIX)\"
 #CFLAGS         =       %CFLAGS% -DPREFIX=\"$(PREFIX)\" -DUFT_SSL
-CFLAGS          =       %CFLAGS% -DPREFIX=\"$(PREFIX)\" -DUFT_SSL -I/usr/opt/openssl/include
+#CFLAGS         =       %CFLAGS% -DPREFIX=\"$(PREFIX)\" -DUFT_SSL -I/usr/opt/openssl/include
 SHFLAGS         =       %SHFLAGS%
 # we may later use CC, CXX, CPP, CPPFLAGS, and/or CXXFLAGS
 
