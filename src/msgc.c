@@ -64,6 +64,8 @@ int main(int argc,char*argv[])
                 if (uftx_abbrev("--proxy",argv[i],7) > 0)
                   { i++; proxy = argv[i]; } else
 
+                /* set the global flag because this program           *
+                 * does not drive the open() calls directly           */
                 if (uftx_abbrev("--dossl",argv[i],7) > 0)
                   { uftcflag |= UFT_DOSSL; } else
                 if (uftx_abbrev("--nossl",argv[i],7) > 0)

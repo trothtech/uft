@@ -39,11 +39,12 @@ int main(int argc,char*argv[])
     UFTFD   ufd, *ufdp;
 
     ptitle = "Internet SENDFILE client";             /* program title */
+
     ufdp = &ufd;
     uftcflag = 0x00000000;                     /* reset all flag bits */
 
     /* note command name and set defaults */
-            arg0 = uftx_basename(argv[0]);
+            mv[0] = arg0 = uftx_basename(argv[0]);
     uftcflag |= UFT_BINARY;     /* default */
     name = type = class = "";
     auth = "-";                /* no particular authentication scheme */
@@ -182,7 +183,7 @@ int main(int argc,char*argv[])
 
     /* be sure we still have enough args (min 2) left over */
     if ((argc - i) < 2)
-      { /* (void) system("xmitmsg -2 386"); */
+      { /* system("xmitmsg -2 386"); */
         (void) sprintf(temp,
                 "Usage: %s [ -a | -i ] <file> [to] <someone>",arg0);
         fprintf(stderr,"%s\n",temp);
@@ -282,7 +283,7 @@ int main(int argc,char*argv[])
     rc = uftx_open(host,proxy,ufdp); }            /* so try cleartext */
     if (rc != 0) { if (errno != 0) perror(host);
         mv[0] = arg0; mv[1] = host;  /* cannot connect to target host */
-        uftx_msgprtl(20,"CLI",2,mv);   /* 20 E target UFT not reached */
+        uftx_msgprtl(1049,"CLI",2,mv); /* 20 E target UFT not reached */
         close(fd0); return 1; }
     if (uftcflag & UFT_VERBOSE) {
 if (ufd.fdt == UFT_FD_SOCKET) fprintf(stderr,"connection is standard TCP\n");   /* TRIAGE */
@@ -293,7 +294,7 @@ if (ufd.fdt == UFT_FD_SSL) fprintf(stderr,"connection is SSL\n");   /* TRIAGE */
      *    222  ibmisv.casita.net       UFT/2  VMCMSUFT/2.1    32256 ; ready.
      *    223  testcentos7.casita.net  UFT/2  POSIXUFT/2.1.2  32256 ; ready.
      *    224  *anonymous              UFT/2  UFT/redacted    32256 ; ready.
-     *     #0  #1                         #2   #3                #4
+     *     #0   #1                      #2     #3              #4
      *  part 0 - the code (typically 222, 223, or 224) any "2" works
      *  part 1 - the host (unless redacted)
      *  part 2 - the protocol

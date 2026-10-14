@@ -1,0 +1,45 @@
+/* © Copyright 2026, Richard M. Troth, all rights reserved. <plaintext>
+ *
+ *        Name: XMMSHIM EXEC
+ *              interface (shim) between C and Rexx+Pipelines for XMM
+ *      Author: Rick Troth, Cedarville, Ohio, USA
+ *              This program is part of the XMITMSG for POSIX project.
+ *        Date: 2026-07-21 (Tue) Augusta/Atlanta
+ */
+ 
+Parse Upper Arg xc xa xq xx xl xs "(" . ")" .
+xk = "E0"                  /* STORMAP shows this key for "USER" pages */
+ 
+Address "COMMAND"
+ 
+/* query the currently loaded message repositories                    */
+'PIPE COMMAND QUERY LANGUAGE ALL' ,
+    '| DROP FIRST | JOIN 1 / / | STEM LA.'
+If rc ^= 0 Then Exit rc
+ 
+/* scan the list for our the message repository for this application  */
+_doadd = 1
+Do i = 1 to la.0
+    Parse Var la.i la .
+    If la = xa Then _doadd = 0 ; End
+If _doadd Then Do
+    Address "COMMAND" 'SET LANGUAGE (ADD' xa 'USER'
+    If rc ^= 0 Then Exit rc ; End
+ 
+/* parse the delimited string into component tokens                   */
+Parse Var xs +0 xd +1 xs
+xd = '00'x || xd || '00'x
+'PIPE VAR XS | SPLIT AT' xd '| STEM XT.'
+If rc ^= 0 Then Exit rc
+ 
+/* create a list-o-vars to be passed to 'xmitmsg'                     */
+xv = "" ; Do i = 1 to xt.0 ; xv = xv "XT." || i ; End
+ 
+/* run 'xmitmsg' in a Pipeline for to capture the output to memory    */
+'PIPE CMS xmitmsg' xc xv '(applid' xa 'caller' xq ,
+    '| take first | spec 1-* 1 x00 n | storage' xx xl xk
+If rc ^= 0 Then Exit rc
+ 
+Exit 0
+ 
+ 

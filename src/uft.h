@@ -56,6 +56,7 @@
  /* the TCP port for UUCP is 540 (see /etc/services) for one example  */
 #endif
 
+/* not to be confused with /usr/libexec/uftd, this is a *directory    */
 #ifndef         UFT_PIPESDIR
  #define        UFT_PIPESDIR    "/usr/libexec/uft"
 #endif
@@ -125,7 +126,7 @@ typedef struct  UFTFILE {
 
 #define         UFT_B64_CODE    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 
-/*    RDR FILE >this< SENT FROM $from RDR WAS yadda yadda */
+/*    RDR FILE $this SENT FROM $from RDR WAS yadda yadda */
 #define         UFT_TYPE_A_EXPANSION    "TXT" /* "ASCII" */ 
 #define         UFT_TYPE_B_EXPANSION    "BIN"
 #define         UFT_TYPE_C_EXPANSION    "PRT"
@@ -138,7 +139,7 @@ typedef struct  UFTFILE {
 #define         UFT_TYPE_V_EXPANSION    "VAR" /* or "V16" */
 /*
       RDR FILE $FILE SENT FROM $RSCS RDR WAS #### ####
-      xxx FILE nnnn  SENT FROM u@h
+      xxx FILE $nnnn SENT FROM $user@$host
   93      File &1 received from &2 sent as &3
  */
 
@@ -216,7 +217,7 @@ time  year (4)
 typedef struct  UFTFD   {
       int       fd0;            /* FD for read operations             */
       int       fd1;            /* FD for write operations            */
-      int       fdt;            /* FD "type" (see constants above)    */
+      int       fdt;            /* "type" (see constants above)       */
       void      *fdssl;         /* pointer to SSL struct if any       */
       void      *fdctx;         /* pointer to SSL context struct      */
                         } UFTFD;
