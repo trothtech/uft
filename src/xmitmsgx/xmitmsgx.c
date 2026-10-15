@@ -105,6 +105,7 @@ static struct MSGSTRUCT *msglobal = NULL, msstatic;
 /* --------------------------------------------------------- XM_BASENAME
  *    This routine exists purely because of a segmentation fault
  *    when invoking stock basename() on a recent FreeBSD installation.
+ *
  *    NOTE: this routine is NOT prototyped and not called externally
  */
 char*xm_basename(char*path)
@@ -123,6 +124,7 @@ char*xm_basename(char*path)
  *    Returns: an open file descriptor on success or negative on error
  *    The underlying system calls will have set errno appropriately.
  *    This routine will have set ms->msgfile and ms->applid if success.
+ *
  *    NOTE: this routine is NOT prototyped and not called externally
  */
 int xm_findfile(char*fn0,struct MSGSTRUCT*ms)
@@ -275,7 +277,7 @@ int xm_findfile(char*fn0,struct MSGSTRUCT*ms)
         rc = fd = open(filename,O_RDONLY);
         if (rc >= 0) return fd; }              /* localeDIRs loop end */
 
-    /* if all attempts fail then return an error indication */
+    /* if all attempts fail then return an error indication           */
     ms->msgfile = NULL;
     ms->locale[0] = 0x00;
     ms->applid[0] = 0x00;

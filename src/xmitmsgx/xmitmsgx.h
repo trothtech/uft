@@ -11,8 +11,8 @@
 #ifndef _XMITMSGX_H
 #define _XMITMSGX_H
 
-/* xmitmsgx-2.3.1            v2            r3            m1           */
-#define  XMITMSGX_VERSION  (((2) << 24) + ((3) << 16) + ((1) << 8) + (0))
+/* xmitmsgx-2.3.2            v2            r3            m2           */
+#define  XMITMSGX_VERSION  (((2) << 24) + ((3) << 16) + ((2) << 8) + (0))
 /* version 2.3.1 adds initial support for 'XMITMSG' on VM/CMS         */
 /* version 2.2.9 adds xm_findfile() internal locale search function   */
 /* version 2.2.8 removes "extern" from prototype statements (below)   */

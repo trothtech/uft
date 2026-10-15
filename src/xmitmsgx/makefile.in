@@ -9,7 +9,7 @@
 #
 
 APPLID          =       xmitmsgx
-VERSION         =       2.3.1
+VERSION         =       2.3.2
 
 DELIVERABLES    =       xmitmsg xmiterr xmmlogin libxmitmsgx.a libxmitmsgxdyn.so
 SOURCEURL       =       https://raw.githubusercontent.com/trothtech/xmm/master
@@ -142,6 +142,15 @@ python:
 # Java support (JNI)
 java:
 		@echo "$(MAKE): support for Java is planned"
+
+#
+# flatten the silly hierarchy
+com:
+        @mkdir -p com
+        @if [ ! -h com/casita ] ; then \
+          ln -s . com/casita ; fi
+        @if [ ! -h com/casita/xmitmsgx ] ; then \
+          ln -s .. com/casita/xmitmsgx ; fi
 
 MessageService.class:  MessageService.java
 		javac MessageService.java
@@ -301,6 +310,7 @@ distclean:
 		rm -rf rpmbuild.d debbuild.d
 		@rm -f configure.h configure.sh makefile.old \
 		  xmmconfig.h xmmconfig.sh
+		@rm -f com/casita com/xmitmsgx
 		@rm -f .rpmseq makefile
 
 veryclean:      distclean
