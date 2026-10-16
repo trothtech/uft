@@ -144,6 +144,7 @@ int xm_findfile(char*fn0,struct MSGSTRUCT*ms)
     (void) memset(ms->applid,0x00,sizeof(ms->applid));
     ms->msgmax = 0;
 
+#ifdef _DIRECT_NAME
     /* try the named file directly */
     strncpy(filename,fn,sizeof(filename)-1);
     rc = fd = open(filename,O_RDONLY);
@@ -152,6 +153,7 @@ int xm_findfile(char*fn0,struct MSGSTRUCT*ms)
         snprintf(ms->applid,sizeof(ms->applid),"%s",fn);
         /* NOTE: in this case the locale is not set                   */
         return fd; }
+#endif
 
     /* try the named file + ".msgs" */
     snprintf(filename,sizeof(filename)-1,"%s.msgs",fn);
