@@ -3058,7 +3058,8 @@ int uftduser(char*user)
     /* some error; should we create a sub-dir? */
 #if defined(_WIN32) || defined(_WIN64)
     if (i < 0 && errno == ENOENT)
-      { mkdir(user); i = chdir(user); }
+/*    { mkdir(user); i = chdir(user); }                proper Windows */
+      { mkdir(user,0770); i = chdir(user); }
     uuid = i;
 #else
     if (i < 0 && errno == ENOENT)
