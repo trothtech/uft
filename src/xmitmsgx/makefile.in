@@ -9,7 +9,7 @@
 #
 
 APPLID          =       xmitmsgx
-VERSION         =       2.3.2
+VERSION         =       2.3.3
 
 DELIVERABLES    =       xmitmsg xmiterr xmmlogin libxmitmsgx.a libxmitmsgxdyn.so
 SOURCEURL       =       https://raw.githubusercontent.com/trothtech/xmm/master
@@ -146,11 +146,11 @@ java:
 #
 # flatten the silly hierarchy
 com:
-        @mkdir -p com
-        @if [ ! -h com/casita ] ; then \
-          ln -s . com/casita ; fi
-        @if [ ! -h com/casita/xmitmsgx ] ; then \
-          ln -s .. com/casita/xmitmsgx ; fi
+	@mkdir -p com
+	@if [ ! -h com/casita ] ; then \
+	  ln -s . com/casita ; fi
+	@if [ ! -h com/casita/xmitmsgx ] ; then \
+	  ln -s .. com/casita/xmitmsgx ; fi
 
 MessageService.class:  MessageService.java
 		javac MessageService.java

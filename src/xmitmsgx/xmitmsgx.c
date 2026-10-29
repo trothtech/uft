@@ -32,7 +32,9 @@
 #include <ctype.h>
 
 #include "xmitmsgx.h"
-extern char *xmmprefix;       /* install prefix not appliction prefix */
+/* the following is the library install prefix not to be confused     *
+ * with the application prefix or message repository prefix           */
+extern char *xmmprefix;
 
 /* These are the locale environment variables we will interrogate:    */
 char *localevars[] = {

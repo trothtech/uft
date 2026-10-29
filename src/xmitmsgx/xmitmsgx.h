@@ -9,10 +9,9 @@
  */
 
 #ifndef _XMITMSGX_H
-#define _XMITMSGX_H
 
-/* xmitmsgx-2.3.2            v2            r3            m2           */
-#define  XMITMSGX_VERSION  (((2) << 24) + ((3) << 16) + ((2) << 8) + (0))
+/* xmitmsgx-2.3.3            v2            r3            m3           */
+#define  XMITMSGX_VERSION  (((2) << 24) + ((3) << 16) + ((3) << 8) + (0))
 /* version 2.3.1 adds initial support for 'XMITMSG' on VM/CMS         */
 /* version 2.2.9 adds xm_findfile() internal locale search function   */
 /* version 2.2.8 removes "extern" from prototype statements (below)   */
@@ -123,6 +122,7 @@ int xm_negative(int);
 int xm_deliver(char*,int);
 int xm_make_cms(struct MSGSTRUCT*);
 
+#define _XMITMSGX_H
 #endif
 
 /* some example formats (for future use)
