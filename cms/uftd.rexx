@@ -23,14 +23,14 @@
  *              open, dev, cc,
  */
 
-/*  set some initial values  */
-vrm0 = "2.1"                    /* to coincide with the POSIX version */
+/* set some initial values */
+vrm0 = "2.1"              /* to coincide with the POSIX 2.1.5 version */
 
-/*  identify this stage  */
-Parse Source . . arg0 .
-argo = arg0 || ':'
+/* how this stage identifies itself */
+Parse Source . . arg0 .            /* this is the server program name */
+argo = arg0 || ':'                /* this is a tag for console output */
 
-/*  fetch environment variables from TCPSHELL  */
+/* fetch environment variables from TCPSHELL */
 Address "COMMAND" 'GLOBALV SELECT' arg0 'GET HOSTID VRM VERBOSE' ,
     'REMOTE_HOST REMOTE_ADDR REMOTE_USER REMOTE_IDENT' ,
         'UFT LOCALHOST SERVER_PIPE_ATTACH'
@@ -87,17 +87,17 @@ Select /* verbose */
     When verbose = "VERBOSE"  Then verbose = 1
     When verbose = "NOVERBOSE" Then verbose = 0
     Otherwise nop
-    End  /*  Select verbose  */
+    End /* Select verbose */
 If ^Datatype(verbose,'W') Then verbose = 1
 verbose = (verbose ^= 0)
 
-/*  attach a text translator output stream  */
+/* attach a text translator output stream */
 'ADDPIPE *.OUTPUT: | MAKETEXT -NETWORK | *.OUTPUT:'
 If rc ^= 0 Then Exit rc
 If verbose Then ,
 'ADDPIPE *.OUTPUT: | CONSOLE | *.OUTPUT:'    /* lands ahead of output */
 
-/*  attach a text translator loop for input  */
+/* attach a text translator loop for input */
 'ADDSTREAM BOTH LINE'
 If rc ^= 0 Then Exit rc
 'ADDPIPE *.OUTPUT.LINE: | SPEC 1-* 1' ,
@@ -115,10 +115,10 @@ Else ,
 'CALLPIPE COMMAND XMITMSG 112 LOCALHOST UFT VRM BLKSIZE' ,
     '(APPLID UFT CALLER SRV NOHEADER | *.OUTPUT:'
 
-/*  set a number of defaults  */
+/* set a number of defaults */
 user = "SYSTEM"
 name = ""
-type = 'I'      /*  image (binary) is safest for unspecified types  */
+type = 'I'          /* image (binary) is safest for unspecified types */
 cc = ""
 Parse Value Diag(08,'QUERY TIME') With . . time tz . date . '15'x .
 
@@ -131,12 +131,12 @@ keep = "OFF";   msg  = "OFF";   seq  = "*UFT"
 dev = ""
 auth = ""
 
-/*  initialize the data buffer  */
+/* initialize the data buffer */
 'PEEKTO BUFFER'
 i = 0; open = 0
 size = 0; from = ""; auth = ""; user = ""
 
-/*  loop forever,  breaking out when needed  */
+/* loop forever,  breaking out when needed */
 Do Forever
 
     line = getline()
@@ -146,7 +146,7 @@ Do Forever
         If open Then Call ABORT
         rc = qrc
         Leave
-        End  /*  When ..  Do  */
+        End /* When .. Do */
 
     /* try several times to get a line from the client */
     If line = "" Then line = getline()
@@ -158,9 +158,9 @@ Do Forever
         If open Then Call ABORT
         rc = 12
         Leave
-        End  /*  When ..  Do  */
+        End /* When .. Do */
 
-/*  If verbose Then Say argo line        */
+/* If verbose Then Say argo line                                      */
     meta = 0
     Parse Upper Var line verb .
     If verb = "META" Then Do
@@ -195,7 +195,7 @@ Do Forever
             Parse Var line . size from auth .
             'CALLPIPE COMMAND XMITMSG 203 VERB (APPLID UFT' ,
                 'CALLER SRV NOHEADER | *.OUTPUT:'
-            End  /*  When .. Do  */
+            End /* When .. Do */
 
         When verb = "USER" Then Do
             Parse Upper Var line . user .
@@ -215,15 +215,15 @@ Do Forever
             Say argo "TYPE" type
             'CALLPIPE COMMAND XMITMSG 209 TYPE (APPLID UFT' ,
                 'CALLER SRV NOHEADER | *.OUTPUT:'
-            End  /*  When .. Do  */
+            End /* When .. Do */
 
         When verb = "NAME" Then Do
             Parse Var line . name
             'CALLPIPE COMMAND XMITMSG 205 NAME (APPLID UFT' ,
                 'CALLER SRV NOHEADER | *.OUTPUT:'
-            End  /*  When .. Do  */
+            End /* When .. Do */
 
-        /*  this is not entirely right;  DATE should be ISO format  */
+        /* this is not entirely right; DATE should be ISO format      */
         When verb = "DATE" Then Do
             Parse Upper Var line . date time tz .
             If Index(date,'.') > 0 Then Do
@@ -235,78 +235,78 @@ Do Forever
             If tz = "" Then tz = "N/A"
             'CALLPIPE COMMAND XMITMSG 203 VERB (APPLID UFT' ,
                 'CALLER SRV NOHEADER | *.OUTPUT:'
-            End  /*  When .. Do  */
+            End /* When .. Do */
 
-        /*  stuff meaningful on print jobs  */
+        /* stuff meaningful on print jobs */
         When verb = "FORM" Then Do
             Parse Upper Var line . form .
             'CALLPIPE COMMAND XMITMSG 203 VERB (APPLID UFT' ,
                 'CALLER SRV NOHEADER | *.OUTPUT:'
-            End  /*  When .. Do  */
+            End /* When .. Do */
 
         When Abbrev("DESTINATION",verb,4) Then Do
             Parse Upper Var line . dest .
             'CALLPIPE COMMAND XMITMSG 203 VERB (APPLID UFT' ,
                 'CALLER SRV NOHEADER | *.OUTPUT:'
-            End  /*  When .. Do  */
+            End /* When .. Do */
 
         When Abbrev("DISTRIBUTION",verb,4) Then Do
             Parse Upper Var line . dist .
             'CALLPIPE COMMAND XMITMSG 203 VERB (APPLID UFT' ,
                 'CALLER SRV NOHEADER | *.OUTPUT:'
-            End  /*  When .. Do  */
+            End /* When .. Do */
 
         When verb = "COPY" | Abbrev("COPIES",verb,4) Then Do
             Parse Upper Var line . copy .
             'CALLPIPE COMMAND XMITMSG 203 VERB (APPLID UFT' ,
                 'CALLER SRV NOHEADER | *.OUTPUT:'
-            End  /*  When .. Do  */
+            End /* When .. Do */
 
         When Abbrev("CLASS",verb,2) Then Do
             Parse Upper Var line . class dev .
             'CALLPIPE COMMAND XMITMSG 203 VERB (APPLID UFT' ,
                 'CALLER SRV NOHEADER | *.OUTPUT:'
-            End  /*  When .. Do  */
+            End /* When .. Do */
 
-        /*  stuff meaningful on IBM print jobs  */
+        /* stuff meaningful on IBM print jobs */
         When Abbrev("CTAPE",verb,2) | verb = "FCB"  Then Do
             Parse Upper Var line . fcb .
             'CALLPIPE COMMAND XMITMSG 203 VERB (APPLID UFT' ,
                 'CALLER SRV NOHEADER | *.OUTPUT:'
-            End  /*  When .. Do  */
+            End /* When .. Do */
 
         When Abbrev("CHARSET",verb,2) | verb = "UCS"  Then Do
             Parse Upper Var line . ucs .
             'CALLPIPE COMMAND XMITMSG 203 VERB (APPLID UFT' ,
                 'CALLER SRV NOHEADER | *.OUTPUT:'
-            End  /*  When .. Do  */
+            End /* When .. Do */
 
         When verb = "HOLD" Then Do
             Parse Upper Var line . hold .
             'CALLPIPE COMMAND XMITMSG 203 VERB (APPLID UFT' ,
                 'CALLER SRV NOHEADER | *.OUTPUT:'
-            End  /*  When .. Do  */
+            End /* When .. Do */
 
         When verb = "KEEP" Then Do
             Parse Upper Var line . keep .
             'CALLPIPE COMMAND XMITMSG 203 VERB (APPLID UFT' ,
                 'CALLER SRV NOHEADER | *.OUTPUT:'
-            End  /*  When .. Do  */
+            End /* When .. Do */
 
-        /*  stuff meaningful for record-oriented files  */
+        /* stuff meaningful for record-oriented files */
         When Abbrev("RECLEN",verb,4) | verb = "LRECL" | ,
              Abbrev("RECORD_LENGTH",verb,8) Then Do
             Parse Upper Var line . lrecl .
             'CALLPIPE COMMAND XMITMSG 203 VERB (APPLID UFT' ,
                 'CALLER SRV NOHEADER | *.OUTPUT:'
-            End  /*  When .. Do  */
+            End /* When .. Do */
 
         When Abbrev("RECFMT",verb,4) | ,
              Abbrev("RECORD_FORMAT",verb,8) Then Do
             Parse Upper Var line . recfm .
             'CALLPIPE COMMAND XMITMSG 203 VERB (APPLID UFT' ,
                 'CALLER SRV NOHEADER | *.OUTPUT:'
-            End  /*  When .. Do  */
+            End /* When .. Do */
 
         /* Here's a collision for ya:                                 *
          * If the command is MSG, is it the spool file setting        *
@@ -426,7 +426,7 @@ Do Forever
             'CALLPIPE COMMAND XMITMSG 402 VERB (APPLID UFT' ,
                 'CALLER SRV NOHEADER | *.OUTPUT:'
             code = 402
-            End  /*  Otherwise Do  */
+            End /* Otherwise Do */
 
         Otherwise Do
             'CALLPIPE COMMAND XMITMSG 203 VERB (APPLID UFT' ,
@@ -482,13 +482,13 @@ If Length(buffer) > count Then Do
     'OUTPUT' Left(buffer,count)
     buffer = Substr(buffer,count+1)
     count = 0
-    End  /*  If  ..  Do  */
+    End /* If .. Do */
 
 Else If Length(buffer) > 0 Then Do
     'OUTPUT' buffer
     count = count - Length(buffer)
     buffer = ""
-    End  /*  Else If .. Do  */
+    End /* Else If .. Do */
 
 Do While count > 0
 
@@ -496,7 +496,7 @@ Do While count > 0
     If rc ^= 0 Then Do
         Call ABORT
         Exit 12
-        End  /*  If  ..  Do  */
+        End /* If .. Do */
 
     If Length(buffer) = 0 Then Do 'READTO'; 'PEEKTO BUFFER'; End
     If Length(buffer) = 0 Then Do 'READTO'; 'PEEKTO BUFFER'; End
@@ -504,21 +504,21 @@ Do While count > 0
     If rc ^= 0 Then Do
         Call ABORT
         Exit 12
-        End  /*  If  ..  Do  */
+        End /* If .. Do */
 
     If Length(buffer) > count Then Do
         'OUTPUT' Left(buffer,count)
         buffer = Substr(buffer,count+1)
         count = 0
-        End  /*  If  ..  Do  */
+        End /* If .. Do */
 
     Else If Length(buffer) > 0 Then Do
         'OUTPUT' buffer
         count = count - Length(buffer)
         buffer = ""
-        End  /*  Else  If  ..  Do  */
+        End /* Else If .. Do */
 
-    End  /*  Do  While  */
+    End /* Do While */
 
 'SELECT OUTPUT 0'
 
@@ -555,13 +555,13 @@ If Length(buffer) > count Then Do
 /*  'OUTPUT' Left(buffer,count)  */
     buffer = Substr(buffer,count+1)
     count = 0
-    End  /*  If  ..  Do  */
+    End /* If .. Do */
 
 Else If Length(buffer) > 0 Then Do
 /*  'OUTPUT' buffer  */
     count = count - Length(buffer)
     buffer = ""
-    End  /*  Else If .. Do  */
+    End /* Else If .. Do */
 
 Do While count > 0
 
@@ -569,7 +569,7 @@ Do While count > 0
     If rc ^= 0 Then Do
         Call ABORT
         Exit 12
-    End  /*  If  ..  Do  */
+    End /* If .. Do */
 
     If Length(buffer) = 0 Then Do 'READTO'; 'PEEKTO BUFFER'; End
     If Length(buffer) = 0 Then Do 'READTO'; 'PEEKTO BUFFER'; End
@@ -577,21 +577,21 @@ Do While count > 0
     If rc ^= 0 Then Do
         Call ABORT
         Exit 12
-    End  /*  If  ..  Do  */
+    End /* If .. Do */
 
     If Length(buffer) > count Then Do
 /*      'OUTPUT' Left(buffer,count)      */
         buffer = Substr(buffer,count+1)
         count = 0
-    End  /*  If  ..  Do  */
+    End /* If .. Do */
 
     Else If Length(buffer) > 0 Then Do
 /*      'OUTPUT' buffer   */
         count = count - Length(buffer)
         buffer = ""
-    End  /*  Else  If  ..  Do  */
+    End /* Else If .. Do */
 
-End  /*  Do  While  */
+End /* Do While */
 
 /* 'SELECT OUTPUT 0' */
 
@@ -609,7 +609,7 @@ i = i + 1
 line.i = "FROM" from || '@' || remote_host
 line.0 = i
 
-/*  Figure out how to SPOOL this file.  */
+/* Figure out how to SPOOL this file. */
 Select /* type */
 
     When type = "A" | type = "T" Then Do
@@ -651,7 +651,7 @@ Select /* type */
        user = mailer
     End /* When .. Do */
 
-    Otherwise Do            /*  treat it as binary  */
+    Otherwise Do            /* treat it as binary */
         dev = "PUN"
         pipe = 'FBLOCK 80 00 | SPEC .41. X2C 1 1-* NEXT'
     End /* Otherwise Do */
@@ -704,13 +704,13 @@ If rc ^= 0 Then Do ; open = 0 ; rs = "" ; Return ; End
 Parse Value Diagrc(08,'TAG DEV' addr utag) With 1 rc 10 . 17 rs '15'x .
 If rc ^= 0 Then Do ; open = 0 ; Return ; End
 
-/*  insert a signature (magic number) for UFT  */
+/* insert a signature (magic number) for UFT */
 /*  'CALLPIPE COMMAND XMITMSG 0 (APPLID UFT CALLER SRV NOHEADER' ,
     '| SPEC .03. X2C 1 .*. NEXT 1-* NEXT | URO' addr                  */
 'CALLPIPE VAR VRM | SPEC .03. X2C 1 .*UFTD/. NEXT 1-* NEXT | URO' addr
 If rc ^= 0 Then Do ; open = 0 ; rs = "" ; Return ; End
 
-/*  send the "meta file" as NOP records  */
+/* send the "meta file" as NOP records */
 'CALLPIPE STEM LINE. | SPEC .03. X2C 1 1-* NEXT | URO' addr
 If rc ^= 0 Then Do ; open = 0 ; rs = "" ; Return ; End
 
@@ -748,10 +748,10 @@ Else rs.0 = 0
 'CALLPIPE CP CLOSE' addr '| STEM RS. APPEND'
 Call Diag 08, 'DETACH' addr
 
-/*  pass a comment about results back to the client  */
+/* pass a comment about results back to the client */
 'CALLPIPE STEM RS. | SPEC /199 / 1 1-* NEXT | *.OUTPUT:'
 
-/*  message the user that this file has arrived  */
+/* message the user that this file has arrived */
 'CALLPIPE COMMAND XMITMSG 9002 SEQ USER HOST FROM DATE TIME TZ' ,
     '(APPLID UFT CALLER SRV NOHEADER | TAKE FIRST | VAR UMSG' ,
         '| SPEC /199 / 1 1-* NEXT | *.OUTPUT:'
@@ -761,10 +761,10 @@ Parse Value Diagrc(08,'MSG' user umsg) With 1 rc 10 . 17 rs '15'x .
 /*    "* File (" || seq || ") spooled to" user ,                      *
  *    "-- origin" host || '(' || from || ')' Date('U') Time() tz      */
 
-/*  mark the file as closed  */
+/* mark the file as closed */
 open = 0
 
-/*  reset everything  */
+/* reset everything */
 user = "SYSTEM";        name = ""
 type = 'A';             cc = ""
 Parse Value Diag(08,'QUERY TIME') With . . time tz . date . '15'x .
@@ -823,11 +823,11 @@ Do While Index(buffer,'0A'x) = 0 & Index(buffer,'00'x) = 0
     'READTO';  'PEEKTO PACKET'
     If rc ^= 0 Then Leave
     buffer = buffer || packet
-    End  /*  Do While  */
+    End /* Do While */
 Parse Var buffer line '0A'x buffer
 Parse Var line line '0D'x .
 Parse Var line line '00'x .
-/*  elastic stage makes this not cause a stall  */
+/* elastic stage makes this not cause a stall */
 'CALLPIPE VAR LINE | *.OUTPUT.LINE:'
 'CALLPIPE *.INPUT.LINE: | VAR LINE'
 Parse Var line line '15'x .

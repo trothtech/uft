@@ -1,8 +1,8 @@
-/* © Copyright 1994, 1995, 1996, 1997, 2024, Richard M. Troth, all rights reserved. <plaintext>
+/* © Copyright 1994, 1995, 1996, 1997, 2024, 2026, Richard M. Troth, all rights reserved. <plaintext>
  *
  *        Name: UFTCFILE REXX
  *              Unsolicited File Transfer client file reader stage
- *              builds a SIFT job and feeds it to UFTCMAIN
+ *              builds a UFT batch job and feeds it to UFTCMAIN
  *      Author: Rick Troth, Rice University, Information Systems
  *              Rick Troth, Houston, Texas (METRO)
  *        Date: 1993-Feb-19, Oct-08
@@ -10,29 +10,28 @@
  *
  *        Note: UFTCFILE is not a user-level pipeline stage.
  *
- *        Note: ABC-EF--I----N---R--UV---- supported
- *              ---D---H----M---------WX-- defined
- *              ------G--JKL--OPQ-ST----YZ undefined
+ *        Note: ABC-EF--I----N---R--UV---- supported canonizations
+ *              ---D---H----M---------WX-- defined canonizations
+ *              ------G--JKL--OPQ-ST----YZ undefined canonizations
  */
 
 type = 'A'
 
 Parse Arg fn ft fm . user . host . '(' opts ')' .
 
-/*  any options?  */
+/* any options? */
 Do While opts ^= ""
     Parse Upper Var opts op opts
-    Select  /*  op  */
-        When  Abbrev("TYPE",op,1)       Then
+    Select /* op */
+        When Abbrev("TYPE",op,1)       Then ,
             Parse Upper Var opts type opts
-        When  Abbrev("ASCII",op,1)      Then  type = 'A'
-        When  Abbrev("BINARY",op,1)     Then  type = 'I'
-        Otherwise  Do
-            Address "COMMAND" 'XMITMSG 3 OP (ERRMSG'
-            Exit 24
-            End  /*  Otherwise  Do  */
-        End  /*  Select  op  */
-    End  /*  Do  While  */
+        When Abbrev("ASCII",op,1)      Then type = 'A'
+        When Abbrev("BINARY",op,1)     Then type = 'I'
+        When Abbrev("NETDATA",op,1)    Then type = 'N'
+        Otherwise Do
+            Address "COMMAND" 'XMITMSG 3 OP (ERRMSG'; Exit 24; End
+    End /* Select op */
+End /* Do While */
 
 If fm = '-' Then Do
     /* file is a pipeline */
@@ -63,11 +62,11 @@ End /* If .. Do */
 'CALLPIPE CP QUERY USERID | XLATE LOWER | VAR FROM'
 Parse Var from from .
 'OUTPUT' "FILE" size from "-"
-/* 'OUTPUT' "USER" user */
+/* 'OUTPUT' "USER" user -- see "UFTCUSER" stage for "USER" statement  */
 
 Select /* type */
     When type = '*'              Then Do
-        /* dotted hostname implies non-IBM target */
+        /* dotted hostname implies non-RSCS target (UFT, non-NJE)     */
         If Index(host,'.') = 0 Then type = 'N'
                                Else type = 'A'
         c = ""
@@ -80,8 +79,8 @@ Select /* type */
         If type = 'F' Then c = l
                       Else c = ""
     End /* When .. Do */
-    Otherwise  c = ""
-    End /* Select type */
+    Otherwise c = ""
+End /* Select type */
 'OUTPUT' "TYPE" type c
 
 name = fn || '.' || ft
@@ -92,11 +91,11 @@ name = fn || '.' || ft
 'OUTPUT' "RECFM" f
 'OUTPUT' "LRECL" l
 
-/*  signal the server "here comes the file body"  */
+/* signal the server "here comes the file body"                       */
 'OUTPUT' "DATA"
 
-/* reformatting is handled by later stages,
-   but NETDATA processing must apply now. */
+/* reformatting/canonization is handled by later stages,              *
+ *    but NETDATA processing must apply now.                          */
 If Abbrev("NETDATA",type,1) Then ,
      'CALLPIPE UFTXINMR SEND' fn ft fm 'TO' user 'AT' host '| *:'
 Else 'CALLPIPE <' fn ft fm '| *:'

@@ -125,7 +125,7 @@ If ver < 2 Then Do
     End  /*  If  ..  Do  */
 
 /*  initialize a socket set  */
-Parse Value Socket("INITIALIZE",arg0) With rc rs
+Parse Value Socket("INITIALIZE",Left(arg0,8)) With rc rs
 If rc ^= 0 Then Do
     Say argo rs
     Exit rc

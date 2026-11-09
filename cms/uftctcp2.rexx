@@ -1,4 +1,4 @@
-/* © Copyright 2025 Richard M. Troth, all rights reserved. <plaintext>
+/* © Copyright 2025, 2026 Richard M. Troth, all rights reserved. <plaintext>
  *
  *        Name: UFTCTCP2 REXX
  *              Pipeline stage to feed a SIFT job to UFTD via TCP/IP
@@ -8,7 +8,7 @@
  *      Author: Rick Troth, Cedarville, Ohio, USA
  *        Date: 2025-09-15
  *    See also: UFTCFILE, UFTCUSER, UFTCHOST, UFTXDSPL
- *    Revision: 2.0.17
+ *    Revision: 2.0.17 when introduced
  *
  *        Note: UFTCTCP2 is not a user-level pipeline stage.
  *
@@ -27,7 +27,6 @@ If host = "" Then host = "localhost"
 If POS('@',host) > 0 Then Parse Var host user '@' host
                      Else user = ""
 Parse Var host host ':' port
-If port = "" Then port = 608
 
 /* extract the TCP/IP service VM ID from Rexx/Sockets                 */
 Parse Value Socket("INITIALIZE","TCPCHECK") With rc rs
@@ -35,7 +34,6 @@ If rc = 0 Then Do
     Parse Var rs . . tcpid .
     Call Socket "TERMINATE", "TCPCHECK"
 End ; Else tcpid = "TCPIP"
-If tcpid ^= "" Then tcpid = "USER" tcpid
 
 /* figure out the target host address */
 hisaddr = _hostaddr(host)
@@ -79,8 +77,41 @@ End /* If .. Do */
 If rc ^= 0 Then Do
     'OUTPUT' arge rc "ADDSTREAM" ; Exit rc ; End
 
+buffer = ""             /* initially empty input (from server) buffer */
+u = "-"                 /* unspecified user */
+qs = 65024              /* experimental burst size */
+qs = 32256              /* recommended burst size */
+bk = 0                  /* default blocksize (burst size) */
+grc = 0                 /* a global return code */
+ssl = 0                 /* by default use plain or cleartext UFT */
+
+/* parse parent options if there were any                             */
+Do While opts ^= ""
+    Parse Upper Var opts opt1 opts
+    Select /* opt1 */
+
+        When Abbrev("BLOCKSIZE",opt1,2) Then Parse Var opts bk opts
+        When Abbrev("BS",opt1,2) Then Parse Var opts bk opts
+
+        When Abbrev("SSL",opt1,3) Then ssl = 1
+        When Abbrev("TLS",opt1,3) Then ssl = 1
+        When Abbrev("SECURE",opt1,3) Then ssl = 1
+
+        Otherwise Do
+            Address "COMMAND" 'XMITMSG 3 OPT1 (APPLID UFT CALLER TCP ERRMSG'
+            Exit 24 ; End
+
+    End /* Select opt1 */
+End
+
+If tcpid ^= "" Then tcpid = "USER" tcpid     /* no longer just TCP ID */
+If ssl Then Do
+    If port = "" Then port = 5608              /* port for secure UFT */
+    tcpid = tcpid "SECURE"
+End ; Else If port = "" Then port = 608     /* port for cleartext UFT */
 /* connect that TCP/IP client driver to contact the UFT server        */
-'ADDPIPE *.OUTPUT.TCP: | TCPCLIENT' hisaddr port tcpid '| *.INPUT.TCP:'
+'ADDPIPE (ENDCHAR !)' ,
+    '*.OUTPUT.TCP: | U: TCPCLIENT' hisaddr port tcpid '| *.INPUT.TCP:'
 If rc ^= 0 Then Do
     'OUTPUT' arge rc "ADDPIPE" ; Exit rc ; End
 
@@ -104,12 +135,6 @@ If rc ^= 0 Then Do
          || '5CF7535455565758595AB2D4D6D2D3D530313233343536373839B3DBDCD9DA9F'x
 aex.1 = XRANGE('00'x,'FF'x)     /* need this even if we have TCPXLBIN */
 
-buffer = ""             /* initially empty input (from server) buffer */
-u = "-"                 /* unspecified user */
-qs = 65024              /* experimental burst size */
-qs = 32256              /* recommended burst size */
-grc = 0                 /* a global return code */
-
 /* read the herald from the server - standard for UFT since forever   */
 /* a UFT/1 server should send a 1xx herald                            */
 /* a UFT/2 server should send a 2xx herald                            */
@@ -126,8 +151,22 @@ If line = "" Then Do
     Exit 1
 End /* If .. Do */
 
+/* parse the herald for sanity and availability                       */
+Parse Upper Var line t1 . t3 . bs .         /* two tags and blocksize */
+If ^Datatype(t1,"W") Then Do
+    Address "COMMAND" 'XMITMSG 14 HOST (APPLID UFT CALLER TCP ERRMSG'
+    Exit 14 ; End
+
+/* parse the herald for rejection codes (standard UFT codes)          */
+If Datatype(t1,"W") & t1 >= 400 & t1 < 600 Then Do
+    Say line ; Exit t1 ; End
+
+/* parse the herald for additional sanity check                       */
+If Datatype(t1,"W") & t1 >= 300 Then Do
+    Address "COMMAND" 'XMITMSG 14 HOST (APPLID UFT CALLER TCP ERRMSG'
+    Say line ; Exit 14 ; End
+
 /* parse the herald for data burst size hint                          */
-Parse Var line t1 . t3 . bs .                    /* two tags to check */
 If Datatype(t1,"W") & Left(t1,1) = "2" ,
     & Left(t3,3) = "UFT" & Datatype(bs,"W") Then qs = bs
 
@@ -248,6 +287,7 @@ End /* Select */
 
 /* apply canonization for transport */
 'PEEKTO'
+If bk ^= 0 Then pipe = pipe "| FBLOCK" bk
 'ADDPIPE *.INPUT: |' pipe '| *.INPUT:'
 If rc ^= 0 Then Exit rc
 

@@ -1,6 +1,6 @@
-/* © Copyright 1992-2025 Richard M. Troth, all rights reserved. <plaintext>
+/* © Copyright 1992-2026 Richard M. Troth, all rights reserved. <plaintext>
  *
- *        Name: SIFT/UFTC/SENDFILE EXEC
+ *        Name: UFTC/SENDFILE EXEC
  *              Sender-Initiated File Transfer (Internet SENDFILE)
  *      Author: Rick Troth, Rice University, Information Systems
  *              Rick Troth, Houston, Texas (METRO)
@@ -10,10 +10,10 @@
  *
  *        Note: This EXEC should "just drop in" to replace the
  *              IBM-supplied SENDFILE EXEC. If you prefer, you can
- *              keep the original SENDFILE and call this one SIFT EXEC.
+ *              keep the original SENDFILE and call this one SF EXEC.
  */
 
-vrm = "2.0"                     /* to coincide with the POSIX version */
+vrm = "2.1"               /* to coincide with the POSIX 2.1.5 version */
 
 Address "COMMAND"
 
@@ -36,7 +36,7 @@ If ft = "" Then Do
 /* parse variable command line arguments */
 Parse Upper Var fm to .
 Select /* to */
-    When to = "TO" | to = "-TO" Then Do
+    When to = "TO" | to = "-TO" | to = "--TO" Then Do
         Parse Var fm . userlist
         fm = ""
         End /* When .. Do */
@@ -53,15 +53,14 @@ Select /* to */
         userlist = fm
         fm = ""
         End /* Otherwise Do */
-    End /* Select */
+End /* Select */
 
 /* create a stem of users to whom send */
 Parse Upper Var userlist to .
-If to = "TO" | to = "-TO" Then Parse Var userlist . userlist
+If to = "TO" | to = "-TO" | to = "--TO" Then ,
+    Parse Var userlist . userlist
 If userlist = "" Then Do
-    'XMITMSG 675 (ERRMSG CALLER UFT'
-    Exit 24
-    End /* If .. Do */
+    'XMITMSG 675 (ERRMSG CALLER UFT' ; Exit 24 ; End
 'PIPE VAR USERLIST | UFTULIST | STEM USER.'
 If rc ^= 0 Then Exit rc
 
@@ -75,56 +74,83 @@ If rc ^= 0 Then Do ; lrc = rc ; 'PIPE VAR RS | CONSOLE' ; Exit lrc ; End
 Parse Value Diag(08,'QUERY USERID') With userid . hostid . '15'x .
 
 /* extract defaults from GLOBALV */
-type = '*';     log = 1;        quiet = 0
+type = '*'; log = 1; quiet = 0; class = ""
 'PIPE COMMAND GLOBALV SELECT $' || userid ,
         'LIST SENDFILE | DROP | VAR DEFAULTS'
 Parse Var defaults . '=' defaults
 Do While defaults ^= ""
     Parse Var defaults op defaults
     Select /* op */
-        When Abbrev("NEW",op,1)     Then type = 'N'
-        When Abbrev("OLD",op,1)     Then type = '*'
-        When Abbrev("LOG",op,1)     Then log = 1
-        When Abbrev("NOLOG",op,3)   Then log = 0
-        When  Abbrev("TYPE",op,1)       Then  quiet = 0
-        When  Abbrev("NOTYPE",op,3)     Then  quiet = 1
+        When Abbrev("NEW",op,1)      Then type = 'N'
+        When Abbrev("OLD",op,1)      Then type = '*'
+        When Abbrev("LOG",op,1)      Then log = 1
+        When Abbrev("NOLOG",op,3)    Then log = 0
+        When Abbrev("TYPE",op,1)     Then quiet = 0
+        When Abbrev("NOTYPE",op,3)   Then quiet = 1
         /* DISK DUMP; not implemented */
         /* TERM/NOTERM; not processed here */
+        /* FILELIST/NOFILELIST not implemented */
+        /* ACK/NOACK not implemented */
+        /* RSCS not implemented */
+        /* UFTSYNC not implemented */
+        /* MIME not implemented */
+        /* UFTASYNC ignored (always applied) */
+        When Abbrev("CLASS",op,2)    Then ,
+            Parse Var defaults class defaults
+        /* SMTP not implemented */
+/*           | EBCDIC                                                 *
+ *           | ASCII-INLINE                                           *
+ *           | ASCII-ATTACH                                           *
+ *           | BINARY-ATTACH                                          *
+ *           | BINARY-INLINE                                          *
+ *           | VARREC                                                 */
+        When Abbrev("ASCII",op,1)    Then type = 'A'
+        When Abbrev("TEXT",op,3)     Then type = 'A'
+        When Abbrev("TXT",op,2)      Then type = 'A'
+        When Abbrev("BINARY",op,1)   Then type = 'I'
+        When Abbrev("NETDATA",op,1)  Then type = 'N'
         Otherwise nop
         End /* Select op */
     End /* Do While */
 
 /* parse any options */
-opto = "";      verbose = 0
+opto = ""; verbose = 0; ssl = 0
 Do While opts ^= ""
     Parse Upper Var opts op opts
     Select /* op */
-        When  Abbrev("TYPE",op,1)       Then Do
+        When  Abbrev("TYPE",op,1)    Then Do
             Parse Upper Var opts type opts
             If type = "" Then quiet = 0
             End /* When .. Do */
-        When  Abbrev("ASCII",op,1)      Then  type = 'A'
-        When  Abbrev("TEXT",op,3)       Then  type = 'A'
-        When  Abbrev("TXT",op,2)        Then  type = 'A'
-        When  Abbrev("BINARY",op,1)     Then  type = 'I'
-        When  Abbrev("NETDATA",op,2)    Then  type = 'N'
-        When  Abbrev("NEW",op,3)        Then  type = 'N'
-        When  Abbrev("VERBOSE",op,1)    Then  verbose = 1
-        When  Abbrev("LOG",op,1)        Then  log = 1
-        When  Abbrev("NOLOG",op,3)      Then  log = 0
-        When  Abbrev("NOTYPE",op,3)     Then  quiet = 1
-        When  Abbrev("NOTERM",op,3)     Then  quiet = 1
-        When  Abbrev("TERM",op,2)       Then  quiet = 0
-        Otherwise  Do
-            'XMITMSG 3 OP (ERRMSG CALLER UFT'
-            Exit 24
-            End /* Otherwise Do */
+        When Abbrev("ASCII",op,1)    Then type = 'A'
+        When Abbrev("TEXT",op,3)     Then type = 'A'
+        When Abbrev("TXT",op,2)      Then type = 'A'
+        When Abbrev("BINARY",op,1)   Then type = 'I'
+        When Abbrev("NETDATA",op,2)  Then type = 'N'
+        When Abbrev("NEW",op,3)      Then type = 'N'
+        When Abbrev("VERBOSE",op,1)  Then verbose = 1
+        When Abbrev("LOG",op,1)      Then log = 1
+        When Abbrev("NOLOG",op,3)    Then log = 0
+        When Abbrev("NOTYPE",op,3)   Then quiet = 1
+        When Abbrev("NOTERM",op,3)   Then quiet = 1
+        When Abbrev("TERM",op,2)     Then quiet = 0
+        When Abbrev("CLASS",op,2)    Then ,
+            Parse Upper Var opts class opts
+        When Abbrev("SSL",op,3)      Then ssl = 1
+        When Abbrev("NOSSL",op,3)    Then ssl = 0
+        When Abbrev("TLS",op,3)      Then ssl = 1
+        When Abbrev("NOTLS",op,3)    Then ssl = 0
+        When Abbrev("SECURE",op,3)   Then ssl = 1
+        When Abbrev("NOSECURE",op,3) Then ssl = 0
+        Otherwise Do
+            'XMITMSG 3 OP (ERRMSG CALLER UFT'; Exit 24; End
         End /* Select op */
     End /* Do While */
 opto = "TYPE" type opto
 
 /* send the file(s) to the intended user(s) */
 mrc = 0
+If ssl Then tls = "(SSL"; Else tls = ""                /* TLS and SSL */
 Do  i = 1 to user.0
     Parse Var user.i user '@' host
     If user = "" Then user = userid
@@ -132,7 +158,7 @@ Do  i = 1 to user.0
     Do  j = 1 to file.0
         Parse Var file.j fn ft fm .
         'PIPE UFTCFILE' fn ft fm 'TO' user 'AT' host '(' opto ,
-            '| UFTCUSER' user '| UFTCHOST' host '| STEM JOBLOG.'
+            '| UFTCUSER' user '| UFTCHOST' host tls '| STEM JOBLOG.'
         sfrc = rc
         If ^Datatype(joblog.0,'W') Then joblog.0 = 0
         If verbose | sfrc ^= 0 Then 'PIPE STEM JOBLOG. | CONSOLE'

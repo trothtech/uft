@@ -806,6 +806,7 @@ fprintf(stderr,"looping on '%s' %d\n",p,i);
     /* now drive our shim to invoke XMITMSG command in CMS            */
     p = getenv("SHELL");
     if (p != NULL && *p != 0x00)    /* if we have a shell then use it */
+/* __OPEN_VM=1 */
     sprintf(x2,"cms 'xmmshim %d %s %s %x %d %s'",
             ms->msgnum,ms->pfxmaj,ms->pfxmin,ms->msgbuf,ms->msglen,x1);
     else          /* otherwise go directly to the CMS command handler */

@@ -293,7 +293,12 @@ xmitmsgx.msgs:
 		@echo "$(MAKE): you need $@"
 		wget $(SOURCEURL)/$@
 
-errno.msgs:
+errno.msgs:  errno.msgs.in
+		./mkerrno.sh > errno.tmp
+		cat errno.msgs.in >> errno.tmp
+		mv errno.tmp errno.msgs
+
+errno.msgs.in:
 		@echo "$(MAKE): you need $@"
 		wget $(SOURCEURL)/$@
 
