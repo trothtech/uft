@@ -29,7 +29,6 @@ End /* Do Forever */
 
 /* strip-off any trailing "@host.domain" part */
 Parse Var user user '@' .
-
 'OUTPUT' "USER" user
 If rc ^= 0 Then Exit rc * (rc ^= 12)
 

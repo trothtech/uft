@@ -26,6 +26,8 @@
 /* set some initial values */
 vrm0 = "2.1"              /* to coincide with the POSIX 2.1.5 version */
 
+Numeric Digits 20
+
 /* how this stage identifies itself */
 Parse Source . . arg0 .            /* this is the server program name */
 argo = arg0 || ':'                /* this is a tag for console output */
@@ -129,7 +131,6 @@ hold = "OFF";   fcb  = "OFF";   ucs  = "OFF"
 keep = "OFF";   msg  = "OFF";   seq  = "*UFT"
 
 dev = ""
-auth = ""
 
 /* initialize the data buffer */
 'PEEKTO BUFFER'
@@ -184,18 +185,34 @@ Do Forever
             'CALLPIPE COMMAND XMITMSG 203 VERB (APPLID UFT' ,
                 'CALLER SRV NOHEADER | *.OUTPUT:'
 
+        /* Confirm client is an authorized agent on the other system. */
         When verb = "AGENT" Then Do
-            Parse Var line . agch agrs .
-            'CALLPIPE COMMAND XMITMSG 402 VERB (APPLID UFT' ,
-                'CALLER SRV NOHEADER | *.OUTPUT:'
-            End /* When .. Do */
-        /* above is not actually implemented ... in case not obvious */
+            Parse Var line . ak .
+            If ak = Value("AGENT_STRING",,"GLOBAL UFTD") ,
+             | ak = Value("AGENT_STRING",,"GLOBAL UFT") Then ,
+                'CALLPIPE COMMAND XMITMSG 203 VERB (APPLID UFT' ,
+                    'CALLER SRV NOHEADER | *.OUTPUT:'
+            Else ,
+                'CALLPIPE COMMAND XMITMSG 400 VERB (APPLID UFT' ,
+                    'CALLER SRV NOHEADER | *.OUTPUT:'
+        End /* When .. Do */
 
         When verb = "FILE" Then Do
-            Parse Var line . size from auth .
-            'CALLPIPE COMMAND XMITMSG 203 VERB (APPLID UFT' ,
-                'CALLER SRV NOHEADER | *.OUTPUT:'
-            End /* When .. Do */
+            Parse Var line . size from auth
+            Select
+                When ^Datatype(size,"W") Then Do
+                    'CALLPIPE COMMAND XMITMSG 401 (APPLID UFT' ,
+                        'CALLER SRV NOHEADER | *.OUTPUT:'
+                    size = 0; from = ""; auth = "" ; End
+                When _avail() > 0 & size > _avail() Then Do
+                    'CALLPIPE COMMAND XMITMSG 506 (APPLID UFT' ,
+                        'CALLER SRV NOHEADER | *.OUTPUT:'
+                    size = 0; from = ""; auth = "" ; End
+                Otherwise ,
+                    'CALLPIPE COMMAND XMITMSG 203 VERB (APPLID UFT' ,
+                        'CALLER SRV NOHEADER | *.OUTPUT:'
+            End /* Select */
+        End /* When .. Do */
 
         When verb = "USER" Then Do
             Parse Upper Var line . user .
@@ -840,16 +857,7 @@ Parse Arg line
 'CALLPIPE VAR LINE | *.OUTPUT:'
 Return rc
 
-/* --------------------------------------------------------------- AGENT
- *  Confirm client is an agent.
- */
-AGENT:
-Return 0
-
-
 /*
-
-AGENT
 
 AUXDATA
 
@@ -863,7 +871,6 @@ VERSION
 QUERY
 
  */
-
 
 /* ------------------------------------------------------------ HOSTADDR
  *  return IP address for the supplied hostname
@@ -939,7 +946,7 @@ Parse Upper Arg a b .
 
 Select /* a */
     When Abbrev("CPLEVEL",a,3)  Then ,
-        Parse Value DiagRC(08,"QUERY CPLEVEL") With 1 rc 10 . 17 rs
+        Parse Value DiagRC(08,"QUERY CPLEVEL") With 1 rc 10 . 17 rs '15'x .
     When Abbrev("CPUID",a,3)    Then ,
         Parse Value DiagRC(08,"QUERY CPUID")   With 1 rc 10 . 17 rs
     When Abbrev("FILES",a,1)    Then ,
@@ -990,5 +997,17 @@ xrc = rc ; xrs = rs
 Call Diag 08, 'DETACH' va
 
 Return xrc xrs
+
+/* -------------------------------------------------------------- _AVAIL
+ *    determine approximate available spool space in bytes
+ *    0506    E 506 no space available for the file size indicated
+ */
+_avail: Procedure
+
+'CALLPIPE CP QUERY ALLOC SPOOL' ,
+    '| STRLOCATE 1.6 /USABLE/ | VAR _ALLOC'
+If rc ^= 0 Then Return 0
+Parse Var _alloc . total inuse .
+Return (total - inuse) * 4096
 
 

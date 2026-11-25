@@ -1,4 +1,4 @@
-* © Copyright 1993-2025 Richard M. Troth, all rights reserved. <plaintext>
+* © Copyright 1993-2026 Richard M. Troth, all rights reserved. <plaintext>
 *
 *         Name: UFTUME MESSAGES or uft.msgs
 *       Author: Rick Troth, Houston, Texas, USA
@@ -26,73 +26,62 @@
 *         Note: the following line is essential:
 & 3
 *
-   0      2.1
-   1      UFT/2.1 client (CMS)
-   2      UFT/2.1 server (z/VM)
-   3    E invalid option &1
-   4      UFT/&1
-   5      UFT/&1 client
-   6      UFT/&1 server
-   7      2.1
+0000      2.1
+0001      UFT/2.1 client (CMS)
+0002      UFT/2.1 server (z/VM)
+0003    E invalid option &1
+0004      UFT/&1
+0005      UFT/&1 client
+0006      UFT/&1 server
+0007      2.1
 *008    X ........
 *009    X ........
 *010    X ........
-  11      VMCMSUFT/&1
-  12      POSIXUFT/&1
-  13      UFT/anonymized
-  14    E protocol violation detected when communicating with &1
-  15    E unknown &1 command
-  16    E missing operand(s)
+0011      VMCMSUFT/&1
+0012      POSIXUFT/&1
+0013      UFT/anonymized
+0014    E protocol violation detected when communicating with &1
+0015    E unknown &1 command
+0016    E missing operand(s)
 * 17
 * 18
 * 19
-  20    E target UFT host cannot be reached
-  21    E failed reading herald from target host
-  22    E file &1 not found
-  23    E unable to open file &1
-  24    S error &1 reading file &2 from disk or directory
-* 25    E ...
-  26    E socket or stream closed without a QUIT command
+0020    E target UFT host &1 cannot be reached
+0021    E failed reading herald from target host &1
+0022    E file &1 not found
+0023    E unable to open file &1
+0024    S error &1 reading file &2 from disk or directory
+0025    E error reported when reading herald from target host &1
+0026    E socket or stream closed without a QUIT command
 * 36    E operand missing or invalid
-  42    E user &1 spoolid &2 does not exist
-  44    E connection cannot be established
-  45    E protocol sequence error
-  50    E invalid spoolid &1
+0042    E user &1 spoolid &2 does not exist
+0044    E connection cannot be established
+0045    E protocol sequence error
+0050    E invalid spoolid &1
 * 53    E &1 not in CP directory
 * 53    E user &1 does not exist
-  53    E no such user or queue &1
-  54    E incomplete fileid specified
-  66    E &1 and &2 are conflicting options
-  70    E invalid parameter &1
-  81    E &1 command not supported in batch mode
-  84    I file &1 sent to &2
-  85    I file &1 sent from &2
-  88    I UFT protocol level &1
-  90    E invalid value &1 for &2 parameter
-  92    I file (&1) spooled to &2 -- origin &3(&4) &5 &6 &7
-  93    I file &1 received from &2 sent as &3
-  94    I file &1 spooled to &2 origin &3
-  95    I note &1 received from &2
-  96    I from &1(&2): &3
-  97    I from &1: &2
+0053    E no such user or queue &1
+0054    E incomplete fileid specified
+0066    E &1 and &2 are conflicting options
+0068    E client host is not a peer
+0070    E invalid parameter &1
+0081    E &1 command not supported in batch mode
+0084    I file &1 sent to &2
+0085    I file &1 sent from &2
+0088    I UFT protocol level &1
+0090    E invalid value &1 for &2 parameter
+0092    I file (&1) spooled to &2 -- origin &3(&4) &5 &6 &7
+0093    I file &1 received from &2 sent as &3
+0094    I file &1 spooled to &2 origin &3
+0095    I note &1 received from &2
+0096    I from &1(&2): &3
+0097    I from &1: &2
+0099    E &1
 *395    E invalid value &1 for &2 option
 *116    E invalid value &1 for &2 in &3
 *
-*#  There is no logmsg data
-*507    E no preserved data to restore
-*
-*   HCP002E invalid operand - operand
-*   HCP003E invalid option - command has extra option(s) starting with operand
-*   HCP007E invalid userid - userid
-*   HCP041E LOGMSG nn does not exist.
-*   HCP1506E the last line (50) in the log message is already in use.
-*   HCP6704E missing token at end of line
-*   HCP6706E invalid {group name|account ID} - {groupname|accountid}
-*   HCP6734E support for file-based LOGMSG is not enabled.
-*   HCP6771E LOGMSG support based on {Account ID|ACI group|Userid} not enabled.
-*
 * spontaneous info messages (including deprecated UFT/1 herald)
-0100      100 &1 UFT/1 VMCMSUFT/2.1.1 ready.
+0100      100 &1 UFT/1 VMCMSUFT/2.1 ready.
 *101      (see below)
 0102      102 &1 UFT/2 VMCMSUFT/&2 ready.
 0103      103 &1 UFT/&2 VMCMSUFT/&3 ready.
@@ -111,9 +100,9 @@
 *133      133 SEND &1 bytes of data.
 0145      145 &1 not logged on
 *153      153 &1 not in CP directory
- 153      153 user &1 does not exist
+0153      153 user &1 does not exist
 0185    I Active reader class empty (Next file &1 Class &2).
- 199      199 &1
+0199      199 &1
 *
 * help for curious telnetters and netcatters
 *101  01  101
@@ -164,12 +153,11 @@
 0226      226 ABORT/ROLLBACK
 0227      227 Entering Passive Mode (h1,h2,h3,h4,p1,p2).
 0210      210 Restart marker reply.
-0220      220 &1 UFT/2 VMCMSUFT/2.1.1 ready.
+0220      220 &1 UFT/2 VMCMSUFT/2.1 ready.
 0221      221 Service closing control connection.
 0222      222 &1 UFT/2 VMCMSUFT/&3 &4 ; ready.
-*223 vloeistof.casita.net UFT/2 POSIXUFT/2.1.1 8192 ; ready.
 0223      223 &1 UFT/2 POSIXUFT/&3 &4 ; ready.
-0224      224 *anonymous UFT/2 UFT/redacted 0 ; ready.
+0224      224 *anonymous UFT/2 UFT/redacted &4 ; ready.
 0228      228 &1 UFT/2 &3 &4 ; ready.
 0230      230 Local username okay, proceed.
 0250      250 Requested file action okay, completed.
@@ -178,77 +166,88 @@
 0300      300 SEND &1 bytes of data.
 0313      313 send &1 bytes of data.
 0323      323 send &1 bytes of data.
-0350      350 Requested file action pending further information.
-0354      354 Enter mail, end with "." on a line by itself
+0350      350 requested file action pending further information
+0354      354 enter mail and end with "." on a line by itself
 * POSIX server sends 313 after "DATA"
 * VM/CMS server sends 323 after "DATA"
 *
 * 4XX range are client errors:
-0400      400 NAK client error.
-0401      401 Syntax error in parameters or arguments.
-0402      402 &1; command &1 not implemented.
-0403      403 Bad sequence of commands.
-0404      404 Document not found
-0407      407 Proxy Authentication Required
-*411      411 protocol sequence error
- 416      416 Missing operand(s)
-*421      421 (see 521)
-0426      426 Connection closed; transfer aborted.
+0400    E 400 NAK client error.
+0401    E 401 Syntax error in parameters or arguments.
+0402    E 402 &1; command &1 not implemented.
+0403    E 403 Bad sequence of commands.
+0404    E 404 Document not found
+0407    E 407 Proxy Authentication Required
+*411    E 411 protocol sequence error
+0416    E 416 Missing operand(s)
+*421    E 421 (see 521)
+0426    E 426 Connection closed; transfer aborted.
 *432    E 432 no such local user &1
 0433    E 433 invalid option &1
-0449      449 protocol sequence error
-*450      450 Requested file action pending further information.
+0449    E 449 protocol sequence error
+*450    E 450 Requested file action pending further information.
 0470    E 470 Invalid parameter &1
 0475    E 475 No (recipient) names specified
 *
 * 5XX range are server errors:
-0500      500 NAK server error.
-0501      501 Syntax error in parameters or arguments.
-0502      502 Command not implemented.
-0503      503 Bad sequence of commands.
-0505      505 no users enrolled
+0500    E 500 NAK server error.
+0501    E 501 Syntax error in parameters or arguments.
+0502    E 502 Command not implemented.
+0503    E 503 Bad sequence of commands.
+0505    E 505 no users enrolled
+0506    E 506 no space available for the file size indicated
 0511    E 511 User &1 not enrolled in the file pool
-0513      513 server data error
-0521      521 Service not available, closing control connection.
-0522      522 spool directory unavailable.
-0523      523 workspace sequence error.
-0524      524 server temp file error.
-0526      526 Connection closed; transfer aborted.
-0527      527 user slot error
-0528      528 server slot error
-0529      529 server meta file error
+0513    E 513 server data error
+0521    E 521 Service not available, closing control connection.
+0522    E 522 spool directory unavailable.
+0523    E 523 workspace sequence error.
+0524    E 524 server temp file error.
+0526    E 526 Connection closed; transfer aborted.
+0527    E 527 user slot error
+0528    E 528 server slot error
+0529    E 529 server meta file error
 0530    E 530 No file blocks are assigned for this user in file pool &1.
-0531      531 server data error (user has no space)
+0531    E 531 server data error (user has no space)
 0532    E 532 &1 ; no such local user &1
-0533      533 server temp file error
-0534      534 user meta file error.
+0533    E 533 server temp file error
+0534    E 534 user meta file error.
 0535    T 535 This server is not in the required VM CP environment.
-0536      536 No entries were found that matched your search criteria
-0541      541 server data error (user over quota)
+0536    E 536 No entries were found that matched your search criteria
+0541    E 541 server data error (user over quota)
 0542    E 542 This server lacks the privilege class for MSGTYPE MSGNOH.
-0545      545 &1 not logged on
+0545    E 545 &1 not logged on
 0547    E 547 Userid not specified for &1 in &2 &3 file
 0548    E 548 Userid &1 not found; check the &2 NAMES file
-0549      549 workspace sequence error
+0549    E 549 workspace sequence error
 0550    E 550 &1 ; &1 ... User unknown
 0551    E 551 &1 ; server data file error &1
-0552      552 spool directory unavailable
+0552    E 552 spool directory unavailable
 *553    E 553 &1 ; &1 not in CP directory
- 553    E 553 &1 ; user &1 does not exist
+0553    E 553 &1 ; user &1 does not exist
 0555    E 555 &1 ; user auxdata file error &1
-0557      557 &1 not receiving
-0559      559 server data error (physical space)
+0557    E 557 &1 not receiving
+0559    E 559 server data error (physical space)
 0567    E 567 user &1 is not enrolled
+0568    E 568 &1 ; client host &1 is not a peer
 0571    E 571 user &1 not available
 0597    E 597 user validation function &1 not found
 *
- 614      614 HELP:
- 699      699 &1
+0614      614 HELP:
+0699      699 &1
 *
- 708    E product license has expired
+*HCPMID6001I  TIME IS 00:00:00 EDT  MONDAY 03/23/26
+0706    I time is &1 &2 &3 &4
+0708    E product license has expired
 0712    I File &1 sent to &2 at &3 on &4
 *
- 999      © Copyright 1995, 1997, 2025 Richard M. Troth, all rights reserved.
+0844    E Connection cannot be established                  ECONNREFUSED
+0888    R Valid protocol level values are: 0, 1, 2
+*
+0944    E Connection cannot be established                  ECONNREFUSED
+0948    E UFTserverID not defined in TCPIP DATA
+0949    I Unable to connect to remote UFT server            ECONNREFUSED
+0990    R Valid protocol level values are: 0, 1, 2
+0999      © Copyright 1995, 1997, 2025 Richard M. Troth, all rights reserved.
 *
 1049    E Unable to connect to remote UFT server &1
 *
@@ -314,17 +313,6 @@
 *201    I &1 has been started                                       8201
 *205    E Non-numeric value specified                               8205
 *
-*
-*844  + E Connection cannot be established                  ECONNREFUSED
-*944  + E Connection cannot be established                  ECONNREFUSED
-*949  + I Unable to connect to remote UFT server            ECONNREFUSED
-*948  + E UFTserverID not defined in TCPIP DATA
-** failed reading herald from target host
-*314  3 E Protocol violation detected when communicating with ...
-** FIXME: protocol report should be a standardized message
-*888  + R Valid protocol level values are: 0, 1, 2
-*990  + R Valid protocol level values are: 0, 1, 2
-*
 *205    W Reader empty, reader not ready or empty reader file
 *643    E No class &1 files in your reader
 *644    E All reader files are in HOLD status or not class &1
@@ -344,4 +332,17 @@
 *393    E Missing value for &1 option
 *394    E Invalid option: &1
 *395    E Invalid value &1 for &2 option
+*
+*#  There is no logmsg data
+*507    E no preserved data to restore
+*
+*   HCP002E invalid operand - operand
+*   HCP003E invalid option - command has extra option(s) starting with operand
+*   HCP007E invalid userid - userid
+*   HCP041E LOGMSG nn does not exist.
+*   HCP1506E the last line (50) in the log message is already in use.
+*   HCP6704E missing token at end of line
+*   HCP6706E invalid {group name|account ID} - {groupname|accountid}
+*   HCP6734E support for file-based LOGMSG is not enabled.
+*   HCP6771E LOGMSG support based on {Account ID|ACI group|Userid} not enabled.
 *

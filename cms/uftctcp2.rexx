@@ -111,7 +111,7 @@ If ssl Then Do
 End ; Else If port = "" Then port = 608     /* port for cleartext UFT */
 /* connect that TCP/IP client driver to contact the UFT server        */
 'ADDPIPE (ENDCHAR !)' ,
-    '*.OUTPUT.TCP: | U: TCPCLIENT' hisaddr port tcpid '| *.INPUT.TCP:'
+    '*.OUTPUT.TCP: | TCPCLIENT' hisaddr port tcpid '| *.INPUT.TCP:'
 If rc ^= 0 Then Do
     'OUTPUT' arge rc "ADDPIPE" ; Exit rc ; End
 

@@ -120,6 +120,7 @@
 *
 * sendfile server:
       UFTDHELP TXT      *  -- for the "HELP" server command
+      XMMSHIM  EXEC     *  -- XMM interface between C and Rexx+Pipelines
       RXDIAGD4 ASSEMBLE *  -- DiagD4() function source code
       RXDIAGD4 MODULE   *  -- DiagD4() function for the server
       SYSTEM   SNETID   *  -- sample SYSTEM NETID file

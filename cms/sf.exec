@@ -157,6 +157,9 @@ Do  i = 1 to user.0
     If host = "" Then host = hostid
     Do  j = 1 to file.0
         Parse Var file.j fn ft fm .
+        If verbose Then Say "+" ,
+        'PIPE UFTCFILE' fn ft fm 'TO' user 'AT' host '(' opto ,
+            '| UFTCUSER' user '| UFTCHOST' host tls
         'PIPE UFTCFILE' fn ft fm 'TO' user 'AT' host '(' opto ,
             '| UFTCUSER' user '| UFTCHOST' host tls '| STEM JOBLOG.'
         sfrc = rc

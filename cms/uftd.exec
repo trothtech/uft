@@ -1,4 +1,4 @@
-/* © Copyright 1993-2025 Richard M. Troth, all rights reserved. <plaintext>
+/* © Copyright 1993-2026 Richard M. Troth, all rights reserved. <plaintext>
  *
  *        Name: UFTD EXEC
  *              Sender-Initiated File Transfer server
@@ -50,7 +50,7 @@ uftisnet = 0
 Do i = 1 To id.0
     Parse Var id.i . . . . rid .
     If rid = uid Then uftisnet = 1
-    End /* Do For */
+End /* Do For */
 
 /* if we're not listed then can we masquerade as RSCS? */
 If ^uftisnet & rscsid ^= "*" Then Do
@@ -62,7 +62,7 @@ If ^uftisnet & rscsid ^= "*" Then Do
         If rc ^= 0 Then Say argo "alternate userid (DIAG D4) failed" rs
         End /* If .. Do */
     Else Say argo "no DIAG D4 support"
-    End /* If .. Do */
+End /* If .. Do */
 
 /* now... the real work */
 If verbose Then verbose = "VERBOSE"

@@ -1,17 +1,20 @@
 USER     UFTD     password  32M   1G BG
+*
 * Requires class B for MSGNOH and DIAGD4,
 * but will run satisfactorily as class G.
 * DIAGD4 lets UFTD masquerade as RSCS, which helps.
-* (VMSECURE will require that you grant SURROGATE priv's to UFTD
+* (VM:Secure will require that you grant SURROGATE priv's to UFTD
 * for DIAGD4 to work, but again, it *can* live without this.)
-* It can probably run with as little as 6M virtual storage.
-* This sample CP Directory entry used to specify 12M virtual storage.
+*
+* Requires class D for 'QUERY ALLOC SPOOL' to answer
+* 'FILE' command implied question "is there room for this file?".
 *
  INCLUDE  CMS
 * The CMS "profile" should define virtual console, 190, 19E, etc.
+* Some sites may prefer to include a TCP/IP service machine profile.
 *
  ACIGROUP gggggggg
- ACCOUNT  aaaaaaaa dist
+ ACCOUNT  aaaaaaaa distcode
  OPTION NOPDATA
 * NOPDATA allows UFTD to include useful information about the
 * files it processes in "hidden records" (no-op CCW records).
