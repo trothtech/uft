@@ -86,16 +86,16 @@ int main(int argc,char*argv[])
           }
       }
 
-    /* be sure we still have enough args (minimum 2) left over        */
-    if ((argc - i) < 2)
+    /* be sure we still have enough args left (minimum 1 for targ)    */
+    if ((argc - i) < 1)
       { rc = uftx_msgprtl(16,"MSG",0,NULL);
         if (rc < 0) fprintf(stderr,"Missing operand(s).\n");
         return 1; }
 
-    targ = argv[i];     /* first of remaining arguments is the target */
+    targ = argv[i++];   /* first of remaining arguments is the target */
 
     /* any additional arguments would comprise a command-line message */
-    if ((argc - i) >= 2)
+    if ((argc - i) >= 1)
       { k = 0;
         while (i < argc && k < sizeof(msgbuf)-1)
           { for (j = 0; argv[i][j] != 0x00; j++)
@@ -103,14 +103,16 @@ int main(int argc,char*argv[])
             msgbuf[k++] = ' ';
             i++; }
         msgbuf[k++] = 0x00;
-        rc = msgc_uft(argv[1],msgbuf,proxy); }
+    /*  rc = msgc_uft(argv[1],msgbuf,proxy); }                        */
+        rc = msgc_uft(targ,msgbuf,proxy); }
 
     /* ... or ... this logic presently unused ... take input as msgs  */
     else while (1)
       { rc = uftx_getline(0,msgbuf,sizeof(msgbuf)-1);
         if (rc < 0) break;
         if (msgbuf[0] == '.' && msgbuf[1] == 0x00) break;
-        rc = msgc_uft(argv[1],msgbuf,proxy);
+    /*  rc = msgc_uft(argv[1],msgbuf,proxy);                          */
+        rc = msgc_uft(targ,msgbuf,proxy);
         if (rc < 0) break; }
 
     if (rc < 0) { return 1; }

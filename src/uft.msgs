@@ -141,8 +141,8 @@
 0201      201 Command okay.
 0202      202 Command not implemented, superfluous at this site.
 0203      203 &1; command &1 okay
-0204      204 &1; meta command &1 okay               
-0205      205 &1; name &1 okay              
+0204      204 &1; meta command &1 okay
+0205      205 &1; name &1 okay
 0208      208 &1; user &1 okay
 0209      209 &1; type &1 okay
 0211      211 System status, or system help reply.
@@ -172,55 +172,56 @@
 * VM/CMS server sends 323 after "DATA"
 *
 * 4XX range are client errors:
-0400      400 NAK client error.
-0401      401 Syntax error in parameters or arguments.
-0402      402 &1; command &1 not implemented.
-0403      403 Bad sequence of commands.
-0404      404 Document not found
-0407      407 Proxy Authentication Required
-*411      411 protocol sequence error
- 416      416 Missing operand(s)
-*421      421 (see 521)
-0426      426 Connection closed; transfer aborted.
+0400    E 400 NAK client error.
+0401    E 401 Syntax error in parameters or arguments.
+0402    E 402 &1; command &1 not implemented.
+0403    E 403 Bad sequence of commands.
+0404    E 404 Document not found
+0407    E 407 Proxy Authentication Required
+*411    E 411 protocol sequence error
+0416    E 416 Missing operand(s)
+*421    E 421 (see 521)
+0426    E 426 Connection closed; transfer aborted.
 *432    E 432 no such local user &1
 0433    E 433 invalid option &1
-0449      449 protocol sequence error
-*450      450 Requested file action pending further information.
+0449    E 449 protocol sequence error
+*450    E 450 Requested file action pending further information.
 0470    E 470 Invalid parameter &1
 0475    E 475 No (recipient) names specified
 *
 * 5XX range are server errors:
-0500      500 NAK server error.
-0501      501 Syntax error in parameters or arguments.
-0502      502 Command not implemented.
-0503      503 Bad sequence of commands.
-0505      505 no users enrolled
+0500    E 500 NAK server error.
+0501    E 501 Syntax error in parameters or arguments.
+0502    E 502 Command not implemented.
+0503    E 503 Bad sequence of commands.
+0505    E 505 no users enrolled
+0506    E 506 no space available for the file size indicated
 0511    E 511 User &1 not enrolled in the file pool
-0513      513 server data error
-0521      521 Service not available, closing control connection.
-0522      522 spool directory unavailable.
-0523      523 workspace sequence error.
-0524      524 server temp file error.
-0526      526 Connection closed; transfer aborted.
-0527      527 user slot error
-0528      528 server slot error
-0529      529 server meta file error
+0513    E 513 server data error
+0521    E 521 Service not available, closing control connection.
+0522    E 522 spool directory unavailable.
+0523    E 523 workspace sequence error.
+0524    E 524 server temp file error.
+0526    E 526 Connection closed; transfer aborted.
+0527    E 527 user slot error
+0528    E 528 server slot error
+0529    E 529 server meta file error
 0530    E 530 No file blocks are assigned for this user in file pool &1.
-0531      531 server data error (user has no space)
+0531    E 531 server data error (user has no space)
 0532    E 532 &1 ; no such local user &1
-0533      533 server temp file error
-0534      534 user meta file error.
+0533    E 533 server temp file error
+0534    E 534 user meta file error.
 0535    T 535 This server is not in the required VM CP environment.
-0536      536 No entries were found that matched your search criteria
-0541      541 server data error (user over quota)
+0536    E 536 No entries were found that matched your search criteria
+0541    E 541 server data error (user over quota)
 0542    E 542 This server lacks the privilege class for MSGTYPE MSGNOH.
-0545      545 &1 not logged on
+0545    E 545 &1 not logged on
 0547    E 547 Userid not specified for &1 in &2 &3 file
 0548    E 548 Userid &1 not found; check the &2 NAMES file
-0549      549 workspace sequence error
+0549    E 549 workspace sequence error
 0550    E 550 &1 ; &1 ... User unknown
 0551    E 551 &1 ; server data file error &1
-0552      552 spool directory unavailable
+0552    E 552 spool directory unavailable
 *553    E 553 &1 ; &1 not in CP directory
 0553    E 553 &1 ; user &1 does not exist
 0555    E 555 &1 ; user auxdata file error &1
@@ -237,7 +238,7 @@
 *HCPMID6001I  TIME IS 00:00:00 EDT  MONDAY 03/23/26
 0706    I time is &1 &2 &3 &4
 0708    E product license has expired
-0712    I File &1 sent to &2 at &3 on &4                        
+0712    I File &1 sent to &2 at &3 on &4
 *
 0844    E Connection cannot be established                  ECONNREFUSED
 0888    R Valid protocol level values are: 0, 1, 2
